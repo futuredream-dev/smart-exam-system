@@ -20,6 +20,17 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDatabaseConflict() {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiResponse.failure("数据存在关联或约束冲突，请刷新后重试", ErrorCode.CONFLICT.name()));
+    }
+
+    @ExceptionHandler(org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidPath() {
+        return badRequest("请求参数格式不正确", ErrorCode.BAD_REQUEST);
+    }
+
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(BusinessException.class)

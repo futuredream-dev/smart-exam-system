@@ -3,6 +3,10 @@ import AppLayout from '../layouts/AppLayout.vue'
 import LoginView from '../views/LoginView.vue'
 import StudentHomeView from '../views/student/StudentHomeView.vue'
 import TeacherHomeView from '../views/teacher/TeacherHomeView.vue'
+import CoursesView from '../views/teacher/CoursesView.vue'
+import CourseDetailView from '../views/teacher/CourseDetailView.vue'
+import ExamsView from '../views/teacher/ExamsView.vue'
+import ExamDetailView from '../views/teacher/ExamDetailView.vue'
 import { authState, restoreSession } from '../auth/auth'
 
 const routes = [
@@ -28,6 +32,10 @@ const routes = [
         component: TeacherHomeView,
         meta: { title: '教师工作台' },
       },
+      { path: 'courses', component: CoursesView, meta: { title: '课程管理' } },
+      { path: 'courses/:courseId', component: CourseDetailView, meta: { title: '课程详情' } },
+      { path: 'exams', component: ExamsView, meta: { title: '考试管理' } },
+      { path: 'exams/:examId', component: ExamDetailView, meta: { title: '考试详情' } },
     ],
   },
   {
