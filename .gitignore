@@ -1,0 +1,26 @@
+# Backend
+backend/target/
+*.log
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+.env
+.env.*
+!frontend/.env.example
+.pnpm-store/
+
+# Local configuration
+backend/src/main/resources/application-local.yml
+
+# IDE / OS
+.idea/
+.idea/workspace.xml
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp

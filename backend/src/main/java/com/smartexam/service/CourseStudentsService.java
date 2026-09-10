@@ -1,0 +1,3 @@
+package com.smartexam.service;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl; import com.smartexam.entity.CourseStudents; import com.smartexam.mapper.CourseStudentsMapper; import org.springframework.stereotype.Service; import java.util.List;
+@Service public class CourseStudentsService extends ServiceImpl<CourseStudentsMapper, CourseStudents> { public boolean isActiveMember(Long courseId, Long studentId) { return baseMapper.existsActiveStudent(courseId, studentId); } public List<CourseStudents> findByCourseId(Long courseId) { return baseMapper.selectByCourseId(courseId); } }

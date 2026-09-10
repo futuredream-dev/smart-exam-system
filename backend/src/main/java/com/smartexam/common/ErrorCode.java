@@ -1,0 +1,22 @@
+package com.smartexam.common;
+
+/**
+ * API 错误码。业务错误码严格保留 V1.0 文档命名；其余为通用基础错误码。
+ */
+public enum ErrorCode {
+    EXAM_NOT_STARTED,
+    LATE_ENTRY_REJECTED,
+    EXAM_ENDED,
+    TOO_EARLY_TO_SUBMIT,
+    ALREADY_SUBMITTED,
+    NOT_ENROLLED,
+    SCORE_NOT_RELEASED,
+    AI_GRADING_FAILED,
+    FORBIDDEN,
+    BAD_REQUEST,
+    VALIDATION_ERROR,
+    UNAUTHORIZED,
+    NOT_FOUND,
+    CONFLICT,
+    INTERNAL_SERVER_ERROR
+}

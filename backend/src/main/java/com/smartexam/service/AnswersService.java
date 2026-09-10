@@ -1,0 +1,3 @@
+package com.smartexam.service;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl; import com.smartexam.entity.Answers; import com.smartexam.mapper.AnswersMapper; import org.springframework.stereotype.Service; import java.util.List;
+@Service public class AnswersService extends ServiceImpl<AnswersMapper, Answers> { public List<Answers> findBySubmissionId(Long submissionId) { return baseMapper.selectBySubmissionId(submissionId); } }

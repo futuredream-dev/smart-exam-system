@@ -1,0 +1,3 @@
+package com.smartexam.mapper;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper; import com.smartexam.entity.CourseStudents; import org.apache.ibatis.annotations.Mapper; import org.apache.ibatis.annotations.Select; import java.util.List;
+@Mapper public interface CourseStudentsMapper extends BaseMapper<CourseStudents> { @Select("SELECT * FROM course_students WHERE course_id = #{courseId} ORDER BY id") List<CourseStudents> selectByCourseId(Long courseId); @Select("SELECT COUNT(*) > 0 FROM course_students WHERE course_id = #{courseId} AND student_id = #{studentId} AND status = 1") boolean existsActiveStudent(Long courseId, Long studentId); }

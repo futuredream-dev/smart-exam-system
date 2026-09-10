@@ -1,0 +1,3 @@
+package com.smartexam.mapper;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper; import com.smartexam.entity.Answers; import org.apache.ibatis.annotations.Mapper; import org.apache.ibatis.annotations.Select; import java.util.List;
+@Mapper public interface AnswersMapper extends BaseMapper<Answers> { @Select("SELECT * FROM answers WHERE submission_id = #{submissionId} ORDER BY id") List<Answers> selectBySubmissionId(Long submissionId); }
