@@ -10,7 +10,9 @@ frontend/.env
 frontend/.env.local
 .env
 .env.*
+!.env.example
 !frontend/.env.example
+.runtime/
 .pnpm-store/
 
 # Local configuration

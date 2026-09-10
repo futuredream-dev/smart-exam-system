@@ -1,0 +1,11 @@
+*
+!pom.xml
+!src/
+!src/main/
+!src/main/**
+!docker-entrypoint.sh
+src/main/resources/application-local.*
+src/main/resources/.env*
+**/.env
+**/.env.*
+**/*.env

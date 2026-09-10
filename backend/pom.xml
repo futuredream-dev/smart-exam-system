@@ -23,6 +23,11 @@
     </properties>
 
     <dependencies>
+        <!-- 仅暴露不含详情的健康状态，用于启动脚本和容器就绪检查。 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>

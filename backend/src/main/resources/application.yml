@@ -41,6 +41,16 @@ app:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
 
 jwt:
-  # 仅供本机开发；生产环境必须通过 JWT_SECRET 覆盖。
-  secret: ${JWT_SECRET:***REMOVED_JWT_SECRET***}
+  # 开发和部署均从环境提供，不再使用共享的默认密钥。
+  secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:7200000}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+      show-components: never

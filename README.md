@@ -2,6 +2,16 @@
 
 本仓库是前后端分离的智能考试管理系统。当前已完成阶段 1（工程骨架）、阶段 2（数据库映射）、阶段 3（登录及角色权限）和阶段 4（教师课程、考试、题目、评分点及发布）。尚未开发学生考试流程、判分、阅卷及成绩发布。
 
+## 快速运行：开发与部署
+
+完整新手说明见 [部署与运行说明](docs/04_部署与运行说明.md)。这是部署能力补充，最后业务阶段仍为阶段4。
+
+- Windows开发：配置 `DB_PASSWORD` 和至少32位随机 `JWT_SECRET` 环境变量，启动本机MySQL，运行根目录 `start-dev.bat`；访问 http://localhost:5173。`check-env.bat`检查状态，`stop-dev.bat`只停止脚本自己启动的服务。缺少独立Maven时首次启动自动下载到忽略的 `.runtime/tools`，不依赖IDEA。
+- Docker部署：安装并启动Docker Desktop，复制根目录 `.env.example` 为 `.env`，替换所有示例秘密后执行 `docker compose up -d --build`；等待服务健康，访问 http://localhost。无需安装IDEA/Java/Maven/pnpm/MySQL/Workbench，也不用手工建表。
+- 停止Docker：`docker compose down`；再次启动：`docker compose up -d`。普通down保留数据；**不要随意执行带 `-v` 的down，会删除数据库卷**。
+- 根目录 `.env` 仅供Compose使用，开发bat读取Windows/终端环境变量。两套数据库独立，Compose不会复制本机演示考试。
+- 本机尚未安装Docker：配置已生成，正式跨环境运行仍须安装Docker后实际验证，不能视为已通过。
+
 ## 目录结构
 
 ```text
@@ -15,6 +25,12 @@
 ├─ sql/
 │  └─ init.sql              建库、建表与基础测试数据
 ├─ docs/                    V1.0 正式需求与技术规范
+├─ scripts/                 Windows启停与独立Maven准备
+├─ start-dev.bat            开发启动
+├─ stop-dev.bat             安全停止
+├─ check-env.bat            运行检查
+├─ docker-compose.yml       MySQL + 后端 + Nginx
+├─ .env.example             Docker示例变量（无真实秘密）
 ├─ .gitignore
 └─ README.md
 ```
@@ -38,10 +54,10 @@
    mysql -u root -p --default-character-set=utf8mb4
    ```
 
-3. 在 MySQL 客户端中执行（请替换为本机实际绝对路径）：
+3. 从项目根目录启动 MySQL 客户端后执行：
 
    ```sql
-   SOURCE D:/智能考试管理系统/sql/init.sql;
+   SOURCE sql/init.sql;
    ```
 
 脚本会创建 `smart_exam` 数据库、V1.0 的 9 张表及以下测试数据：
@@ -50,7 +66,7 @@
 - 学生：`student_demo_1`、`student_demo_2`
 - 课程：`V1.0 测试课程`（两名测试学生已加入）
 
-三个账号的阶段开发临时密码均为 `password`。SQL 中仅保存 BCrypt 哈希；进入登录模块开发后应立即改为不同的强密码，且禁止把生产密码写入仓库。
+三个账号的阶段开发临时密码均为 `password`。SQL 中仅保存 BCrypt 哈希；这些公开演示凭据仅适合受控开发/演示环境，正式对外使用前必须更换，禁止把生产密码写入仓库。
 
 ## MySQL Workbench 连接
 
@@ -71,6 +87,7 @@
 |`DB_NAME`|`smart_exam`|
 |`DB_USERNAME`|`root`|
 |`DB_PASSWORD`|空字符串|
+|`JWT_SECRET`|无默认值，必须提供至少32位随机密钥|
 |`SERVER_PORT`|`8080`|
 |`CORS_ALLOWED_ORIGINS`|`http://localhost:5173`|
 
@@ -79,6 +96,7 @@ PowerShell 示例：
 ```powershell
 $env:DB_USERNAME = "root"
 $env:DB_PASSWORD = "你的MySQL密码"
+$env:JWT_SECRET = "请替换为至少32位的随机密钥，不要提交真实值"
 cd backend
 mvn spring-boot:run
 ```
@@ -90,7 +108,7 @@ cd backend
 mvn clean test
 ```
 
-`/api/auth/login` 提供登录，`/api/auth/me` 返回当前用户；教师业务接口需要有效 JWT 和 TEACHER 角色。数据库连接池允许应用在数据库暂不可用时完成启动，但实际数据访问仍要求正确的 MySQL 配置。部署时通过环境变量覆盖开发用 JWT 密钥，不把真实密钥写入文件。
+`/api/auth/login` 提供登录，`/api/auth/me` 返回当前用户；教师业务接口需要有效 JWT 和 TEACHER 角色。JWT_SECRET不再有共享默认值，IDEA运行配置及Maven Runner也需提供。健康检查包含数据库连接，连接失败不会被脚本判为启动成功。
 
 IDEA 中可运行 `SmartExamApplication`，运行配置需要提供上述 `DB_*` 环境变量；密码只保存在本机运行配置或环境变量中，不写入项目文件。
 
@@ -147,7 +165,7 @@ pnpm build
 
 ### 自动验收
 
-后端运行 `mvn test`（或 IDEA Bundled Maven 的 `test`），需要与运行配置相同的 `DB_*` 环境变量，并连接真实 `smart_exam`。当前共 52 项测试：原 21 项和新增 31 项。新增测试使用事务回滚，不保留临时教师、课程、考试和题目。
+后端运行 `mvn test`，需要与运行配置相同的 `DB_*`、`JWT_SECRET` 环境变量，并连接真实 `smart_exam`。保留阶段1~4的52项测试，运行标准化另增2项健康端点测试，共54项。阶段4测试使用事务回滚，不保留临时教师、课程、考试和题目。
 
 `frontend/scripts/verify-teacher.cjs` 为可选的真实 Edge 浏览器验收脚本，不属于运行时依赖。需要 Node 可解析 `playwright`（例如通过外部工具环境的 `NODE_PATH`），本机已安装 Edge。通过进程环境变量 `E2E_PASSWORD` 提供测试账号密码后运行：
 
