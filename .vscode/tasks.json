@@ -1,0 +1,21 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "检查 MySQL267",
+      "type": "process",
+      "command": "powershell.exe",
+      "args": [
+        "-NoProfile",
+        "-Command",
+        "$client = [Net.Sockets.TcpClient]::new(); try { $connection = $client.ConnectAsync('127.0.0.1', 3306); if (-not $connection.Wait(1500) -or -not $client.Connected) { throw 'unavailable' }; Write-Host 'MySQL267已运行' } catch { Write-Error 'MySQL267未运行'; exit 1 } finally { $client.Dispose() }"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "后端：SmartExamApplication (Java 17)",
+      "request": "launch",
+      "mainClass": "com.smartexam.SmartExamApplication",
+      "cwd": "${workspaceFolder}/backend",
+      "envFile": "${workspaceFolder}/config/local.env",
+      "preLaunchTask": "检查 MySQL267"
+    },
+    {
+      "type": "node-terminal",
+      "name": "前端：Vue/Vite",
+      "request": "launch",
+      "command": "pnpm dev",
+      "cwd": "${workspaceFolder}/frontend"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "智能考试管理系统",
+      "configurations": [
+        "后端：SmartExamApplication (Java 17)",
+        "前端：Vue/Vite"
+      ],
+      "stopAll": true
+    }
+  ]
+}

@@ -17,11 +17,14 @@ frontend/.env.local
 
 # Local configuration
 backend/src/main/resources/application-local.yml
+config/local.env
 
 # IDE / OS
 .idea/
 .idea/workspace.xml
-.vscode/
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
 *.iml
 .DS_Store
 Thumbs.db
