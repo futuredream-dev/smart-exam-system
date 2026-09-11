@@ -30,13 +30,13 @@ public class StudentExamService {
         if(!"STUDENT".equals(u.getRole())) throw fail(HttpStatus.FORBIDDEN,"无权限访问"); return u;
     }
     private Exams accessible(String username,Long id){ Users u=student(username); Exams e=exams.getById(id);
-        if(e==null||"DRAFT".equals(e.getStatus())||!memberships.isActiveMember(e.getCourseId(),u.getId())) throw fail(HttpStatus.NOT_FOUND,"考试不存在"); return e; }
+        if(e==null||!"PUBLISHED".equals(e.getStatus())||!memberships.isActiveMember(e.getCourseId(),u.getId())) throw fail(HttpStatus.NOT_FOUND,"考试不存在"); return e; }
     private void expire(Submissions s,Exams e,LocalDateTime now){if(s!=null&&"IN_PROGRESS".equals(s.getStatus())&&!now.isBefore(e.getEndTime())) submitLocked(s,e,now,true);}
 
     @Transactional
     public List<MvpViews.StudentExam> list(String username){Users u=student(username); LocalDateTime now=LocalDateTime.now(); return exams.findForStudent(u.getId()).stream().map(e->{Submissions s=submissions.findByExamAndStudent(e.getId(),u.getId()); expire(s,e,now); return examView(e,s);}).toList();}
     public MvpViews.StudentExam detail(String username,Long id){Users u=student(username);Exams e=accessible(username,id);Submissions s=submissions.findByExamAndStudent(id,u.getId());expire(s,e,LocalDateTime.now());return examView(e,s);}
-    private MvpViews.StudentExam examView(Exams e,Submissions s){return new MvpViews.StudentExam(e.getId(),courses.getById(e.getCourseId()).getCourseName(),e.getTitle(),e.getDescription(),e.getStartTime(),e.getEndTime(),e.getLateEntryMinutes(),e.getMinSubmitMinutes(),e.getStatus(),s==null?null:s.getStatus(),s==null?null:s.getId(),s==null?null:s.getTotalScore(),questions.findByExamId(e.getId()).size());}
+    private MvpViews.StudentExam examView(Exams e,Submissions s){return new MvpViews.StudentExam(e.getId(),courses.getById(e.getCourseId()).getCourseName(),e.getTitle(),e.getDescription(),e.getStartTime(),e.getEndTime(),e.getLateEntryMinutes(),e.getMinSubmitMinutes(),e.getStatus(),s==null?null:s.getStatus(),s==null?null:s.getId(),questions.findByExamId(e.getId()).size());}
 
     @Transactional
     public MvpViews.Paper enter(String username,Long examId){Users u=student(username);Exams e=accessible(username,examId);LocalDateTime now=LocalDateTime.now();Submissions s=submissions.findByExamAndStudent(examId,u.getId());
