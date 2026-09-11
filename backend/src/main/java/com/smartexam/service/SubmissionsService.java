@@ -1,3 +1,3 @@
 package com.smartexam.service;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl; import com.smartexam.entity.Submissions; import com.smartexam.mapper.SubmissionsMapper; import org.springframework.stereotype.Service;
-@Service public class SubmissionsService extends ServiceImpl<SubmissionsMapper, Submissions> { public Submissions findByExamAndStudent(Long examId, Long studentId) { return baseMapper.selectByExamAndStudent(examId, studentId); } }
+@Service public class SubmissionsService extends ServiceImpl<SubmissionsMapper, Submissions> { public Submissions findByExamAndStudent(Long examId, Long studentId) { return baseMapper.selectByExamAndStudent(examId, studentId); } public java.util.List<Submissions> findByExamId(Long examId){return baseMapper.selectByExamId(examId);} public java.util.List<Submissions> findPublishedByStudent(Long studentId){return baseMapper.selectPublishedByStudent(studentId);} }

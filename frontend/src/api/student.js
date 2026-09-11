@@ -1,0 +1,4 @@
+import http from './http'
+export const studentApi={exams:()=>http.get('/student/exams'),exam:id=>http.get('/student/exams/'+id),enter:id=>http.post('/student/exams/'+id+'/enter'),paper:id=>http.get('/student/submissions/'+id+'/paper'),save:(submissionId,questionId,answerContent)=>http.put(`/student/submissions/${submissionId}/answers/${questionId}`,{answerContent}),submit:id=>http.post('/student/submissions/'+id+'/submit'),results:()=>http.get('/student/results'),result:id=>http.get('/student/results/'+id)}
+export const formatTime=v=>v?v.replace('T',' ').slice(0,16):'—'
+export const submissionNames={IN_PROGRESS:'答题中',SUBMITTED:'已交卷',AUTO_SUBMITTED:'已自动交卷',GRADED:'已评分'}

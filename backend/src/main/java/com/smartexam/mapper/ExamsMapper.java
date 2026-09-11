@@ -1,3 +1,3 @@
 package com.smartexam.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper; import com.smartexam.entity.Exams; import org.apache.ibatis.annotations.Mapper; import org.apache.ibatis.annotations.Select; import java.util.List;
-@Mapper public interface ExamsMapper extends BaseMapper<Exams> { @Select("SELECT * FROM exams WHERE course_id = #{courseId} ORDER BY start_time, id") List<Exams> selectByCourseId(Long courseId); }
+@Mapper public interface ExamsMapper extends BaseMapper<Exams> { @Select("SELECT * FROM exams WHERE course_id = #{courseId} ORDER BY start_time, id") List<Exams> selectByCourseId(Long courseId); @Select("SELECT e.* FROM exams e JOIN course_students cs ON cs.course_id=e.course_id AND cs.student_id=#{studentId} AND cs.status=1 WHERE e.status<>'DRAFT' ORDER BY e.start_time DESC,e.id DESC") List<Exams> selectForStudent(Long studentId); }

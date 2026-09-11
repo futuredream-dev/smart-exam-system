@@ -1,0 +1,10 @@
+package com.smartexam.controller;
+import com.smartexam.common.ApiResponse;import com.smartexam.dto.MvpRequests;import com.smartexam.service.TeacherGradingService;import com.smartexam.vo.MvpViews;import jakarta.validation.Valid;import lombok.RequiredArgsConstructor;import org.springframework.security.core.Authentication;import org.springframework.web.bind.annotation.*;import java.util.List;
+@RestController @RequestMapping("/api/teacher/grading") @RequiredArgsConstructor public class TeacherGradingController{private final TeacherGradingService service;
+@GetMapping("/exams")public ApiResponse<List<MvpViews.ReviewExam>> exams(Authentication a){return ApiResponse.success(service.exams(a.getName()));}
+@GetMapping("/exams/{id}/submissions")public ApiResponse<List<MvpViews.ReviewSubmission>> submissions(Authentication a,@PathVariable Long id){return ApiResponse.success(service.submissions(a.getName(),id));}
+@GetMapping("/submissions/{id}")public ApiResponse<MvpViews.ReviewPaper> paper(Authentication a,@PathVariable Long id){return ApiResponse.success(service.paper(a.getName(),id));}
+@PostMapping("/answers/{id}/ai-grade")public ApiResponse<MvpViews.ReviewPaper> ai(Authentication a,@PathVariable Long id){return ApiResponse.success(service.requestAi(a.getName(),id));}
+@PutMapping("/answers/{id}/review")public ApiResponse<MvpViews.ReviewPaper> review(Authentication a,@PathVariable Long id,@Valid @RequestBody MvpRequests.ReviewAnswer r){return ApiResponse.success(service.review(a.getName(),id,r));}
+@PutMapping("/submissions/{id}/comment")public ApiResponse<MvpViews.ReviewPaper> comment(Authentication a,@PathVariable Long id,@Valid @RequestBody MvpRequests.SubmissionComment r){return ApiResponse.success(service.comment(a.getName(),id,r));}
+@PostMapping("/submissions/{id}/publish")public ApiResponse<MvpViews.ReviewPaper> publish(Authentication a,@PathVariable Long id){return ApiResponse.success(service.publish(a.getName(),id));}}

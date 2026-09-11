@@ -1,15 +1,2 @@
-<script setup>
-import { useRouter } from 'vue-router'
-import { authState, clearSession } from '../../auth/auth'
-const router = useRouter()
-function logout() { clearSession(); router.push('/login') }
-</script>
-<template>
-  <section>
-    <p class="eyebrow">STUDENT</p>
-    <h1>学生工作台</h1>
-    <p>当前用户：{{ authState.currentUser?.name }}（{{ authState.currentUser?.username }}）</p>
-    <p>角色：学生</p><button @click="logout">退出登录</button>
-    <p class="muted">考试功能将在后续阶段实现。</p>
-  </section>
-</template>
+<script setup>import{onMounted,ref}from'vue';import{studentApi,formatTime,submissionNames}from'../../api/student';const exams=ref([]),loading=ref(true),error=ref('');onMounted(async()=>{try{exams.value=(await studentApi.exams()).data}catch(e){error.value=e.message}finally{loading.value=false}});const state=e=>e.submissionStatus?submissionNames[e.submissionStatus]:new Date()<new Date(e.startTime)?'未开始':new Date()>=new Date(e.endTime)?'已结束':'可进入'</script>
+<template><header class="page-heading"><div><p class="eyebrow">STUDENT EXAMS</p><h1>我的考试</h1><p class="muted">查看考试安排并进入答题。</p></div><RouterLink class="secondary" to="/student/results">查看我的成绩</RouterLink></header><p v-if="error" class="error-message">{{error}}</p><p v-if="loading" class="empty-state">正在加载考试…</p><p v-else-if="!exams.length" class="empty-state">当前没有已发布的考试。</p><div v-else class="course-grid"><RouterLink v-for="e in exams" :key="e.id" :to="'/student/exams/'+e.id" class="surface course-card"><span :class="['badge',e.submissionStatus]">{{state(e)}}</span><h3>{{e.title}}</h3><p>{{e.courseName}}</p><small class="muted">{{formatTime(e.startTime)}} 至 {{formatTime(e.endTime)}}</small><p>{{e.questionCount}} 道题 · 迟到 {{e.lateEntryMinutes}} 分钟内可入场</p></RouterLink></div></template>

@@ -12,6 +12,13 @@ export const teacherApi = {
   saveQuestion: (id, examId, data) => id ? http.put('/teacher/questions/' + id, data) : http.post('/teacher/exams/' + examId + '/questions', data),
   deleteQuestion: id => http.delete('/teacher/questions/' + id),
   publish: id => http.post('/teacher/exams/' + id + '/publish'),
+  gradingExams: () => http.get('/teacher/grading/exams'),
+  gradingSubmissions: id => http.get('/teacher/grading/exams/' + id + '/submissions'),
+  gradingPaper: id => http.get('/teacher/grading/submissions/' + id),
+  aiGrade: id => http.post('/teacher/grading/answers/' + id + '/ai-grade'),
+  reviewAnswer: (id, data) => http.put('/teacher/grading/answers/' + id + '/review', data),
+  saveFinalComment: (id, teacherComment) => http.put('/teacher/grading/submissions/' + id + '/comment', { teacherComment }),
+  publishScore: id => http.post('/teacher/grading/submissions/' + id + '/publish'),
 }
 // 工作台聚合正式课程/考试接口，不引入文档外业务路径。
 export async function loadWorkspace() {

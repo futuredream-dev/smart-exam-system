@@ -7,6 +7,12 @@ import CoursesView from '../views/teacher/CoursesView.vue'
 import CourseDetailView from '../views/teacher/CourseDetailView.vue'
 import ExamsView from '../views/teacher/ExamsView.vue'
 import ExamDetailView from '../views/teacher/ExamDetailView.vue'
+import GradingExamsView from '../views/teacher/GradingExamsView.vue'
+import GradingSubmissionsView from '../views/teacher/GradingSubmissionsView.vue'
+import GradingPaperView from '../views/teacher/GradingPaperView.vue'
+import StudentExamDetailView from '../views/student/StudentExamDetailView.vue'
+import StudentPaperView from '../views/student/StudentPaperView.vue'
+import StudentResultsView from '../views/student/StudentResultsView.vue'
 import { authState, restoreSession } from '../auth/auth'
 
 const routes = [
@@ -36,6 +42,9 @@ const routes = [
       { path: 'courses/:courseId', component: CourseDetailView, meta: { title: '课程详情' } },
       { path: 'exams', component: ExamsView, meta: { title: '考试管理' } },
       { path: 'exams/:examId', component: ExamDetailView, meta: { title: '考试详情' } },
+      { path: 'grading', component: GradingExamsView, meta: { title: '考试阅卷' } },
+      { path: 'grading/exams/:examId', component: GradingSubmissionsView, meta: { title: '答卷列表' } },
+      { path: 'grading/submissions/:submissionId', component: GradingPaperView, meta: { title: '学生答卷' } },
     ],
   },
   {
@@ -50,6 +59,9 @@ const routes = [
         component: StudentHomeView,
         meta: { title: '学生工作台' },
       },
+      { path: 'exams/:examId', component: StudentExamDetailView, meta: { title: '考试详情' } },
+      { path: 'paper/:submissionId', component: StudentPaperView, meta: { title: '在线答题' } },
+      { path: 'results', component: StudentResultsView, meta: { title: '我的成绩' } },
     ],
   },
   {
