@@ -22,7 +22,7 @@ public final class MvpViews {
     public record ReviewExam(Long id, String courseName, String title, String status,
             LocalDateTime endTime, long submissionCount, long pendingCount, long reviewedCount) {}
     public record ReviewSubmission(Long id, Long studentId, String studentName, String status,
-            LocalDateTime submitTime, BigDecimal totalScore, boolean scorePublished) {}
+            String gradingStatus, LocalDateTime submitTime, BigDecimal totalScore, boolean scorePublished) {}
     public record AiSuggestion(String status, BigDecimal aiScore, String aiReason, String aiComment,
             List<String> matchedPoints, List<String> missingPoints, String errorMessage) {}
     public record ReviewAnswer(Long answerId, Long questionId, String questionType, String content,
