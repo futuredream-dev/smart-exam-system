@@ -45,6 +45,12 @@ jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:7200000}
 
+ai:
+  api-key: ${AI_API_KEY:}
+  base-url: ${AI_BASE_URL:}
+  model: ${AI_MODEL:}
+  timeout-seconds: ${AI_TIMEOUT_SECONDS:30}
+
 management:
   endpoints:
     web:
