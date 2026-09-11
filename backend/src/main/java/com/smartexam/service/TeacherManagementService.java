@@ -36,6 +36,7 @@ public class TeacherManagementService {
     private final ExamsService exams;
     private final QuestionsService questions;
     private final ScoringPointsService points;
+    private final CourseStudentsService memberships;
     private final ObjectMapper json;
 
     private Users teacher(String username) {
@@ -80,6 +81,54 @@ public class TeacherManagementService {
 
     public TeacherViews.Course course(String username, Long id) {
         return courseView(ownCourse(username, id, false), teacher(username).getName());
+    }
+
+    public List<TeacherViews.Student> listStudents(String username) {
+        teacher(username);
+        return users.list(new QueryWrapper<Users>().eq("role", UserRole.STUDENT.name()).eq("status", 1)
+                .orderByAsc("name", "id")).stream().map(this::studentView).toList();
+    }
+
+    public List<TeacherViews.Student> listCourseStudents(String username, Long courseId) {
+        ownCourse(username, courseId, false);
+        return memberships.findByCourseId(courseId).stream().filter(row -> Integer.valueOf(1).equals(row.getStatus()))
+                .map(row -> users.getById(row.getStudentId())).filter(Objects::nonNull)
+                .map(this::studentView).toList();
+    }
+
+    @Transactional(isolation=Isolation.READ_COMMITTED)
+    public TeacherViews.Student addCourseStudent(String username, Long courseId,
+            @Valid TeacherRequests.CourseStudent request) {
+        ownCourse(username, courseId, true);
+        Users student = users.getById(request.studentId());
+        if (student == null || !UserRole.STUDENT.name().equals(student.getRole())
+                || !Integer.valueOf(1).equals(student.getStatus()))
+            throw invalid("只能添加系统中已启用的学生账号");
+        CourseStudents membership = memberships.getOne(new QueryWrapper<CourseStudents>()
+                .eq("course_id", courseId).eq("student_id", student.getId()));
+        if (membership != null && Integer.valueOf(1).equals(membership.getStatus()))
+            throw failure(HttpStatus.CONFLICT, ErrorCode.CONFLICT, "该学生已加入课程");
+        if (membership == null) {
+            membership = new CourseStudents();
+            membership.setCourseId(courseId);membership.setStudentId(student.getId());membership.setStatus(1);
+            memberships.save(membership);
+        } else {
+            membership.setStatus(1);memberships.updateById(membership);
+        }
+        return studentView(student);
+    }
+
+    @Transactional(isolation=Isolation.READ_COMMITTED)
+    public void removeCourseStudent(String username, Long courseId, Long studentId) {
+        ownCourse(username, courseId, true);
+        CourseStudents membership = memberships.getOne(new QueryWrapper<CourseStudents>()
+                .eq("course_id", courseId).eq("student_id", studentId));
+        if (membership == null || !Integer.valueOf(1).equals(membership.getStatus())) throw missing("课程学生关系");
+        membership.setStatus(0);memberships.updateById(membership);
+    }
+
+    private TeacherViews.Student studentView(Users student) {
+        return new TeacherViews.Student(student.getId(), student.getUsername(), student.getName());
     }
 
     private TeacherViews.Course courseView(Courses c, String teacherName) {

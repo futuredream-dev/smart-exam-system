@@ -3,6 +3,10 @@ import http from './http'
 export const teacherApi = {
   courses: () => http.get('/teacher/courses'),
   course: id => http.get('/teacher/courses/' + id),
+  students: () => http.get('/teacher/students'),
+  courseStudents: courseId => http.get('/teacher/courses/' + courseId + '/students'),
+  addCourseStudent: (courseId, studentId) => http.post('/teacher/courses/' + courseId + '/students', { studentId }),
+  removeCourseStudent: (courseId, studentId) => http.delete('/teacher/courses/' + courseId + '/students/' + studentId),
   saveCourse: (id, data) => id ? http.put('/teacher/courses/' + id, data) : http.post('/teacher/courses', data),
   deleteCourse: id => http.delete('/teacher/courses/' + id),
   exams: courseId => http.get('/teacher/courses/' + courseId + '/exams'),

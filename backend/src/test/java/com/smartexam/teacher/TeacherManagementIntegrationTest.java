@@ -142,6 +142,35 @@ class TeacherManagementIntegrationTest {
         call(get("/api/teacher/exams/9223372036854775807"),null,teacherToken,404);
         call(delete("/api/teacher/questions/9223372036854775807"),null,teacherToken,404);
     }
+    @Test void courseStudentsCanBeAddedListedRemovedAndReactivated() throws Exception {
+        Users student=users.findByUsername("student_demo_2");
+        JsonNode candidates=call(get("/api/teacher/students"),null,teacherToken,200).path("data");
+        assertThat(candidates).anyMatch(row->row.path("id").asLong()==student.getId());
+        call(post("/api/teacher/courses/"+courseId+"/students"),Map.of("studentId",student.getId()),teacherToken,200);
+        JsonNode enrolled=call(get("/api/teacher/courses/"+courseId+"/students"),null,teacherToken,200).path("data");
+        assertThat(enrolled).hasSize(1);assertThat(enrolled.get(0).path("username").asText()).isEqualTo("student_demo_2");
+        call(post("/api/teacher/courses/"+courseId+"/students"),Map.of("studentId",student.getId()),teacherToken,409);
+        call(delete("/api/teacher/courses/"+courseId+"/students/"+student.getId()),null,teacherToken,200);
+        assertThat(call(get("/api/teacher/courses/"+courseId+"/students"),null,teacherToken,200).path("data")).isEmpty();
+        call(post("/api/teacher/courses/"+courseId+"/students"),Map.of("studentId",student.getId()),teacherToken,200);
+        assertThat(call(get("/api/teacher/courses/"+courseId+"/students"),null,teacherToken,200).path("data")).hasSize(1);
+    }
+    @Test void courseStudentManagementEnforcesOwnershipAndStudentRole() throws Exception {
+        Long studentId=users.findByUsername("student_demo_2").getId();
+        call(get("/api/teacher/courses/"+courseId+"/students"),null,otherToken,403);
+        call(post("/api/teacher/courses/"+courseId+"/students"),Map.of("studentId",studentId),otherToken,403);
+        call(delete("/api/teacher/courses/"+courseId+"/students/"+studentId),null,otherToken,403);
+        call(post("/api/teacher/courses/"+courseId+"/students"),Map.of("studentId",users.findByUsername("teacher_demo").getId()),teacherToken,400);
+    }
+    @Test void addedStudentCanSeePublishedCourseExamBeforeStart() throws Exception {
+        Users student=users.findByUsername("student_demo_2");String token=login(student.getUsername());
+        Long examId=createExam();question(examId,single());publish(examId,200);
+        assertThat(call(get("/api/student/exams"),null,token,200).path("data")).noneMatch(row->row.path("id").asLong()==examId);
+        call(post("/api/teacher/courses/"+courseId+"/students"),Map.of("studentId",student.getId()),teacherToken,200);
+        JsonNode visible=call(get("/api/student/exams"),null,token,200).path("data");
+        assertThat(visible).anyMatch(row->row.path("id").asLong()==examId&&"PUBLISHED".equals(row.path("examStatus").asText()));
+        call(post("/api/student/exams/"+examId+"/enter"),null,token,409);
+    }
     @Test void createExamDraftIgnoresForgedIdentityAndStatus() throws Exception {
         Map<String,Object> body = examBody(); body.put("createdBy", -1); body.put("status", "PUBLISHED"); body.put("courseId",-1);
         Long id = call(post("/api/teacher/courses/"+courseId+"/exams"),body,teacherToken,200).path("data").path("id").asLong();

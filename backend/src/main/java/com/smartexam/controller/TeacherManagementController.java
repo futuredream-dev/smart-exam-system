@@ -27,6 +27,29 @@ public class TeacherManagementController {
         return ApiResponse.success(service.course(a.getName(), courseId));
     }
 
+    @GetMapping("/students")
+    public ApiResponse<List<TeacherViews.Student>> listStudents(Authentication a) {
+        return ApiResponse.success(service.listStudents(a.getName()));
+    }
+
+    @GetMapping("/courses/{courseId}/students")
+    public ApiResponse<List<TeacherViews.Student>> listCourseStudents(Authentication a, @PathVariable Long courseId) {
+        return ApiResponse.success(service.listCourseStudents(a.getName(), courseId));
+    }
+
+    @PostMapping("/courses/{courseId}/students")
+    public ApiResponse<TeacherViews.Student> addCourseStudent(Authentication a, @PathVariable Long courseId,
+            @Valid @RequestBody TeacherRequests.CourseStudent r) {
+        return ApiResponse.success(service.addCourseStudent(a.getName(), courseId, r));
+    }
+
+    @DeleteMapping("/courses/{courseId}/students/{studentId}")
+    public ApiResponse<Void> removeCourseStudent(Authentication a, @PathVariable Long courseId,
+            @PathVariable Long studentId) {
+        service.removeCourseStudent(a.getName(), courseId, studentId);
+        return ApiResponse.success(null);
+    }
+
     @PostMapping("/courses")
     public ApiResponse<TeacherViews.Course> createCourse(Authentication a, @Valid @RequestBody TeacherRequests.Course r) {
         return ApiResponse.success(service.createCourse(a.getName(), r));

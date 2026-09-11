@@ -8,6 +8,7 @@ import java.util.List;
 /** 仅返回教师管理页需要的数据，不序列化 Entity。 */
 public final class TeacherViews {
     private TeacherViews() {}
+    public record Student(Long id, String username, String name) {}
     public record Course(Long id, String courseName, String description, LocalDateTime createdAt,
                          LocalDateTime updatedAt, String teacherName, long examCount) {}
     public record Exam(Long id, Long courseId, String courseName, String title, String description,

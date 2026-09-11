@@ -10,6 +10,7 @@ import java.util.List;
 /** 创建和编辑共用完整表单，不接收 teacherId、createdBy 或 status。 */
 public final class TeacherRequests {
     private TeacherRequests() {}
+    public record CourseStudent(@NotNull Long studentId) {}
     public record Course(@NotBlank @Size(max=120) String courseName, @Size(max=10000) String description) {}
     public record Exam(@NotBlank @Size(max=160) String title, @Size(max=10000) String description,
             @NotNull LocalDateTime startTime, @NotNull LocalDateTime endTime,
