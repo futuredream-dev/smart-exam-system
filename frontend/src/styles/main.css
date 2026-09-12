@@ -106,6 +106,21 @@ a {
   font-size: 13px;
 }
 
+.success-notice {
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: #176b45;
+  background: #eaf8f1;
+  font-size: 13px;
+}
+
+.auth-switch {
+  margin: 20px 0 0;
+  text-align: center;
+  color: #667085;
+  font-size: 13px;
+}
+
 .portal-links {
   display: flex;
   justify-content: space-between;
