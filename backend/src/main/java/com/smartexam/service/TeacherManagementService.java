@@ -48,7 +48,7 @@ public class TeacherManagementService {
         return user;
     }
 
-    private Courses ownCourse(String username, Long id, boolean lock) {
+    Courses ownCourse(String username, Long id, boolean lock) {
         Users user = teacher(username);
         Courses course = courses.getOne(new QueryWrapper<Courses>().eq("id", id).last(lock ? "FOR UPDATE" : ""));
         if (course == null) throw missing("课程");
