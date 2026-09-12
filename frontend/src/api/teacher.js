@@ -7,6 +7,20 @@ export const teacherApi = {
   courseStudents: courseId => http.get('/teacher/courses/' + courseId + '/students'),
   addCourseStudent: (courseId, studentId) => http.post('/teacher/courses/' + courseId + '/students', { studentId }),
   removeCourseStudent: (courseId, studentId) => http.delete('/teacher/courses/' + courseId + '/students/' + studentId),
+  resetStudentPassword: (courseId, studentId) => http.post('/teacher/courses/' + courseId + '/students/' + studentId + '/reset-password'),
+  studentImportTemplate: courseId => http.get('/teacher/courses/' + courseId + '/students/import-template', { responseType: 'blob' }),
+  previewStudentImport: (courseId, file, usernameColumn, nameColumn) => {
+    const data = new FormData(); data.append('file', file)
+    if (usernameColumn !== null && usernameColumn !== undefined) data.append('usernameColumn', usernameColumn)
+    if (nameColumn !== null && nameColumn !== undefined) data.append('nameColumn', nameColumn)
+    return http.post('/teacher/courses/' + courseId + '/students/import-preview', data, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 30000 })
+  },
+  importStudents: (courseId, file, usernameColumn, nameColumn) => {
+    const data = new FormData(); data.append('file', file)
+    if (usernameColumn !== null && usernameColumn !== undefined) data.append('usernameColumn', usernameColumn)
+    if (nameColumn !== null && nameColumn !== undefined) data.append('nameColumn', nameColumn)
+    return http.post('/teacher/courses/' + courseId + '/students/import', data, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 30000 })
+  },
   saveCourse: (id, data) => id ? http.put('/teacher/courses/' + id, data) : http.post('/teacher/courses', data),
   deleteCourse: id => http.delete('/teacher/courses/' + id),
   exams: courseId => http.get('/teacher/courses/' + courseId + '/exams'),

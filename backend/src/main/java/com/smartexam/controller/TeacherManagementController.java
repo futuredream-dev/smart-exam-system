@@ -4,10 +4,19 @@ import com.smartexam.common.ApiResponse;
 import com.smartexam.dto.TeacherRequests;
 import com.smartexam.vo.TeacherViews;
 import com.smartexam.service.TeacherManagementService;
+import com.smartexam.service.StudentExcelImportService;
+import com.smartexam.vo.StudentImportViews;
+import com.smartexam.vo.PasswordResetVO;
+import com.smartexam.service.AccountLifecycleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import java.util.List;
 
 /** 身份仅来自 Spring Security，Controller 不接收教师 ID。 */
@@ -16,6 +25,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TeacherManagementController {
     private final TeacherManagementService service;
+    private final StudentExcelImportService studentImports;
+    private final AccountLifecycleService accountLifecycle;
 
     @GetMapping("/courses")
     public ApiResponse<List<TeacherViews.Course>> listCourses(Authentication a) {
@@ -48,6 +59,38 @@ public class TeacherManagementController {
             @PathVariable Long studentId) {
         service.removeCourseStudent(a.getName(), courseId, studentId);
         return ApiResponse.success(null);
+    }
+
+    @PostMapping("/courses/{courseId}/students/{studentId}/reset-password")
+    public ApiResponse<PasswordResetVO> resetStudentPassword(Authentication a, @PathVariable Long courseId,
+            @PathVariable Long studentId) {
+        return ApiResponse.success(accountLifecycle.resetStudentPassword(a.getName(), courseId, studentId));
+    }
+
+    @GetMapping("/courses/{courseId}/students/import-template")
+    public ResponseEntity<byte[]> studentImportTemplate(Authentication a, @PathVariable Long courseId) {
+        byte[] content = studentImports.template(a.getName(), courseId);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
+                        .filename("student-import-template.xlsx", java.nio.charset.StandardCharsets.UTF_8).build().toString())
+                .body(content);
+    }
+
+    @PostMapping(value = "/courses/{courseId}/students/import-preview", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<StudentImportViews.Preview> previewStudentImport(Authentication a, @PathVariable Long courseId,
+            @RequestPart("file") MultipartFile file,
+            @RequestParam(required = false) Integer usernameColumn,
+            @RequestParam(required = false) Integer nameColumn) {
+        return ApiResponse.success(studentImports.preview(a.getName(), courseId, file, usernameColumn, nameColumn));
+    }
+
+    @PostMapping(value = "/courses/{courseId}/students/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<StudentImportViews.Result> importStudents(Authentication a, @PathVariable Long courseId,
+            @RequestPart("file") MultipartFile file,
+            @RequestParam(required = false) Integer usernameColumn,
+            @RequestParam(required = false) Integer nameColumn) {
+        return ApiResponse.success(studentImports.importStudents(a.getName(), courseId, file, usernameColumn, nameColumn));
     }
 
     @PostMapping("/courses")
