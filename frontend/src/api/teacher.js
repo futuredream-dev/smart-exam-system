@@ -30,6 +30,7 @@ export const teacherApi = {
   saveQuestion: (id, examId, data) => id ? http.put('/teacher/questions/' + id, data) : http.post('/teacher/exams/' + examId + '/questions', data),
   bankCandidates: (examId, params) => http.get('/teacher/exams/' + examId + '/question-bank-items', { params }),
   addQuestionsFromBank: (examId, bankItemIds) => http.post('/teacher/exams/' + examId + '/questions/from-bank', { bankItemIds }),
+  randomPreview: (examId, data) => http.post('/teacher/exams/' + examId + '/questions/random-preview', data),
   deleteQuestion: id => http.delete('/teacher/questions/' + id),
   publish: id => http.post('/teacher/exams/' + id + '/publish'),
   gradingExams: () => http.get('/teacher/grading/exams'),

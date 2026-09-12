@@ -6,8 +6,9 @@ import TeacherModal from '../../components/TeacherModal.vue'
 import ExamForm from '../../components/ExamForm.vue'
 import QuestionForm from '../../components/QuestionForm.vue'
 import QuestionBankPicker from '../../components/QuestionBankPicker.vue'
+import RandomPaperComposer from '../../components/RandomPaperComposer.vue'
 const route = useRoute(), exam = ref(null), questions = ref([]), error = ref(''), notice = ref(''), loading = ref(true), busy = ref(false)
-const editExam = ref(false), editQuestion = ref(false), pickFromBank = ref(false), selected = ref(null)
+const editExam = ref(false), editQuestion = ref(false), pickFromBank = ref(false), randomCompose = ref(false), selected = ref(null)
 async function load() {
   try { const [e,q] = await Promise.all([teacherApi.exam(route.params.examId), teacherApi.questions(route.params.examId)]); exam.value = e.data; questions.value = q.data }
   catch(e) { error.value = e.message } finally { loading.value = false }
@@ -15,6 +16,7 @@ async function load() {
 function openQuestion(q) { selected.value = q; editQuestion.value = true }
 async function saved() { editExam.value = false; editQuestion.value = false; notice.value = '保存成功'; await load() }
 async function bankQuestionsAdded(count) { pickFromBank.value = false; notice.value = `已从题库加入 ${count} 道题`; await load() }
+async function randomPaperAdded(count) { randomCompose.value = false; notice.value = `已随机加入 ${count} 道题`; await load() }
 async function remove(q) {
   if (!window.confirm('确定删除题目“' + q.content.slice(0, 40) + '”及其评分点吗？')) return
   try { await teacherApi.deleteQuestion(q.id); notice.value = '题目已删除'; await load() } catch(e) { error.value = e.message }
@@ -39,7 +41,7 @@ onMounted(load)
       <div class="meta-strip"><span>开始 {{ formatTime(exam.startTime) }}</span><span>结束 {{ formatTime(exam.endTime) }}</span><span>迟到允许 {{ exam.lateEntryMinutes }} 分钟</span><span>最早交卷 {{ exam.minSubmitMinutes }} 分钟</span></div>
       <p v-if="exam.status !== 'DRAFT'" class="notice">考试已发布，关键规则和题目已锁定。发布时间：{{ formatTime(exam.publishedAt) }}</p>
     </section>
-    <div class="section-head"><h2>试卷题目 <span class="muted">共 {{ exam.questionCount }} 题 · 总分 {{ exam.totalScore }} 分</span></h2><div v-if="exam.status === 'DRAFT'" class="actions"><button class="secondary" @click="openQuestion(null)">+ 手动新增题目</button><button class="primary" @click="pickFromBank = true">从题库选题</button></div></div>
+    <div class="section-head"><h2>试卷题目 <span class="muted">共 {{ exam.questionCount }} 题 · 总分 {{ exam.totalScore }} 分</span></h2><div v-if="exam.status === 'DRAFT'" class="actions"><button class="secondary" @click="openQuestion(null)">+ 手动新增题目</button><button class="primary" @click="pickFromBank = true">从题库选题</button><button class="secondary" @click="randomCompose = true">随机组卷</button></div></div>
     <div v-if="!questions.length" class="empty-state">试卷还是空的，添加一道单选题或简答题开始设计。</div>
     <article v-for="q in questions" :key="q.id" class="surface question-card">
       <header class="section-head"><div class="actions"><span class="question-order">{{ q.sortOrder }}</span><span class="badge" :class="q.questionType">{{ q.questionType === 'SINGLE_CHOICE' ? '单选题' : '简答题' }}</span><strong>{{ q.score }} 分</strong></div><div v-if="exam.status === 'DRAFT'" class="actions"><button class="ghost" @click="openQuestion(q)">编辑题目</button><button class="danger" @click="remove(q)">删除题目</button></div></header>
@@ -51,5 +53,6 @@ onMounted(load)
     <TeacherModal v-if="editExam" title="编辑考试" @close="editExam = false"><ExamForm :course-id="exam.courseId" :exam="exam" @saved="saved" /></TeacherModal>
     <TeacherModal v-if="editQuestion" :title="selected ? '编辑题目' : '添加题目'" @close="editQuestion = false"><QuestionForm :exam-id="exam.id" :question="selected" :next-order="questions.length ? Math.max(...questions.map(q => q.sortOrder)) + 1 : 1" @saved="saved" /></TeacherModal>
     <TeacherModal v-if="pickFromBank" title="从题库选题" @close="pickFromBank = false"><QuestionBankPicker :exam-id="exam.id" @saved="bankQuestionsAdded" /></TeacherModal>
+    <TeacherModal v-if="randomCompose" title="随机组卷" @close="randomCompose = false"><RandomPaperComposer :exam-id="exam.id" @saved="randomPaperAdded" @close="randomCompose = false" /></TeacherModal>
   </template>
 </template>

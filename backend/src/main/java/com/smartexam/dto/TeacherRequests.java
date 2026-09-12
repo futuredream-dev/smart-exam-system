@@ -21,6 +21,8 @@ public final class TeacherRequests {
             @NotNull @DecimalMin("0.01") @Digits(integer=6,fraction=2) BigDecimal pointScore,
             @NotNull @Min(0) Integer sortOrder) {}
     public record FromBank(@NotEmpty @Size(max=100) List<@NotNull Long> bankItemIds) {}
+    public record RandomPreview(@NotEmpty List<@NotNull Long> bankIds,
+            @NotNull @Min(0) Integer singleChoiceCount, @NotNull @Min(0) Integer shortAnswerCount) {}
     public record Question(@NotNull QuestionType questionType, @NotBlank @Size(max=10000) String content,
             @NotNull @DecimalMin("0.01") @Digits(integer=6,fraction=2) BigDecimal score,
             @Size(max=4) List<@NotNull @Valid Option> options,

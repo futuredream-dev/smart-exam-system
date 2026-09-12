@@ -21,4 +21,8 @@ public final class TeacherViews {
                            List<Point> scoringPoints) {}
     public record BankCandidate(Long id, Long bankId, String title, String content, String questionType,
                                 BigDecimal defaultScore, String status, boolean alreadyAdded) {}
+    public record RandomPreviewItem(Long bankItemId, String bankName, String title, String content,
+                                    String questionType, BigDecimal defaultScore) {}
+    public record RandomPreview(int singleChoiceCount, int shortAnswerCount, int totalCount,
+                                BigDecimal estimatedTotalScore, List<RandomPreviewItem> items) {}
 }

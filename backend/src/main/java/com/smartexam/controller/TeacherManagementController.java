@@ -158,6 +158,12 @@ public class TeacherManagementController {
         return ApiResponse.success(service.addQuestionsFromBank(a.getName(), examId, request));
     }
 
+    @PostMapping("/exams/{examId}/questions/random-preview")
+    public ApiResponse<TeacherViews.RandomPreview> randomPreview(Authentication a, @PathVariable Long examId,
+            @Valid @RequestBody TeacherRequests.RandomPreview request) {
+        return ApiResponse.success(service.previewRandomPaper(a.getName(), examId, request));
+    }
+
     @PutMapping("/questions/{questionId}")
     public ApiResponse<TeacherViews.Question> updateQuestion(Authentication a, @PathVariable Long questionId, @Valid @RequestBody TeacherRequests.Question r) {
         return ApiResponse.success(service.updateQuestion(a.getName(), questionId, r));

@@ -255,6 +255,55 @@ public class TeacherManagementService {
                 .toList();
     }
 
+    /** 随机组卷预览：纯读取不落库，数量不足整单失败；确认阶段仍由 addQuestionsFromBank 做全量校验并写快照。 */
+    public TeacherViews.RandomPreview previewRandomPaper(String username, Long examId,
+            @Valid TeacherRequests.RandomPreview request) {
+        draft(ownExam(username, examId, false));
+        int singleChoiceCount = request.singleChoiceCount();
+        int shortAnswerCount = request.shortAnswerCount();
+        if (singleChoiceCount == 0 && shortAnswerCount == 0)
+            throw invalid("单选题和简答题数量不能同时为 0");
+        if (singleChoiceCount + shortAnswerCount > 100)
+            throw invalid("随机抽题总数不能超过 100");
+        Set<Long> bankIds = new LinkedHashSet<>(request.bankIds());
+        Map<Long, String> bankNames = new HashMap<>();
+        for (Long bankId : bankIds) bankNames.put(bankId, ownActiveBank(username, bankId).getName());
+
+        Set<Long> added = questions.findByExamId(examId).stream().map(Questions::getSourceBankItemId)
+                .filter(Objects::nonNull).collect(java.util.stream.Collectors.toSet());
+        Set<String> supported = Set.of(QuestionType.SINGLE_CHOICE.name(), QuestionType.SHORT_ANSWER.name());
+        List<QuestionBankItem> candidates = bankItems.selectList(new QueryWrapper<QuestionBankItem>()
+                        .in("bank_id", bankIds).eq("status", QuestionBankItemStatus.READY.name())).stream()
+                .filter(item -> !added.contains(item.getId()))
+                .filter(item -> supported.contains(item.getQuestionType()))
+                .toList();
+        List<QuestionBankItem> singlePool = new ArrayList<>(candidates.stream()
+                .filter(item -> QuestionType.SINGLE_CHOICE.name().equals(item.getQuestionType())).toList());
+        List<QuestionBankItem> shortPool = new ArrayList<>(candidates.stream()
+                .filter(item -> QuestionType.SHORT_ANSWER.name().equals(item.getQuestionType())).toList());
+        ensureEnough("单选题", singleChoiceCount, singlePool.size());
+        ensureEnough("简答题", shortAnswerCount, shortPool.size());
+        Collections.shuffle(singlePool);
+        Collections.shuffle(shortPool);
+
+        List<QuestionBankItem> picked = new ArrayList<>();
+        picked.addAll(singlePool.subList(0, singleChoiceCount));
+        picked.addAll(shortPool.subList(0, shortAnswerCount));
+        List<TeacherViews.RandomPreviewItem> items = picked.stream()
+                .map(item -> new TeacherViews.RandomPreviewItem(item.getId(), bankNames.get(item.getBankId()),
+                        item.getTitle(), item.getContent(), item.getQuestionType(), item.getDefaultScore()))
+                .toList();
+        BigDecimal estimatedTotalScore = picked.stream().map(QuestionBankItem::getDefaultScore)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return new TeacherViews.RandomPreview(singleChoiceCount, shortAnswerCount, items.size(),
+                estimatedTotalScore, items);
+    }
+
+    private void ensureEnough(String label, int requested, int available) {
+        if (requested > available)
+            throw invalid(label + "数量不足，需要" + requested + "道，当前可用" + available + "道");
+    }
+
     @Transactional(isolation=Isolation.READ_COMMITTED)
     public List<TeacherViews.Question> addQuestionsFromBank(String username, Long examId,
             @Valid TeacherRequests.FromBank request) {
