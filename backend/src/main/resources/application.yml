@@ -37,6 +37,10 @@ server:
       force: true
 
 app:
+  admin:
+    username: ${ADMIN_USERNAME:}
+    initial-password: ${ADMIN_INITIAL_PASSWORD:}
+    name: ${ADMIN_NAME:}
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
 

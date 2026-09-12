@@ -17,12 +17,13 @@ CREATE TABLE IF NOT EXISTS users (
     name VARCHAR(64) NOT NULL,
     role VARCHAR(20) NOT NULL,
     status TINYINT UNSIGNED NOT NULL DEFAULT 1 COMMENT '1=启用，0=停用',
+    must_change_password BOOLEAN NOT NULL DEFAULT FALSE COMMENT '1=登录后必须修改密码',
     created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
     PRIMARY KEY (id),
     UNIQUE KEY uk_users_username (username),
     KEY idx_users_role_status (role, status),
-    CONSTRAINT chk_users_role CHECK (role IN ('TEACHER', 'STUDENT')),
+    CONSTRAINT chk_users_role CHECK (role IN ('ADMIN', 'TEACHER', 'STUDENT')),
     CONSTRAINT chk_users_status CHECK (status IN (0, 1))
 ) ENGINE=InnoDB COMMENT='用户';
 

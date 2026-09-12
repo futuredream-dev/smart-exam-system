@@ -13,6 +13,7 @@ public class Users {
     private String name;
     private String role;
     private Integer status;
+    @TableField("must_change_password") private Boolean mustChangePassword;
     @TableField("created_at") private LocalDateTime createdAt;
     @TableField("updated_at") private LocalDateTime updatedAt;
 }
