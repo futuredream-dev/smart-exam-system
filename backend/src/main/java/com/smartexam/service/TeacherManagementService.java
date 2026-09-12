@@ -9,15 +9,21 @@ import com.smartexam.common.ErrorCode;
 import com.smartexam.dto.TeacherRequests;
 import com.smartexam.entity.*;
 import com.smartexam.enums.ExamStatus;
+import com.smartexam.enums.QuestionBankItemStatus;
+import com.smartexam.enums.QuestionBankStatus;
 import com.smartexam.enums.QuestionType;
 import com.smartexam.enums.UserRole;
 import com.smartexam.exception.BusinessException;
+import com.smartexam.mapper.QuestionBankItemMapper;
+import com.smartexam.mapper.QuestionBankMapper;
+import com.smartexam.mapper.QuestionBankScoringPointMapper;
 import com.smartexam.vo.TeacherViews;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.annotation.Isolation;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import jakarta.validation.Valid;
 import java.math.BigDecimal;
@@ -37,6 +43,9 @@ public class TeacherManagementService {
     private final QuestionsService questions;
     private final ScoringPointsService points;
     private final CourseStudentsService memberships;
+    private final QuestionBankMapper questionBanks;
+    private final QuestionBankItemMapper bankItems;
+    private final QuestionBankScoringPointMapper bankPoints;
     private final ObjectMapper json;
 
     private Users teacher(String username) {
@@ -224,9 +233,91 @@ public class TeacherManagementService {
             try { options = json.readValue(q.getOptionsJson(), new TypeReference<>() {}); }
             catch (JsonProcessingException e) { throw new IllegalStateException("题目选项数据格式无效", e); }
         }
-        return new TeacherViews.Question(q.getId(), q.getQuestionType(), q.getContent(), q.getScore(),
+        return new TeacherViews.Question(q.getId(), q.getSourceBankItemId(), q.getQuestionType(), q.getContent(), q.getScore(),
                 options, q.getReferenceAnswer(), q.getSortOrder(), points.findByQuestionId(q.getId()).stream()
                 .map(p -> new TeacherViews.Point(p.getId(), p.getPointContent(), p.getPointScore(), p.getSortOrder())).toList());
+    }
+
+    public List<TeacherViews.BankCandidate> listBankCandidates(String username, Long examId, Long bankId,
+            String keyword, QuestionType questionType) {
+        draft(ownExam(username, examId, false));
+        QuestionBank bank = ownActiveBank(username, bankId);
+        Set<Long> added = questions.findByExamId(examId).stream().map(Questions::getSourceBankItemId)
+                .filter(Objects::nonNull).collect(java.util.stream.Collectors.toSet());
+        QueryWrapper<QuestionBankItem> query = new QueryWrapper<QuestionBankItem>().eq("bank_id", bank.getId())
+                .eq("status", QuestionBankItemStatus.READY.name());
+        if (StringUtils.hasText(keyword)) query.and(q -> q.like("title", keyword.trim()).or().like("content", keyword.trim()));
+        if (questionType != null) query.eq("question_type", questionType.name());
+        return bankItems.selectList(query.orderByAsc("id")).stream()
+                .map(item -> new TeacherViews.BankCandidate(item.getId(), item.getBankId(), item.getTitle(),
+                        item.getContent(), item.getQuestionType(), item.getDefaultScore(), item.getStatus(),
+                        added.contains(item.getId())))
+                .toList();
+    }
+
+    @Transactional(isolation=Isolation.READ_COMMITTED)
+    public List<TeacherViews.Question> addQuestionsFromBank(String username, Long examId,
+            @Valid TeacherRequests.FromBank request) {
+        draft(ownExam(username, examId, true));
+        List<Long> requestedIds = request.bankItemIds();
+        if (new HashSet<>(requestedIds).size() != requestedIds.size())
+            throw failure(HttpStatus.CONFLICT, ErrorCode.CONFLICT, "所选题目中存在重复题目，请刷新后重新选择");
+
+        List<QuestionBankItem> selected = new ArrayList<>();
+        for (Long itemId : requestedIds) {
+            QuestionBankItem item = bankItems.selectById(itemId);
+            if (item == null) throw missing("题库题目");
+            ownActiveBank(username, item.getBankId());
+            if (!QuestionBankItemStatus.READY.name().equals(item.getStatus()))
+                throw failure(HttpStatus.CONFLICT, ErrorCode.CONFLICT, "只有可用题目可以加入试卷");
+            if (!Set.of(QuestionType.SINGLE_CHOICE.name(), QuestionType.SHORT_ANSWER.name()).contains(item.getQuestionType()))
+                throw invalid("不支持的题目类型");
+            selected.add(item);
+        }
+
+        Set<Long> existing = questions.findByExamId(examId).stream().map(Questions::getSourceBankItemId)
+                .filter(Objects::nonNull).collect(java.util.stream.Collectors.toSet());
+        if (requestedIds.stream().anyMatch(existing::contains))
+            throw failure(HttpStatus.CONFLICT, ErrorCode.CONFLICT, "所选题目中存在已加入当前考试的题目，请刷新后重新选择");
+
+        int nextOrder = questions.findByExamId(examId).stream().map(Questions::getSortOrder)
+                .filter(Objects::nonNull).max(Integer::compareTo).orElse(0) + 1;
+        List<TeacherViews.Question> result = new ArrayList<>();
+        for (QuestionBankItem item : selected) {
+            Questions snapshot = new Questions();
+            snapshot.setExamId(examId);
+            snapshot.setSourceBankItemId(item.getId());
+            snapshot.setQuestionType(item.getQuestionType());
+            snapshot.setContent(item.getContent());
+            snapshot.setScore(item.getDefaultScore());
+            snapshot.setOptionsJson(item.getOptionsJson());
+            snapshot.setReferenceAnswer(QuestionType.SINGLE_CHOICE.name().equals(item.getQuestionType())
+                    ? item.getCorrectAnswer() : item.getReferenceAnswer());
+            snapshot.setSortOrder(nextOrder++);
+            questions.save(snapshot);
+            if (QuestionType.SHORT_ANSWER.name().equals(item.getQuestionType())) {
+                for (QuestionBankScoringPoint source : bankPoints.selectList(new QueryWrapper<QuestionBankScoringPoint>()
+                        .eq("bank_item_id", item.getId()).orderByAsc("sort_order", "id"))) {
+                    ScoringPoints point = new ScoringPoints();
+                    point.setQuestionId(snapshot.getId());
+                    point.setPointContent(source.getContent());
+                    point.setPointScore(source.getScore());
+                    point.setSortOrder(source.getSortOrder());
+                    points.save(point);
+                }
+            }
+            result.add(questionView(snapshot));
+        }
+        return result;
+    }
+
+    private QuestionBank ownActiveBank(String username, Long bankId) {
+        QuestionBank bank = questionBanks.selectById(bankId);
+        if (bank == null) throw missing("题库");
+        if (!Objects.equals(bank.getOwnerTeacherId(), teacher(username).getId())) throw forbidden();
+        if (!QuestionBankStatus.ACTIVE.name().equals(bank.getStatus()))
+            throw failure(HttpStatus.CONFLICT, ErrorCode.CONFLICT, "归档题库不能用于组卷");
+        return bank;
     }
 
     private void validateQuestion(TeacherRequests.Question r) {

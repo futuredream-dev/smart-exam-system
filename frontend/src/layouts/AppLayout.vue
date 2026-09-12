@@ -21,6 +21,7 @@ function logout() { clearSession(); router.replace('/login') }
         <RouterLink to="/teacher" :class="{ active: route.path === '/teacher' }"><span>▦</span>工作台</RouterLink>
         <RouterLink to="/teacher/courses" :class="{ active: route.path.startsWith('/teacher/courses') }"><span>▤</span>课程管理</RouterLink>
         <RouterLink to="/teacher/exams" :class="{ active: route.path.startsWith('/teacher/exams') }"><span>▣</span>考试管理</RouterLink>
+        <RouterLink to="/teacher/question-banks" :class="{ active: route.path.startsWith('/teacher/question-banks') }"><span>▥</span>题库管理</RouterLink>
         <RouterLink to="/teacher/grading" :class="{ active: route.path.startsWith('/teacher/grading') }"><span>✓</span>考试阅卷</RouterLink>
         </template>
         <RouterLink to="/teacher/change-password" :class="{active: route.path.startsWith('/teacher/change-password')}"><span>⌁</span>修改密码</RouterLink>

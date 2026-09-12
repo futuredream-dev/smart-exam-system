@@ -90,6 +90,7 @@ CREATE TABLE IF NOT EXISTS exams (
 CREATE TABLE IF NOT EXISTS questions (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     exam_id BIGINT UNSIGNED NOT NULL,
+    source_bank_item_id BIGINT UNSIGNED NULL,
     question_type VARCHAR(24) NOT NULL,
     content TEXT NOT NULL,
     score DECIMAL(8,2) NOT NULL,
@@ -100,6 +101,7 @@ CREATE TABLE IF NOT EXISTS questions (
     updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
     PRIMARY KEY (id),
     KEY idx_questions_exam_sort (exam_id, sort_order),
+    UNIQUE KEY uk_questions_exam_source_bank_item (exam_id, source_bank_item_id),
     CONSTRAINT chk_questions_type CHECK (question_type IN ('SINGLE_CHOICE', 'SHORT_ANSWER')),
     CONSTRAINT chk_questions_score CHECK (score > 0),
     CONSTRAINT fk_questions_exam
@@ -197,6 +199,59 @@ CREATE TABLE IF NOT EXISTS ai_grading_results (
         FOREIGN KEY (answer_id) REFERENCES answers (id)
         ON UPDATE RESTRICT ON DELETE CASCADE
 ) ENGINE=InnoDB COMMENT='AI 辅助阅卷结果';
+
+CREATE TABLE IF NOT EXISTS question_banks (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    name VARCHAR(160) NOT NULL,
+    description TEXT NULL,
+    owner_teacher_id BIGINT UNSIGNED NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    PRIMARY KEY (id),
+    KEY idx_question_banks_owner_status (owner_teacher_id, status),
+    CONSTRAINT chk_question_banks_status CHECK (status IN ('ACTIVE', 'ARCHIVED')),
+    CONSTRAINT fk_question_banks_owner FOREIGN KEY (owner_teacher_id) REFERENCES users (id)
+        ON UPDATE RESTRICT ON DELETE RESTRICT
+) ENGINE=InnoDB COMMENT='教师个人题库';
+
+CREATE TABLE IF NOT EXISTS question_bank_items (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    bank_id BIGINT UNSIGNED NOT NULL,
+    question_type VARCHAR(24) NOT NULL,
+    title VARCHAR(160) NOT NULL,
+    content TEXT NOT NULL,
+    options_json JSON NULL,
+    correct_answer VARCHAR(32) NULL,
+    reference_answer TEXT NULL,
+    default_score DECIMAL(8,2) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'DRAFT',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    PRIMARY KEY (id),
+    KEY idx_question_bank_items_bank_status (bank_id, status),
+    KEY idx_question_bank_items_bank_type (bank_id, question_type),
+    CONSTRAINT chk_question_bank_items_type CHECK (question_type IN ('SINGLE_CHOICE', 'SHORT_ANSWER')),
+    CONSTRAINT chk_question_bank_items_status CHECK (status IN ('DRAFT', 'READY', 'ARCHIVED')),
+    CONSTRAINT chk_question_bank_items_score CHECK (default_score > 0),
+    CONSTRAINT fk_question_bank_items_bank FOREIGN KEY (bank_id) REFERENCES question_banks (id)
+        ON UPDATE RESTRICT ON DELETE RESTRICT
+) ENGINE=InnoDB COMMENT='题库题目';
+
+CREATE TABLE IF NOT EXISTS question_bank_scoring_points (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    bank_item_id BIGINT UNSIGNED NOT NULL,
+    content TEXT NOT NULL,
+    score DECIMAL(8,2) NOT NULL,
+    sort_order INT UNSIGNED NOT NULL DEFAULT 0,
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    PRIMARY KEY (id),
+    KEY idx_question_bank_scoring_points_item_sort (bank_item_id, sort_order),
+    CONSTRAINT chk_question_bank_scoring_points_score CHECK (score > 0),
+    CONSTRAINT fk_question_bank_scoring_points_item FOREIGN KEY (bank_item_id) REFERENCES question_bank_items (id)
+        ON UPDATE RESTRICT ON DELETE RESTRICT
+) ENGINE=InnoDB COMMENT='题库简答题评分点';
 
 -- 基础测试数据。password_hash 为 BCrypt 哈希，不存储明文密码。
 INSERT INTO users (username, password_hash, name, role, status)

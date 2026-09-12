@@ -16,7 +16,9 @@ public final class TeacherViews {
                        Integer minSubmitMinutes, String status, LocalDateTime publishedAt,
                        LocalDateTime createdAt, int questionCount, BigDecimal totalScore) {}
     public record Point(Long id, String pointContent, BigDecimal pointScore, Integer sortOrder) {}
-    public record Question(Long id, String questionType, String content, BigDecimal score,
+    public record Question(Long id, Long sourceBankItemId, String questionType, String content, BigDecimal score,
                            List<Option> options, String referenceAnswer, Integer sortOrder,
                            List<Point> scoringPoints) {}
+    public record BankCandidate(Long id, Long bankId, String title, String content, String questionType,
+                                BigDecimal defaultScore, String status, boolean alreadyAdded) {}
 }

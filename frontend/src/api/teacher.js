@@ -28,6 +28,8 @@ export const teacherApi = {
   saveExam: (id, courseId, data) => id ? http.put('/teacher/exams/' + id, data) : http.post('/teacher/courses/' + courseId + '/exams', data),
   questions: id => http.get('/teacher/exams/' + id + '/questions'),
   saveQuestion: (id, examId, data) => id ? http.put('/teacher/questions/' + id, data) : http.post('/teacher/exams/' + examId + '/questions', data),
+  bankCandidates: (examId, params) => http.get('/teacher/exams/' + examId + '/question-bank-items', { params }),
+  addQuestionsFromBank: (examId, bankItemIds) => http.post('/teacher/exams/' + examId + '/questions/from-bank', { bankItemIds }),
   deleteQuestion: id => http.delete('/teacher/questions/' + id),
   publish: id => http.post('/teacher/exams/' + id + '/publish'),
   gradingExams: () => http.get('/teacher/grading/exams'),
@@ -37,6 +39,15 @@ export const teacherApi = {
   reviewAnswer: (id, data) => http.put('/teacher/grading/answers/' + id + '/review', data),
   saveFinalComment: (id, teacherComment) => http.put('/teacher/grading/submissions/' + id + '/comment', { teacherComment }),
   publishScore: id => http.post('/teacher/grading/submissions/' + id + '/publish'),
+  questionBanks: () => http.get('/teacher/question-banks'),
+  questionBank: id => http.get('/teacher/question-banks/' + id),
+  saveQuestionBank: (id, data) => id ? http.put('/teacher/question-banks/' + id, data) : http.post('/teacher/question-banks', data),
+  archiveQuestionBank: id => http.delete('/teacher/question-banks/' + id),
+  bankItems: (bankId, params) => http.get('/teacher/question-banks/' + bankId + '/items', { params }),
+  bankItem: id => http.get('/teacher/question-bank-items/' + id),
+  saveBankItem: (id, bankId, data) => id ? http.put('/teacher/question-bank-items/' + id, data) : http.post('/teacher/question-banks/' + bankId + '/items', data),
+  readyBankItem: id => http.post('/teacher/question-bank-items/' + id + '/ready'),
+  archiveBankItem: id => http.delete('/teacher/question-bank-items/' + id),
 }
 // 工作台聚合正式课程/考试接口，不引入文档外业务路径。
 export async function loadWorkspace() {

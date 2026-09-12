@@ -17,6 +17,7 @@ import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import com.smartexam.enums.QuestionType;
 import java.util.List;
 
 /** 身份仅来自 Spring Security，Controller 不接收教师 ID。 */
@@ -142,6 +143,19 @@ public class TeacherManagementController {
     @PostMapping("/exams/{examId}/questions")
     public ApiResponse<TeacherViews.Question> createQuestion(Authentication a, @PathVariable Long examId, @Valid @RequestBody TeacherRequests.Question r) {
         return ApiResponse.success(service.createQuestion(a.getName(), examId, r));
+    }
+
+    @GetMapping("/exams/{examId}/question-bank-items")
+    public ApiResponse<List<TeacherViews.BankCandidate>> bankCandidates(Authentication a, @PathVariable Long examId,
+            @RequestParam Long bankId, @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) QuestionType questionType) {
+        return ApiResponse.success(service.listBankCandidates(a.getName(), examId, bankId, keyword, questionType));
+    }
+
+    @PostMapping("/exams/{examId}/questions/from-bank")
+    public ApiResponse<List<TeacherViews.Question>> addQuestionsFromBank(Authentication a, @PathVariable Long examId,
+            @Valid @RequestBody TeacherRequests.FromBank request) {
+        return ApiResponse.success(service.addQuestionsFromBank(a.getName(), examId, request));
     }
 
     @PutMapping("/questions/{questionId}")

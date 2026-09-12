@@ -20,6 +20,7 @@ public final class TeacherRequests {
     public record Point(@NotBlank @Size(max=10000) String pointContent,
             @NotNull @DecimalMin("0.01") @Digits(integer=6,fraction=2) BigDecimal pointScore,
             @NotNull @Min(0) Integer sortOrder) {}
+    public record FromBank(@NotEmpty @Size(max=100) List<@NotNull Long> bankItemIds) {}
     public record Question(@NotNull QuestionType questionType, @NotBlank @Size(max=10000) String content,
             @NotNull @DecimalMin("0.01") @Digits(integer=6,fraction=2) BigDecimal score,
             @Size(max=4) List<@NotNull @Valid Option> options,
