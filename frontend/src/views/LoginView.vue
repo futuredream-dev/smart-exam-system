@@ -15,7 +15,7 @@ async function handleSubmit() {
   if (!username.value || !password.value) { notice.value = '请输入用户名和密码'; return }
   loading.value = true
   try { const result = await login({ username: username.value, password: password.value }); setSession(result.data.token, result.data.user); await router.push(result.data.user.role === 'TEACHER' ? '/teacher' : '/student') }
-  catch (error) { notice.value = error.message || '登录失败，请稍后重试' }
+  catch (error) { notice.value = error.errorCode === 'ACCOUNT_DISABLED' ? '账号已停用，请联系管理员' : error.message || '登录失败，请稍后重试' }
   finally { loading.value = false }
 }
 </script>

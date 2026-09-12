@@ -8,6 +8,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -20,6 +21,8 @@ class AuthenticationIntegrationTest {
  @Test void studentLogin() throws Exception {mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content("{\"username\":\"student_demo_1\",\"password\":\"password\"}")).andExpect(status().isOk()).andExpect(jsonPath("$.data.user.role").value("STUDENT")).andExpect(jsonPath("$..passwordHash").doesNotExist());}
  @Test void badPassword() throws Exception {mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content("{\"username\":\"teacher_demo\",\"password\":\"bad\"}")).andExpect(status().isUnauthorized()).andExpect(jsonPath("$.message").value("用户名或密码错误"));}
  @Test void unknownUser() throws Exception {mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content("{\"username\":\"missing\",\"password\":\"password\"}")).andExpect(status().isUnauthorized()).andExpect(jsonPath("$.message").value("用户名或密码错误"));}
+ @Test @Transactional void disabledUserWithCorrectPasswordGetsDisabledMessage() throws Exception {Users u=users.findByUsername("teacher_demo");u.setStatus(0);users.updateById(u);mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content("{\"username\":\"teacher_demo\",\"password\":\"password\"}")).andExpect(status().isUnauthorized()).andExpect(jsonPath("$.errorCode").value("ACCOUNT_DISABLED")).andExpect(jsonPath("$.message").value("账号已停用，请联系管理员"));}
+ @Test @Transactional void disabledUserWithWrongPasswordStillGetsGenericMessage() throws Exception {Users u=users.findByUsername("teacher_demo");u.setStatus(0);users.updateById(u);mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content("{\"username\":\"teacher_demo\",\"password\":\"wrong-password\"}")).andExpect(status().isUnauthorized()).andExpect(jsonPath("$.errorCode").value("UNAUTHORIZED")).andExpect(jsonPath("$.message").value("用户名或密码错误"));}
  @Test void anonymousMe() throws Exception {mvc.perform(get("/api/auth/me")).andExpect(status().isUnauthorized()).andExpect(jsonPath("$.errorCode").value("UNAUTHORIZED"));}
  @Test void teacherMe() throws Exception {mvc.perform(get("/api/auth/me").header("Authorization","Bearer "+token("teacher_demo"))).andExpect(status().isOk()).andExpect(jsonPath("$.data.username").value("teacher_demo")).andExpect(jsonPath("$..passwordHash").doesNotExist());}
  @Test void studentMe() throws Exception {mvc.perform(get("/api/auth/me").header("Authorization","Bearer "+token("student_demo_1"))).andExpect(status().isOk()).andExpect(jsonPath("$.data.role").value("STUDENT"));}
