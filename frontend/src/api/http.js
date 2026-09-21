@@ -9,8 +9,15 @@ const http = axios.create({
   },
 })
 
+// 公开端点（登录 / 学生注册）不携带历史令牌：
+// 上一会话遗留的过期令牌若被带上，后端会在进入控制器前直接以 401「请先登录」拒绝，
+// 表现为「首次点击登录失败、第二次才成功」。令牌仍每次请求动态读取，其余端点保持不变。
+const PUBLIC_ENDPOINTS = ['/auth/login', '/auth/register/student']
+
 http.interceptors.request.use((config) => {
-  const token = localStorage.getItem(TOKEN_KEY)
+  const url = config.url || ''
+  const isPublic = PUBLIC_ENDPOINTS.some(endpoint => url === endpoint || url.endsWith(endpoint))
+  const token = isPublic ? '' : sessionStorage.getItem(TOKEN_KEY)
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
