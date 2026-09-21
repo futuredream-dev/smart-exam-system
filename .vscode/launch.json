@@ -2,8 +2,35 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "type": "node-terminal",
+      "name": "智能考试系统：一键启动",
+      "request": "launch",
+      "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"${workspaceFolder}/scripts/dev.ps1\" -Action start",
+      "cwd": "${workspaceFolder}",
+      "autoAttachChildProcesses": false,
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "type": "node-terminal",
+      "name": "智能考试系统：停止",
+      "request": "launch",
+      "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"${workspaceFolder}/scripts/dev.ps1\" -Action stop",
+      "cwd": "${workspaceFolder}",
+      "autoAttachChildProcesses": false,
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "type": "node-terminal",
+      "name": "智能考试系统：检查状态",
+      "request": "launch",
+      "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"${workspaceFolder}/scripts/dev.ps1\" -Action check",
+      "cwd": "${workspaceFolder}",
+      "autoAttachChildProcesses": false,
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
       "type": "java",
-      "name": "后端：SmartExamApplication (Java 17)",
+      "name": "调试：后端 Spring Boot",
       "request": "launch",
       "mainClass": "com.smartexam.SmartExamApplication",
       "cwd": "${workspaceFolder}/backend",
@@ -12,20 +39,10 @@
     },
     {
       "type": "node-terminal",
-      "name": "前端：Vue/Vite",
+      "name": "调试：前端 Vite",
       "request": "launch",
       "command": "pnpm dev",
       "cwd": "${workspaceFolder}/frontend"
-    }
-  ],
-  "compounds": [
-    {
-      "name": "智能考试管理系统",
-      "configurations": [
-        "后端：SmartExamApplication (Java 17)",
-        "前端：Vue/Vite"
-      ],
-      "stopAll": true
     }
   ]
 }
