@@ -8,9 +8,8 @@ import CoursesView from '../views/teacher/CoursesView.vue'
 import CourseDetailView from '../views/teacher/CourseDetailView.vue'
 import ExamsView from '../views/teacher/ExamsView.vue'
 import ExamDetailView from '../views/teacher/ExamDetailView.vue'
-import GradingExamsView from '../views/teacher/GradingExamsView.vue'
-import GradingSubmissionsView from '../views/teacher/GradingSubmissionsView.vue'
 import GradingPaperView from '../views/teacher/GradingPaperView.vue'
+import LegacyGradingSubmissionRedirect from '../views/teacher/LegacyGradingSubmissionRedirect.vue'
 import QuestionBanksView from '../views/teacher/QuestionBanksView.vue'
 import QuestionBankDetailView from '../views/teacher/QuestionBankDetailView.vue'
 import StudentExamDetailView from '../views/student/StudentExamDetailView.vue'
@@ -65,11 +64,12 @@ const routes = [
       { path: 'courses/:courseId', component: CourseDetailView, meta: { title: '课程详情' } },
       { path: 'exams', component: ExamsView, meta: { title: '考试管理' } },
       { path: 'exams/:examId', component: ExamDetailView, meta: { title: '考试详情' } },
+      { path: 'exams/:examId/grading/submissions/:submissionId', component: GradingPaperView, meta: { title: '本场答卷' } },
       { path: 'question-banks', component: QuestionBanksView, meta: { title: '题库管理' } },
       { path: 'question-banks/:bankId', component: QuestionBankDetailView, meta: { title: '题库详情' } },
-      { path: 'grading', component: GradingExamsView, meta: { title: '考试阅卷' } },
-      { path: 'grading/exams/:examId', component: GradingSubmissionsView, meta: { title: '答卷列表' } },
-      { path: 'grading/submissions/:submissionId', component: GradingPaperView, meta: { title: '学生答卷' } },
+      { path: 'grading', redirect: '/teacher/exams' },
+      { path: 'grading/exams/:examId', redirect: to => ({path:`/teacher/exams/${to.params.examId}`,query:{tab:'grading'}}) },
+      { path: 'grading/submissions/:submissionId', component: LegacyGradingSubmissionRedirect, meta: { title: '正在跳转答卷' } },
     ],
   },
   {

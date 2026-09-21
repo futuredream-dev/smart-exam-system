@@ -25,4 +25,22 @@ public final class TeacherViews {
                                     String questionType, BigDecimal defaultScore) {}
     public record RandomPreview(int singleChoiceCount, int shortAnswerCount, int totalCount,
                                 BigDecimal estimatedTotalScore, List<RandomPreviewItem> items) {}
+    public record ExamWorkspace(Long examId, String examTitle, Long courseId, String courseName,
+                                String examStatus, String lifecycleStatus, LocalDateTime startTime,
+                                LocalDateTime endTime, Integer lateEntryMinutes, Integer minSubmitMinutes,
+                                int questionCount, BigDecimal totalScore, int candidateCount,
+                                int notEnteredCount, int inProgressCount, int submittedCount,
+                                int autoSubmittedCount, int pendingReviewCount, int reviewedCount,
+                                int absentCount, LocalDateTime resultsReleasedAt,
+                                boolean canReleaseResults, String releaseBlockReason) {}
+    public record ExamCandidate(Long studentId, String studentName, String username, Long submissionId,
+                                String submissionStatus, String candidateStatus, LocalDateTime enteredAt,
+                                LocalDateTime submittedAt, BigDecimal totalScore, boolean resultsReleased) {}
+    public record DashboardItem(Long examId, String examTitle, Long courseId, String courseName,
+                                String lifecycleStatus, LocalDateTime startTime, LocalDateTime endTime,
+                                int candidateCount, int inProgressCount, int submittedCount,
+                                int pendingReviewCount, int reviewedCount, boolean canReleaseResults,
+                                LocalDateTime resultsReleasedAt) {}
+    public record Dashboard(List<DashboardItem> pendingReview, List<DashboardItem> readyToRelease,
+                            List<DashboardItem> ongoing) {}
 }

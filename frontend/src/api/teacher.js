@@ -1,6 +1,7 @@
 import http from './http'
 
 export const teacherApi = {
+  dashboard: () => http.get('/teacher/dashboard'),
   courses: () => http.get('/teacher/courses'),
   course: id => http.get('/teacher/courses/' + id),
   students: () => http.get('/teacher/students'),
@@ -25,6 +26,8 @@ export const teacherApi = {
   deleteCourse: id => http.delete('/teacher/courses/' + id),
   exams: courseId => http.get('/teacher/courses/' + courseId + '/exams'),
   exam: id => http.get('/teacher/exams/' + id),
+  examWorkspace: id => http.get('/teacher/exams/' + id + '/workspace'),
+  examCandidates: id => http.get('/teacher/exams/' + id + '/candidates'),
   saveExam: (id, courseId, data) => id ? http.put('/teacher/exams/' + id, data) : http.post('/teacher/courses/' + courseId + '/exams', data),
   questions: id => http.get('/teacher/exams/' + id + '/questions'),
   saveQuestion: (id, examId, data) => id ? http.put('/teacher/questions/' + id, data) : http.post('/teacher/exams/' + examId + '/questions', data),
@@ -33,7 +36,6 @@ export const teacherApi = {
   randomPreview: (examId, data) => http.post('/teacher/exams/' + examId + '/questions/random-preview', data),
   deleteQuestion: id => http.delete('/teacher/questions/' + id),
   publish: id => http.post('/teacher/exams/' + id + '/publish'),
-  gradingExams: () => http.get('/teacher/grading/exams'),
   gradingSubmissions: id => http.get('/teacher/grading/exams/' + id + '/submissions'),
   exportExamResults: id => http.get('/teacher/grading/exams/' + id + '/results/export', { responseType: 'blob', rawResponse: true }),
   gradingPaper: id => http.get('/teacher/grading/submissions/' + id),

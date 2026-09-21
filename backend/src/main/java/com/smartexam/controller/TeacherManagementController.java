@@ -34,6 +34,11 @@ public class TeacherManagementController {
         return ApiResponse.success(service.listCourses(a.getName()));
     }
 
+    @GetMapping("/dashboard")
+    public ApiResponse<TeacherViews.Dashboard> dashboard(Authentication a) {
+        return ApiResponse.success(service.dashboard(a.getName()));
+    }
+
     @GetMapping("/courses/{courseId}")
     public ApiResponse<TeacherViews.Course> course(Authentication a, @PathVariable Long courseId) {
         return ApiResponse.success(service.course(a.getName(), courseId));
@@ -123,6 +128,16 @@ public class TeacherManagementController {
     @GetMapping("/exams/{examId}")
     public ApiResponse<TeacherViews.Exam> exam(Authentication a, @PathVariable Long examId) {
         return ApiResponse.success(service.exam(a.getName(), examId));
+    }
+
+    @GetMapping("/exams/{examId}/workspace")
+    public ApiResponse<TeacherViews.ExamWorkspace> workspace(Authentication a, @PathVariable Long examId) {
+        return ApiResponse.success(service.workspace(a.getName(), examId));
+    }
+
+    @GetMapping("/exams/{examId}/candidates")
+    public ApiResponse<List<TeacherViews.ExamCandidate>> examCandidates(Authentication a, @PathVariable Long examId) {
+        return ApiResponse.success(service.examCandidates(a.getName(), examId));
     }
 
     @PutMapping("/exams/{examId}")

@@ -1,23 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import { authState } from '../../auth/auth'
-import { loadWorkspace } from '../../api/teacher'
-import ExamList from '../../components/ExamList.vue'
-const courses = ref([]), exams = ref([]), error = ref(''), loading = ref(true)
-const stats = computed(() => [['我的课程', courses.value.length], ['全部考试', exams.value.length], ['草稿考试', exams.value.filter(e => e.status === 'DRAFT').length], ['已发布考试', exams.value.filter(e => e.status === 'PUBLISHED').length]])
-onMounted(async () => {
-  try { const result = await loadWorkspace(); courses.value = result.courses; exams.value = result.exams.sort((a,b) => b.id - a.id) }
-  catch(e) { error.value = e.message } finally { loading.value = false }
-})
+import{onMounted,ref}from'vue';import{authState}from'../../auth/auth';import{teacherApi,formatTime}from'../../api/teacher'
+const dashboard=ref({pendingReview:[],readyToRelease:[],ongoing:[]}),error=ref(''),loading=ref(true);onMounted(async()=>{try{dashboard.value=(await teacherApi.dashboard()).data}catch(e){error.value=e.message}finally{loading.value=false}});const gradingLink=id=>`/teacher/exams/${id}?tab=grading`,overviewLink=id=>`/teacher/exams/${id}?tab=overview`
 </script>
-<template>
-  <header class="page-heading"><div><p class="eyebrow">TEACHER WORKSPACE</p><h1>教师工作台</h1><p class="muted">{{ authState.currentUser?.name }}，欢迎回来。管理课程，准备下一场考试。</p></div><RouterLink class="primary" to="/teacher/courses">管理我的课程 →</RouterLink></header>
-  <p v-if="error" class="error-message" role="alert">{{ error }}</p><p v-if="loading" class="empty-state">正在加载工作台…</p>
-  <template v-else>
-    <div class="stats-grid"><article v-for="[label, count] in stats" :key="label" class="stat-card"><span>{{ label }}</span><strong>{{ count }}</strong><small>当前账号的数据</small></article></div>
-    <div class="section-head"><h2>我的课程</h2><RouterLink to="/teacher/courses">查看全部 →</RouterLink></div>
-    <p v-if="!courses.length" class="empty-state">还没有课程，先创建第一门课程吧。</p>
-    <div class="course-grid"><RouterLink v-for="course in courses.slice(0, 3)" :key="course.id" :to="'/teacher/courses/' + course.id" class="surface course-card"><span class="course-icon">课</span><h3>{{ course.courseName }}</h3><p class="muted">{{ course.description || '暂无课程说明' }}</p><span>{{ course.examCount }} 场考试 →</span></RouterLink></div>
-    <div class="section-head"><h2>最近考试</h2><RouterLink to="/teacher/exams">查看全部 →</RouterLink></div><ExamList :exams="exams.slice(0, 5)" />
-  </template>
-</template>
+<template><header class="page-heading"><div><h1>工作台</h1><p class="muted">{{authState.currentUser?.name}}，这里是当前最需要处理的教学任务。</p></div><RouterLink class="secondary" to="/teacher/exams">查看全部考试 →</RouterLink></header><p v-if="error" class="error-message">{{error}}</p><p v-if="loading" class="empty-state">正在加载工作台…</p><template v-else><section><div class="section-head"><h2>需要处理</h2></div><div class="dashboard-columns"><div class="dashboard-column"><h3>待阅卷</h3><p v-if="!dashboard.pendingReview.length" class="compact-empty">暂无待阅卷考试</p><article v-for="item in dashboard.pendingReview" :key="item.examId" class="surface task-card"><p class="task-context">{{item.courseName}}</p><h3>{{item.examTitle}}</h3><p>还有 <strong class="task-count">{{item.pendingReviewCount}}</strong> 份待阅 · 已阅 {{item.reviewedCount}} 份</p><RouterLink class="primary" :to="gradingLink(item.examId)">继续阅卷</RouterLink></article></div><div class="dashboard-column"><h3>待发布成绩</h3><p v-if="!dashboard.readyToRelease.length" class="compact-empty">暂无待发布成绩</p><article v-for="item in dashboard.readyToRelease" :key="item.examId" class="surface task-card release-task"><p class="task-context">待发布 · {{item.courseName}}</p><h3>{{item.examTitle}}</h3><p>全部 {{item.reviewedCount}} 份有效答卷已阅，可以发布成绩。</p><RouterLink class="primary" :to="gradingLink(item.examId)">发布 / 查看成绩</RouterLink></article></div></div></section><section><div class="section-head"><h2>正在进行</h2></div><p v-if="!dashboard.ongoing.length" class="compact-empty">当前没有正在进行的考试</p><div class="course-grid"><article v-for="item in dashboard.ongoing" :key="item.examId" class="surface task-card"><p class="task-context">{{item.courseName}}</p><h3>{{item.examTitle}}</h3><p>已提交 {{item.submittedCount}} / 应考 {{item.candidateCount}}</p><p class="muted">结束时间 {{formatTime(item.endTime)}}</p><RouterLink class="secondary" :to="overviewLink(item.examId)">查看考试</RouterLink></article></div></section></template></template>
