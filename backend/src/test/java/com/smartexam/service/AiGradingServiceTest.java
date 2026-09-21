@@ -1,5 +1,9 @@
 package com.smartexam.service;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smartexam.entity.AiGradingResults;
 import com.smartexam.entity.Answers;
@@ -7,6 +11,7 @@ import com.smartexam.entity.Questions;
 import com.smartexam.entity.ScoringPoints;
 import com.smartexam.service.ai.AiGradingProvider;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -57,6 +62,80 @@ class AiGradingServiceTest {
                 new BigDecimal("-1"), "", "", List.of(), List.of()));
 
         assertThat(service.grade(answer(), question()).getAiScore()).isEqualByComparingTo("0");
+    }
+
+    // ---- 越界保护（封板补充验收2）：0 <= aiScore <= questionScore，越界必须 clamps + warning ----
+
+    @Test
+    void keepsInRangeSuggestionUnchangedAndEmitsNoWarning() {
+        Answers answer = answer();
+        when(provider.configured()).thenReturn(true);
+        when(points.findByQuestionId(20L)).thenReturn(List.of());
+        when(provider.grade(any())).thenReturn(new AiGradingProvider.GradeResult(
+                new BigDecimal("15"), "正常范围理由", "正常范围评语", List.of("命中点"), List.of("缺失点")));
+
+        var appender = attachLogCapture();
+        AiGradingResults row;
+        try { row = service.grade(answer, question("20")); } finally { detach(appender); }
+
+        assertThat(row.getAiScore()).isEqualByComparingTo("15");
+        assertThat(row.getStatus()).isEqualTo("SUCCESS");
+        assertThat(row.getErrorMessage()).isNull();
+        assertThat(warnings(appender)).isEmpty();
+        assertThat(answer.getTeacherScore()).isNull();
+        assertThat(answer.getGradingStatus()).isEqualTo("PENDING");
+        verify(answers, never()).updateById(any());
+    }
+
+    @Test
+    void clampsAboveMaximumSuggestionAndEmitsWarning() {
+        Answers answer = answer();
+        when(provider.configured()).thenReturn(true);
+        when(points.findByQuestionId(20L)).thenReturn(List.of());
+        when(provider.grade(any())).thenReturn(new AiGradingProvider.GradeResult(
+                new BigDecimal("25"), "测试越界分数", "测试", List.of(), List.of()));
+
+        var appender = attachLogCapture();
+        AiGradingResults row;
+        try { row = service.grade(answer, question("20")); } finally { detach(appender); }
+
+        // 越界分不得原样保存：25 → 20（题目满分）
+        assertThat(row.getAiScore()).isEqualByComparingTo("20");
+        // 本次 AI 调用本身是成功的，因此仍是 SUCCESS、无 error_message
+        assertThat(row.getStatus()).isEqualTo("SUCCESS");
+        assertThat(row.getErrorMessage()).isNull();
+
+        List<String> warnings = warnings(appender);
+        assertThat(warnings).hasSize(1);
+        String warning = warnings.get(0);
+        assertThat(warning).contains("answerId=10", "rawScore=25", "maxScore=20", "clampedScore=20");
+        // 日志安全：不得记录敏感信息或完整学生答案 / Prompt
+        assertThat(warning).doesNotContain("Bearer", "Authorization", "api-key", "apiKey", "sk-", "JWT_SECRET",
+                "使用令牌认证", "说明认证机制", "身份、令牌、签名");
+
+        // 越界建议不得改动人工评分字段
+        assertThat(answer.getTeacherScore()).isNull();
+        assertThat(answer.getGradingStatus()).isEqualTo("PENDING");
+        verify(answers, never()).updateById(any());
+    }
+
+    @Test
+    void clampsNegativeSuggestionToZeroAndEmitsWarning() {
+        Answers answer = answer();
+        when(provider.configured()).thenReturn(true);
+        when(points.findByQuestionId(20L)).thenReturn(List.of());
+        when(provider.grade(any())).thenReturn(new AiGradingProvider.GradeResult(
+                new BigDecimal("-3"), "测试负分", "测试", List.of(), List.of()));
+
+        var appender = attachLogCapture();
+        AiGradingResults row;
+        try { row = service.grade(answer, question("20")); } finally { detach(appender); }
+
+        assertThat(row.getAiScore()).isEqualByComparingTo("0");
+        assertThat(row.getStatus()).isEqualTo("SUCCESS");
+        assertThat(row.getErrorMessage()).isNull();
+        assertThat(warnings(appender)).hasSize(1);
+        assertThat(warnings(appender).get(0)).contains("answerId=10", "rawScore=-3", "maxScore=20", "clampedScore=0");
     }
 
     @Test
@@ -112,5 +191,26 @@ class AiGradingServiceTest {
     private static Questions question() {
         Questions value = new Questions(); value.setId(20L); value.setContent("说明认证机制");
         value.setScore(new BigDecimal("10")); value.setReferenceAnswer("身份、令牌、签名"); return value;
+    }
+
+    private static Questions question(String score) {
+        Questions value = question(); value.setScore(new BigDecimal(score)); return value;
+    }
+
+    private static ListAppender<ILoggingEvent> attachLogCapture() {
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        ((Logger) LoggerFactory.getLogger(AiGradingService.class)).addAppender(appender);
+        return appender;
+    }
+
+    private static void detach(ListAppender<ILoggingEvent> appender) {
+        ((Logger) LoggerFactory.getLogger(AiGradingService.class)).detachAppender(appender);
+        appender.stop();
+    }
+
+    private static List<String> warnings(ListAppender<ILoggingEvent> appender) {
+        return appender.list.stream().filter(e -> e.getLevel() == Level.WARN)
+                .map(ILoggingEvent::getFormattedMessage).toList();
     }
 }
