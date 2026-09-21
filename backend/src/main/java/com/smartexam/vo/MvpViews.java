@@ -10,19 +10,24 @@ public final class MvpViews {
     public record StudentExam(Long id, String courseName, String title, String description,
             LocalDateTime startTime, LocalDateTime endTime, Integer lateEntryMinutes,
             Integer minSubmitMinutes, String examStatus, String submissionStatus, Long submissionId,
-            int questionCount) {}
+            int questionCount, String lifecycleStatus, boolean pendingManualReview,
+            LocalDateTime resultsReleasedAt, BigDecimal totalScore, BigDecimal maxScore) {}
     public record StudentQuestion(Long id, String questionType, String content, BigDecimal score,
             List<Option> options, Integer sortOrder, String answerContent) {}
     public record Paper(Long submissionId, Long examId, String title, LocalDateTime startTime,
             LocalDateTime endTime, LocalDateTime firstEnterTime, LocalDateTime lastEnterTime,
             String status, List<StudentQuestion> questions) {}
-    public record Result(Long submissionId, Long examId, String examTitle, BigDecimal totalScore,
-            String teacherComment, LocalDateTime publishedAt) {}
+    public record ResultQuestion(Long questionId, Integer orderNo, String questionType, String content,
+            List<Option> options, String studentAnswer, BigDecimal finalScore, BigDecimal maxScore,
+            String correctAnswer) {}
+    public record Result(Long submissionId, Long examId, String examTitle, String courseName,
+            BigDecimal totalScore, BigDecimal maxScore, String teacherComment,
+            LocalDateTime publishedAt, List<ResultQuestion> questions) {}
 
     public record ReviewExam(Long id, String courseName, String title, String status,
             LocalDateTime endTime, long submissionCount, long pendingCount, long reviewedCount) {}
     public record ReviewSubmission(Long id, Long studentId, String studentName, String status,
-            String gradingStatus, LocalDateTime submitTime, BigDecimal totalScore, boolean scorePublished) {}
+            String gradingStatus, LocalDateTime submitTime, BigDecimal totalScore, boolean scorePublished, boolean pendingManualReview) {}
     public record AiSuggestion(String status, BigDecimal aiScore, String aiReason, String aiComment,
             List<String> matchedPoints, List<String> missingPoints, String errorMessage) {}
     public record ReviewAnswer(Long answerId, Long questionId, String questionType, String content,

@@ -16,7 +16,7 @@ http.interceptors.request.use((config) => {
 })
 
 http.interceptors.response.use(
-  (response) => response.data,
+  (response) => response.config.rawResponse ? response : response.data,
   (error) => {
     if (error.response?.status === 401) clearSession()
     const apiError = error.response?.data || {

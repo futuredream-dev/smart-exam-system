@@ -16,6 +16,7 @@ import QuestionBankDetailView from '../views/teacher/QuestionBankDetailView.vue'
 import StudentExamDetailView from '../views/student/StudentExamDetailView.vue'
 import StudentPaperView from '../views/student/StudentPaperView.vue'
 import StudentResultsView from '../views/student/StudentResultsView.vue'
+import StudentResultDetailView from '../views/student/StudentResultDetailView.vue'
 import ChangePasswordView from '../views/student/ChangePasswordView.vue'
 import AdminTeachersView from '../views/admin/AdminTeachersView.vue'
 import { authState, restoreSession } from '../auth/auth'
@@ -86,6 +87,7 @@ const routes = [
       { path: 'exams/:examId', component: StudentExamDetailView, meta: { title: '考试详情' } },
       { path: 'paper/:submissionId', component: StudentPaperView, meta: { title: '在线答题' } },
       { path: 'results', component: StudentResultsView, meta: { title: '我的成绩' } },
+      { path: 'results/:submissionId', component: StudentResultDetailView, meta: { title: '成绩详情' } },
       { path: 'change-password', name: 'student-change-password', component: ChangePasswordView, meta: { title: '修改密码' } },
     ],
   },
