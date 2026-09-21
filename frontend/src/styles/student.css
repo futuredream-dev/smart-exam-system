@@ -1,0 +1,132 @@
+.role-student .workspace-content {
+  max-width: 1320px;
+}
+
+.role-student .student-exam-card {
+  min-height: 230px;
+  padding: 18px;
+}
+
+.role-student .student-exam-card .student-card-heading {
+  display: grid;
+  gap: 8px;
+}
+
+.role-student .student-exam-card h3 {
+  margin: 0;
+}
+
+.role-student .student-exam-card .student-exam-time {
+  padding-top: 10px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.role-student .student-exam-card .student-primary-action {
+  min-width: 112px;
+  margin-top: auto;
+  text-align: center;
+}
+
+.role-student .student-exam-detail {
+  max-width: 1000px;
+}
+
+.role-student .student-exam-detail .student-detail-heading {
+  margin: 0 0 16px;
+}
+
+.role-student .student-exam-detail .meta-strip {
+  padding: 14px 0;
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.role-student .student-paper {
+  max-width: 1040px;
+  margin: 0 auto;
+}
+
+.role-student .student-paper-header {
+  position: sticky;
+  z-index: 8;
+  top: 0;
+  margin: -24px -8px 20px;
+  padding: 16px 8px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--page-bg);
+}
+
+.role-student .student-paper-header h1 {
+  margin-top: 0;
+}
+
+.role-student .student-question-card {
+  margin-bottom: 16px;
+  padding: 20px;
+}
+
+.role-student .student-question-card .section-head {
+  margin-bottom: 16px;
+}
+
+.role-student .student-question-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.role-student .student-answer-area {
+  margin-top: 18px;
+}
+
+.role-student .student-answer-area textarea {
+  min-height: 180px;
+  line-height: 1.75;
+}
+
+.role-student .student-save-action {
+  min-width: 92px;
+}
+
+.role-student .result-card {
+  display: flex;
+  min-height: 210px;
+  flex-direction: column;
+  padding: 18px;
+}
+
+.role-student .result-card .result-published-at {
+  margin: 0;
+  color: var(--text-tertiary);
+  font-size: 12px;
+}
+
+.role-student .result-card .score {
+  margin: 8px 0 16px;
+  font-size: 30px;
+}
+
+.role-student .result-card .result-action {
+  margin-top: auto;
+  align-self: flex-start;
+}
+
+.role-student .result-summary {
+  max-width: 1100px;
+}
+
+.role-student .result-question .question-result-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 1200px) {
+  .role-student .student-paper-header {
+    margin-right: 0;
+    margin-left: 0;
+  }
+}

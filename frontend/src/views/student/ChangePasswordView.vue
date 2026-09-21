@@ -29,7 +29,6 @@ async function submit() {
 <template>
   <section class="surface password-form">
     <div>
-      <p class="eyebrow">ACCOUNT SECURITY</p>
       <h1>{{ authState.currentUser?.mustChangePassword ? '首次登录，请修改密码' : '修改密码' }}</h1>
       <p class="muted">新密码至少8位，修改成功后旧密码立即失效。</p>
     </div>

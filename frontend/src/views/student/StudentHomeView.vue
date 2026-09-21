@@ -40,18 +40,18 @@ async function act(exam) {
 </script>
 
 <template>
-  <header class="page-heading"><div><p class="eyebrow">STUDENT EXAMS</p><h1>我的考试</h1><p class="muted">查看考试当前进度与下一步操作。</p></div><RouterLink class="secondary" to="/student/results">查看我的成绩</RouterLink></header>
+  <header class="page-heading"><div><h1>我的考试</h1><p class="muted">查看考试当前进度与下一步操作。</p></div><RouterLink class="secondary" to="/student/results">查看我的成绩</RouterLink></header>
   <p v-if="success" class="success-message">{{ success }}</p>
   <p v-if="error" class="error-message">{{ error }}</p>
   <p v-if="loading" class="empty-state">正在加载考试…</p>
   <p v-else-if="!exams.length" class="empty-state">当前没有已发布的考试。</p>
   <div v-else class="course-grid">
-    <article v-for="exam in exams" :key="exam.id" class="surface course-card">
-      <div><span :class="['badge', exam.lifecycleStatus]">{{ lifecycleMeta(exam.lifecycleStatus).label }}</span><h3>{{ exam.title }}</h3></div><p>{{ exam.courseName }}</p>
-      <small class="muted">{{ formatTime(exam.startTime) }} 至 {{ formatTime(exam.endTime) }}</small>
-      <p v-if="lifecycleMeta(exam.lifecycleStatus).hint">{{ lifecycleMeta(exam.lifecycleStatus).hint }}</p>
-      <p v-if="exam.lifecycleStatus === 'RESULTS_RELEASED'">最终成绩：{{ exam.totalScore }} / {{ exam.maxScore }}</p>
-      <button v-if="lifecycleMeta(exam.lifecycleStatus).action" :class="exam.lifecycleStatus === 'NOT_STARTED' ? 'secondary' : 'primary'" :disabled="busyId === exam.id" @click="act(exam)">{{ busyId === exam.id ? '正在进入…' : lifecycleMeta(exam.lifecycleStatus).action }}</button>
+    <article v-for="exam in exams" :key="exam.id" class="surface course-card student-exam-card">
+      <div class="student-card-heading"><span :class="['badge', exam.lifecycleStatus]">{{ lifecycleMeta(exam.lifecycleStatus).label }}</span><h3>{{ exam.title }}</h3></div><p>{{ exam.courseName }}</p>
+      <small class="muted student-exam-time">{{ formatTime(exam.startTime) }} 至 {{ formatTime(exam.endTime) }}</small>
+      <p v-if="lifecycleMeta(exam.lifecycleStatus).hint" class="student-state-hint">{{ lifecycleMeta(exam.lifecycleStatus).hint }}</p>
+      <p v-if="exam.lifecycleStatus === 'RESULTS_RELEASED'" class="student-score">最终成绩：{{ exam.totalScore }} / {{ exam.maxScore }}</p>
+      <button v-if="lifecycleMeta(exam.lifecycleStatus).action" :class="[exam.lifecycleStatus === 'NOT_STARTED' ? 'secondary' : 'primary','student-primary-action']" :disabled="busyId === exam.id" @click="act(exam)">{{ busyId === exam.id ? '正在进入…' : lifecycleMeta(exam.lifecycleStatus).action }}</button>
     </article>
   </div>
 </template>

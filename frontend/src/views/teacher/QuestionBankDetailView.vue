@@ -16,17 +16,19 @@ async function archive(item) { if (!window.confirm(`确定归档题目“${item.
 onMounted(load)
 </script>
 <template>
+  <div class="bank-detail-page">
   <p v-if="error" class="error-message" role="alert">{{ error }}</p><p v-if="notice" class="success-message" role="status">{{ notice }}</p><p v-if="loading" class="empty-state">正在加载题库…</p>
   <template v-if="bank"><RouterLink to="/teacher/question-banks">← 返回题库管理</RouterLink>
-    <header class="page-heading"><div><p class="eyebrow">QUESTION BANK</p><h1>{{ bank.name }}</h1><p class="muted preserve">{{ bank.description || '暂无说明' }}</p></div><button v-if="!platformBank && bank.status === 'ACTIVE'" class="primary" @click="edit(null)">+ 新增题目</button></header>
+    <header class="page-heading"><div><h1>{{ bank.name }}</h1><p class="muted preserve">{{ bank.description || '暂无说明' }}</p></div><button v-if="!platformBank && bank.status === 'ACTIVE'" class="primary" @click="edit(null)">+ 新增题目</button></header>
     <p v-if="platformBank" class="notice">平台公共题库，仅可查看和用于组卷。</p>
-    <section class="surface editor-form"><div class="form-grid"><label>搜索题目<input v-model="filters.keyword" placeholder="title / content" @keyup.enter="load" /></label><label>题型<select v-model="filters.questionType" @change="load"><option value="">全部</option><option value="SINGLE_CHOICE">单选</option><option value="SHORT_ANSWER">简答</option></select></label><label>状态<select v-model="filters.status" @change="load"><option value="">全部</option><option value="DRAFT">草稿</option><option value="READY">可用</option><option value="ARCHIVED">已归档</option></select></label></div><button class="secondary" @click="load">搜索</button></section>
-    <div v-if="!rows.length" class="empty-state">没有符合条件的题目。</div><article v-for="item in rows" :key="item.id" class="surface question-card">
+    <section class="bank-filter-bar" aria-label="题目筛选"><label>关键词<input v-model="filters.keyword" placeholder="搜索题目名称或内容" @keyup.enter="load" /></label><label>题型<select v-model="filters.questionType" @change="load"><option value="">全部</option><option value="SINGLE_CHOICE">单选</option><option value="SHORT_ANSWER">简答</option></select></label><label>状态<select v-model="filters.status" @change="load"><option value="">全部</option><option value="DRAFT">草稿</option><option value="READY">可用</option><option value="ARCHIVED">已归档</option></select></label><button class="secondary" @click="load">搜索</button></section>
+    <div v-if="!rows.length" class="empty-state">没有符合条件的题目。</div><div v-else class="bank-question-list"><article v-for="item in rows" :key="item.id" class="bank-question">
       <header class="section-head"><div class="actions"><span class="badge" :class="item.questionType">{{ typeNames[item.questionType] }}</span><span class="badge" :class="item.status">{{ statusNames[item.status] }}</span><strong>{{ item.defaultScore }} 分</strong></div><div v-if="!platformBank && bank.status === 'ACTIVE'" class="actions"><button v-if="item.status !== 'ARCHIVED'" class="ghost" @click="edit(item)">编辑</button><button v-if="item.status === 'DRAFT'" class="primary" @click="ready(item)">标记为可用</button><button v-if="item.status !== 'ARCHIVED'" class="danger" @click="archive(item)">归档</button></div></header>
       <h3>{{ item.title }}</h3><p class="preserve">{{ item.content }}</p><div v-for="o in item.options" :key="o.key" class="option-row"><strong>{{ o.key }}.</strong> {{ o.text }}</div>
-      <div class="answer-preview preserve"><strong>{{ item.questionType === 'SINGLE_CHOICE' ? '正确答案' : '参考答案' }}：</strong>{{ item.questionType === 'SINGLE_CHOICE' ? item.correctAnswer : item.referenceAnswer }}</div>
-      <ol v-if="item.scoringPoints.length"><li v-for="point in item.scoringPoints" :key="point.id">{{ point.content }} <strong>{{ point.score }} 分</strong></li></ol><small class="muted">更新于 {{ formatTime(item.updatedAt) }}</small>
-    </article>
+      <div class="bank-reference preserve"><strong>{{ item.questionType === 'SINGLE_CHOICE' ? '正确答案' : '参考答案' }}：</strong>{{ item.questionType === 'SINGLE_CHOICE' ? item.correctAnswer : item.referenceAnswer }}</div>
+      <table v-if="item.scoringPoints.length" class="bank-scoring-table" aria-label="评分点"><thead><tr><th>评分点</th><th>分值</th></tr></thead><tbody><tr v-for="point in item.scoringPoints" :key="point.id"><td>{{ point.content }}</td><td>{{ point.score }} 分</td></tr></tbody></table><small class="bank-updated muted">更新于 {{ formatTime(item.updatedAt) }}</small>
+    </article></div>
     <TeacherModal v-if="opened" :title="selected ? '编辑题目' : '新增题目'" @close="opened = false"><QuestionBankItemForm :bank-id="bank.id" :item="selected" @saved="saved" /></TeacherModal>
   </template>
+  </div>
 </template>

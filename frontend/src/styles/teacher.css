@@ -1,0 +1,572 @@
+.role-teacher .bank-detail-page { color: var(--text-primary); }
+.role-teacher .bank-detail-page > .page-heading { margin: 10px 0 14px; align-items: flex-start; }
+.role-teacher .bank-detail-page > .page-heading h1 { font-size: 22px; }
+.role-teacher .bank-detail-page > .page-heading p { margin: 6px 0 0; }
+.role-teacher .bank-detail-page > .page-heading > button { flex-shrink: 0; border-radius: 4px; }
+.role-teacher .bank-filter-bar { display: grid; grid-template-columns: minmax(180px, 1fr) 160px 160px auto; gap: 12px; align-items: end; padding: 12px; margin-bottom: 12px; border: 1px solid #e5e7eb; border-radius: 5px; background: #fff; }
+.role-teacher .bank-filter-bar label { display: grid; gap: 4px; font-size: 13px; color: var(--text-secondary); min-width: 0; }
+.role-teacher .bank-filter-bar input,
+.role-teacher .bank-filter-bar select,
+.role-teacher .bank-filter-bar button { width: 100%; height: 36px; padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 4px; background: #fff; color: var(--text-primary); font: inherit; }
+.role-teacher .bank-filter-bar button { width: 76px; cursor: pointer; }
+.role-teacher .bank-filter-bar input:focus,
+.role-teacher .bank-filter-bar select:focus { outline: 2px solid #c5d5ff; outline-offset: 1px; border-color: var(--primary); }
+.role-teacher .bank-question-list { border: 1px solid #e5e7eb; border-radius: 5px; background: #fff; }
+.role-teacher .bank-question { padding: 12px 16px; border-bottom: 1px solid #e5e7eb; overflow-wrap: anywhere; }
+.role-teacher .bank-question:last-child { border-bottom: 0; }
+.role-teacher .bank-question > .section-head { margin: 0 0 6px; gap: 8px; flex-wrap: wrap; }
+.role-teacher .bank-question .actions { gap: 8px; }
+.role-teacher .bank-question > h3 { margin: 6px 0; font-size: 15px; }
+.role-teacher .bank-question > p { margin: 6px 0; }
+.role-teacher .bank-question > .option-row { padding: 2px 0; }
+.role-teacher .bank-question button { border-radius: 4px; min-height: 28px; padding: 3px 8px; }
+.role-teacher .bank-question .danger { background: transparent; }
+.role-teacher .bank-question .danger:hover { background: transparent; text-decoration: underline; border-color: transparent; }
+.role-teacher .bank-question .badge.SINGLE_CHOICE,
+.role-teacher .bank-question .badge.SHORT_ANSWER,
+.role-teacher .bank-question .badge.ARCHIVED { color: #667085; background: #f3f4f6; }
+.role-teacher .bank-question .badge.READY { color: #167655; background: #e8f7ef; }
+.role-teacher .bank-question .badge.DRAFT { color: #8a5b13; background: #fff5df; }
+.role-teacher .bank-reference { margin: 8px 0; padding: 8px 10px; border: 1px solid #e5e7eb; border-radius: 4px; background: #f7f8fa; line-height: 1.65; }
+.role-teacher .bank-scoring-table { margin: 8px 0; border: 1px solid #e5e7eb; table-layout: fixed; }
+.role-teacher .bank-scoring-table th,
+.role-teacher .bank-scoring-table td { height: auto; padding: 5px 10px; border-bottom: 1px solid #e5e7eb; font-size: 13px; line-height: 1.5; }
+.role-teacher .bank-scoring-table th { background: #f3f4f6; color: #4b5563; }
+.role-teacher .bank-scoring-table th:last-child,
+.role-teacher .bank-scoring-table td:last-child { width: 84px; text-align: center; white-space: nowrap; }
+.role-teacher .bank-updated { display: block; margin-top: 6px; font-size: 12px; }
+@media (max-width: 1100px) {
+  .role-teacher .bank-filter-bar { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+}
+@media (max-width: 600px) {
+  .role-teacher .bank-filter-bar { grid-template-columns: minmax(0, 1fr); }
+  .role-teacher .bank-question { padding: 10px 12px; }
+}
+
+.role-teacher .teacher-card-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.role-teacher .teacher-card-heading h2 {
+  min-width: 0;
+}
+
+.role-teacher .course-card {
+  display: flex;
+  min-height: 210px;
+  flex-direction: column;
+  padding: 18px;
+}
+
+.role-teacher .course-card .card-description {
+  display: -webkit-box;
+  min-height: 44px;
+  margin: 12px 0 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.role-teacher .course-card .course-meta {
+  display: flex;
+  margin: 14px 0;
+  gap: 8px 16px;
+  flex-wrap: wrap;
+}
+
+.role-teacher .course-card > .actions {
+  margin-top: auto;
+}
+
+.role-teacher .course-card .danger {
+  background: transparent;
+}
+
+.role-teacher .dashboard-columns {
+  align-items: start;
+  gap: 16px;
+}
+
+.role-teacher .dashboard-column {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+
+.role-teacher .dashboard-column > h3 {
+  margin: 0;
+}
+
+.role-teacher .task-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 20px;
+  align-items: center;
+  margin: 0;
+  padding: 16px 18px;
+}
+
+.role-teacher .task-card .task-context,
+.role-teacher .task-card h3,
+.role-teacher .task-card p {
+  grid-column: 1;
+  margin: 0;
+}
+
+.role-teacher .task-card .task-context {
+  color: var(--text-tertiary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.role-teacher .task-card .task-count {
+  color: var(--warning);
+  font-size: 18px;
+}
+
+.role-teacher .task-card .primary,
+.role-teacher .task-card .secondary {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.role-teacher .release-task {
+  border-left: 3px solid var(--pending);
+}
+
+.role-teacher .release-task .task-context {
+  color: var(--pending);
+}
+
+.role-teacher .exam-table-section {
+  padding: 0;
+  overflow: hidden;
+}
+
+.role-teacher .exam-table-section > .section-head {
+  margin: 0;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.role-teacher .exam-table-section .table-scroll {
+  border: 0;
+  border-radius: 0;
+}
+
+.role-teacher .exam-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.role-teacher .exam-filter select {
+  width: 140px;
+}
+
+.role-teacher .workspace-stats > div {
+  padding: 12px 14px;
+}
+
+.role-teacher .workspace-stat-emphasis {
+  border-color: #e9ca87;
+  background: var(--warning-soft);
+}
+
+.role-teacher .workspace-stat-emphasis strong {
+  color: var(--warning);
+}
+
+.role-teacher .grading-page {
+  --grading-border: #e5e7eb;
+  --grading-muted-bg: #f7f8fa;
+}
+
+.role-teacher .grading-back-link {
+  display: inline-block;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+.role-teacher .grading-page-header {
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--grading-border);
+}
+
+.role-teacher .grading-title-row,
+.role-teacher .grading-question-head,
+.role-teacher .grading-ai-head,
+.role-teacher .grading-action-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.role-teacher .grading-title-row h1 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.role-teacher .grading-meta {
+  display: flex;
+  margin: 10px 0 0;
+  gap: 8px 28px;
+  flex-wrap: wrap;
+}
+
+.role-teacher .grading-meta > div {
+  display: flex;
+  gap: 7px;
+}
+
+.role-teacher .grading-meta dt {
+  color: var(--text-tertiary);
+}
+
+.role-teacher .grading-meta dd {
+  margin: 0;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.role-teacher .grading-workbench {
+  display: grid;
+  grid-template-columns: minmax(0, 2.125fr) minmax(300px, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.role-teacher .grading-paper-pane,
+.role-teacher .grading-action-panel,
+.role-teacher .grading-final-panel {
+  border: 1px solid var(--grading-border);
+  border-radius: 5px;
+  background: var(--surface);
+}
+
+.role-teacher .grading-pane-heading {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--grading-border);
+}
+
+.role-teacher .grading-pane-heading span {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.role-teacher .grading-question-row {
+  padding: 16px;
+  border-bottom: 1px solid var(--grading-border);
+}
+
+.role-teacher .grading-question-row:last-child {
+  border-bottom: 0;
+}
+
+.role-teacher .grading-question-row.active {
+  background: #fcfdff;
+  box-shadow: inset 2px 0 var(--primary);
+}
+
+.role-teacher .grading-question-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.role-teacher .grading-question-title > span:not(.badge) {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.role-teacher .grading-select-button,
+.role-teacher .grading-ai-button {
+  min-height: 28px;
+  padding: 3px 9px;
+  border: 1px solid var(--grading-border);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--primary);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.role-teacher .grading-select-button:hover,
+.role-teacher .grading-ai-button:hover {
+  border-color: #b9c5d6;
+  background: var(--surface-muted);
+}
+
+.role-teacher .grading-content-block {
+  margin-top: 14px;
+}
+
+.role-teacher .grading-content-block h3,
+.role-teacher .grading-ai-assist h3 {
+  margin: 0 0 6px;
+  color: #374151;
+  font-size: 13px;
+}
+
+.role-teacher .grading-content-block p {
+  margin: 0;
+}
+
+.role-teacher .grading-student-answer {
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid var(--grading-border);
+  border-radius: 4px;
+  background: var(--grading-muted-bg);
+  color: #374151;
+  line-height: 1.7;
+}
+
+.role-teacher .scoring-table-wrap {
+  margin-top: 10px;
+  overflow-x: auto;
+  border: 1px solid var(--grading-border);
+  border-radius: 4px;
+}
+
+.role-teacher .scoring-table th,
+.role-teacher .scoring-table td {
+  padding: 7px 10px;
+}
+
+.role-teacher .scoring-table th {
+  height: auto;
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.role-teacher .scoring-table th:last-child,
+.role-teacher .scoring-table td:last-child {
+  width: 84px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.role-teacher .grading-auto-score {
+  margin-top: 9px !important;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.role-teacher .grading-ai-assist {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--grading-border);
+  border-radius: 4px;
+  background: var(--grading-muted-bg);
+}
+
+.role-teacher .grading-ai-head > div > span {
+  color: var(--text-tertiary);
+  font-size: 12px;
+}
+
+.role-teacher .grading-ai-details {
+  margin: 8px 0 0;
+}
+
+.role-teacher .grading-ai-details > div {
+  display: grid;
+  grid-template-columns: 86px minmax(0, 1fr);
+  gap: 10px;
+  padding: 5px 0;
+  border-top: 1px solid var(--grading-border);
+}
+
+.role-teacher .grading-ai-details dt {
+  color: var(--text-secondary);
+}
+
+.role-teacher .grading-ai-details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.role-teacher .grading-sticky-panel {
+  position: sticky;
+  top: 14px;
+  display: grid;
+  gap: 12px;
+}
+
+.role-teacher .grading-action-panel,
+.role-teacher .grading-final-panel {
+  padding: 14px;
+}
+
+.role-teacher .grading-action-head {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--grading-border);
+}
+
+.role-teacher .grading-action-head span:first-child {
+  color: var(--text-tertiary);
+  font-size: 12px;
+}
+
+.role-teacher .grading-action-head h2 {
+  margin-top: 2px;
+}
+
+.role-teacher .grading-score-limit {
+  margin: 9px 0 12px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.role-teacher .grading-field {
+  display: grid;
+  margin-top: 12px;
+  gap: 6px;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.role-teacher .grading-field input,
+.role-teacher .grading-field textarea {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.role-teacher .grading-field input {
+  height: 38px;
+  padding: 7px 54px 7px 10px;
+}
+
+.role-teacher .grading-field textarea {
+  padding: 9px 10px;
+  resize: vertical;
+}
+
+.role-teacher .grading-field input:focus,
+.role-teacher .grading-field textarea:focus {
+  outline: 2px solid #c5d5ff;
+  outline-offset: 1px;
+  border-color: #5a7fdf;
+}
+
+.role-teacher .grading-number-input {
+  position: relative;
+}
+
+.role-teacher .grading-number-input em {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  transform: translateY(-50%);
+}
+
+.role-teacher .grading-save-button,
+.role-teacher .grading-full-button {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.role-teacher .grading-objective-score {
+  display: grid;
+  padding: 12px;
+  border: 1px solid var(--grading-border);
+  border-radius: 4px;
+  background: var(--grading-muted-bg);
+  gap: 4px;
+}
+
+.role-teacher .grading-objective-score span,
+.role-teacher .grading-objective-score small {
+  color: var(--text-secondary);
+}
+
+.role-teacher .grading-objective-score strong {
+  font-size: 20px;
+}
+
+.role-teacher .grading-final-panel h2 {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--grading-border);
+}
+
+.role-teacher .grading-final-hint {
+  margin: 10px 0 0;
+  color: var(--text-tertiary);
+  font-size: 12px;
+}
+
+@media (max-width: 1200px) {
+  .role-teacher .task-card {
+    grid-template-columns: 1fr;
+  }
+
+  .role-teacher .task-card .primary,
+  .role-teacher .task-card .secondary {
+    grid-column: 1;
+    grid-row: auto;
+    justify-self: start;
+    margin-top: 8px;
+  }
+}
+
+@media (max-width: 980px) {
+  .role-teacher .grading-workbench {
+    grid-template-columns: 1fr;
+  }
+
+  .role-teacher .grading-sticky-panel {
+    position: static;
+  }
+}
+
+@media (max-width: 900px) {
+  .role-teacher .dashboard-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .role-teacher .grading-title-row,
+  .role-teacher .grading-question-head,
+  .role-teacher .grading-ai-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .role-teacher .grading-meta {
+    display: grid;
+    gap: 5px;
+  }
+
+  .role-teacher .grading-question-row {
+    padding: 13px;
+  }
+
+  .role-teacher .grading-ai-details > div {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}

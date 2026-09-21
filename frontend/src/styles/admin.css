@@ -1,0 +1,69 @@
+.role-admin .workspace-content {
+  max-width: 1180px;
+}
+
+.role-admin .admin-workspace {
+  gap: 20px;
+}
+
+.role-admin .admin-create-panel {
+  gap: 14px;
+  padding: 18px 20px;
+}
+
+.role-admin .admin-create-panel p {
+  margin: 4px 0 0;
+}
+
+.role-admin .admin-create-panel .form-grid {
+  gap: 12px;
+}
+
+.role-admin .admin-create-panel .primary {
+  min-width: 108px;
+}
+
+.role-admin .admin-toolbar {
+  gap: 20px;
+}
+
+.role-admin .admin-search {
+  flex-wrap: nowrap;
+}
+
+.role-admin .admin-search input {
+  width: 240px;
+}
+
+.role-admin .admin-search .secondary {
+  min-width: 76px;
+}
+
+.role-admin .admin-table-actions {
+  min-width: 184px;
+  flex-wrap: nowrap;
+}
+
+.role-admin .warning {
+  color: var(--warning);
+}
+
+.role-admin .confirmation-copy .warning {
+  border-color: #e9ca87;
+  background: var(--warning-soft);
+}
+
+@media (max-width: 1200px) {
+  .role-admin .admin-create-panel .form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .role-admin .admin-create-panel .primary {
+    justify-self: start;
+  }
+
+  .role-admin .admin-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

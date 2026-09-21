@@ -11,7 +11,7 @@ defineProps({ exams: { type: Array, default: () => [] } })
         <td>{{ formatTime(e.startTime) }}<small>至 {{ formatTime(e.endTime) }}</small></td>
         <td>迟到 {{ e.lateEntryMinutes }}<small>最早交卷 {{ e.minSubmitMinutes }}</small></td>
         <td><span class="badge" :class="e.status">{{ statusNames[e.status] }}</span></td>
-        <td><RouterLink :to="'/teacher/exams/' + e.id">管理考试 →</RouterLink></td>
+        <td class="table-action"><RouterLink class="ghost" :to="'/teacher/exams/' + e.id">管理考试 →</RouterLink></td>
       </tr></tbody>
     </table>
   </div>
