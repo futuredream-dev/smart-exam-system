@@ -21,7 +21,8 @@ import java.util.*;
 @Service @RequiredArgsConstructor
 public class StudentExamService {
     private final UsersService users; private final ExamsService exams; private final CoursesService courses;
-    private final CourseStudentsService memberships; private final QuestionsService questions;
+    private final QuestionsService questions;
+    private final com.smartexam.mapper.ExamCandidatesMapper examCandidates;
     private final SubmissionsService submissions; private final AnswersService answers; private final ObjectMapper json;
 
     private Users student(String username) {
@@ -30,7 +31,7 @@ public class StudentExamService {
         if(!"STUDENT".equals(u.getRole())) throw fail(HttpStatus.FORBIDDEN,"无权限访问"); return u;
     }
     private Exams accessible(String username,Long id){ Users u=student(username); Exams e=exams.getById(id);
-        if(e==null||!"PUBLISHED".equals(e.getStatus())||!memberships.isActiveMember(e.getCourseId(),u.getId())) throw fail(HttpStatus.NOT_FOUND,"考试不存在"); return e; }
+        if(e==null||!"PUBLISHED".equals(e.getStatus())||!examCandidates.exists(e.getId(),u.getId())) throw fail(HttpStatus.NOT_FOUND,"考试不存在"); return e; }
     private void expire(Submissions s,Exams e,LocalDateTime now){if(s!=null&&"IN_PROGRESS".equals(s.getStatus())&&!now.isBefore(e.getEndTime())) submitLocked(s,e,now,true);}
 
     @Transactional

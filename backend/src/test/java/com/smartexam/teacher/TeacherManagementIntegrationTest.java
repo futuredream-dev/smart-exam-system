@@ -162,14 +162,14 @@ class TeacherManagementIntegrationTest {
         call(delete("/api/teacher/courses/"+courseId+"/students/"+studentId),null,otherToken,403);
         call(post("/api/teacher/courses/"+courseId+"/students"),Map.of("studentId",users.findByUsername("teacher_demo").getId()),teacherToken,400);
     }
-    @Test void addedStudentCanSeePublishedCourseExamBeforeStart() throws Exception {
+    @Test void addedStudentCannotEnterExamPublishedBeforeEnrollment() throws Exception {
         Users student=users.findByUsername("student_demo_2");String token=login(student.getUsername());
         Long examId=createExam();question(examId,single());publish(examId,200);
         assertThat(call(get("/api/student/exams"),null,token,200).path("data")).noneMatch(row->row.path("id").asLong()==examId);
         call(post("/api/teacher/courses/"+courseId+"/students"),Map.of("studentId",student.getId()),teacherToken,200);
         JsonNode visible=call(get("/api/student/exams"),null,token,200).path("data");
-        assertThat(visible).anyMatch(row->row.path("id").asLong()==examId&&"PUBLISHED".equals(row.path("examStatus").asText()));
-        call(post("/api/student/exams/"+examId+"/enter"),null,token,409);
+        assertThat(visible).noneMatch(row->row.path("id").asLong()==examId);
+        call(post("/api/student/exams/"+examId+"/enter"),null,token,404);
     }
     @Test void createExamDraftIgnoresForgedIdentityAndStatus() throws Exception {
         Map<String,Object> body = examBody(); body.put("createdBy", -1); body.put("status", "PUBLISHED"); body.put("courseId",-1);

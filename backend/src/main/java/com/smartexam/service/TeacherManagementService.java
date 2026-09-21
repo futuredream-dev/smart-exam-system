@@ -46,6 +46,7 @@ public class TeacherManagementService {
     private final QuestionBankMapper questionBanks;
     private final QuestionBankItemMapper bankItems;
     private final QuestionBankScoringPointMapper bankPoints;
+    private final com.smartexam.mapper.ExamCandidatesMapper examCandidates;
     private final ObjectMapper json;
 
     private Users teacher(String username) {
@@ -447,6 +448,7 @@ public class TeacherManagementService {
         TeacherViews.Exam view = examView(e);
         if (view.questionCount() == 0 || view.totalScore().signum() <= 0)
             throw invalid("至少添加一道题且总分大于零后才能发布");
+        examCandidates.insertActiveCourseStudents(id, e.getCourseId());
         exams.update(new UpdateWrapper<Exams>().eq("id", id)
                 .set("status", ExamStatus.PUBLISHED.name()).set("published_at", LocalDateTime.now()));
         return exam(username, id);

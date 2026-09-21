@@ -87,6 +87,21 @@ CREATE TABLE IF NOT EXISTS exams (
         ON UPDATE RESTRICT ON DELETE RESTRICT
 ) ENGINE=InnoDB COMMENT='考试';
 
+CREATE TABLE IF NOT EXISTS exam_candidates (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    exam_id BIGINT UNSIGNED NOT NULL,
+    student_id BIGINT UNSIGNED NOT NULL,
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_exam_candidates_exam_student (exam_id, student_id),
+    KEY idx_exam_candidates_exam_id (exam_id),
+    KEY idx_exam_candidates_student_id (student_id),
+    CONSTRAINT fk_exam_candidates_exam FOREIGN KEY (exam_id) REFERENCES exams (id)
+        ON UPDATE RESTRICT ON DELETE CASCADE,
+    CONSTRAINT fk_exam_candidates_student FOREIGN KEY (student_id) REFERENCES users (id)
+        ON UPDATE RESTRICT ON DELETE RESTRICT
+) ENGINE=InnoDB COMMENT='考试发布时冻结的应考学生名单';
+
 CREATE TABLE IF NOT EXISTS questions (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     exam_id BIGINT UNSIGNED NOT NULL,
