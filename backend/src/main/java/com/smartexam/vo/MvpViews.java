@@ -10,7 +10,7 @@ public final class MvpViews {
     public record StudentExam(Long id, String courseName, String title, String description,
             LocalDateTime startTime, LocalDateTime endTime, Integer lateEntryMinutes,
             Integer minSubmitMinutes, String examStatus, String submissionStatus, Long submissionId,
-            int questionCount, String lifecycleStatus, boolean pendingManualReview,
+            int questionCount, String lifecycleStatus,
             LocalDateTime resultsReleasedAt, BigDecimal totalScore, BigDecimal maxScore) {}
     public record StudentQuestion(Long id, String questionType, String content, BigDecimal score,
             List<Option> options, Integer sortOrder, String answerContent) {}

@@ -1,2 +1,57 @@
-<script setup>import{onMounted,ref}from'vue';import{studentApi,formatTime,submissionNames}from'../../api/student';const exams=ref([]),loading=ref(true),error=ref('');onMounted(async()=>{try{exams.value=(await studentApi.exams()).data}catch(e){error.value=e.message}finally{loading.value=false}});const state=e=>e.submissionStatus?submissionNames[e.submissionStatus]:new Date()<new Date(e.startTime)?'未开始':new Date()>=new Date(e.endTime)?'已结束':'可进入'</script>
-<template><header class="page-heading"><div><p class="eyebrow">STUDENT EXAMS</p><h1>我的考试</h1><p class="muted">查看考试安排并进入答题。</p></div><RouterLink class="secondary" to="/student/results">查看我的成绩</RouterLink></header><p v-if="error" class="error-message">{{error}}</p><p v-if="loading" class="empty-state">正在加载考试…</p><p v-else-if="!exams.length" class="empty-state">当前没有已发布的考试。</p><div v-else class="course-grid"><RouterLink v-for="e in exams" :key="e.id" :to="'/student/exams/'+e.id" class="surface course-card"><span :class="['badge',e.submissionStatus]">{{state(e)}}</span><h3>{{e.title}}</h3><p>{{e.courseName}}</p><small class="muted">{{formatTime(e.startTime)}} 至 {{formatTime(e.endTime)}}</small><p>{{e.questionCount}} 道题 · 迟到 {{e.lateEntryMinutes}} 分钟内可入场</p></RouterLink></div></template>
+<script setup>
+import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { studentApi, formatTime } from '../../api/student'
+import { lifecycleMeta } from '../../utils/studentExamLifecycle'
+
+const router = useRouter()
+const exams = ref([])
+const loading = ref(true)
+const error = ref('')
+const success = ref('')
+const busyId = ref(null)
+
+onMounted(async () => {
+  try {
+    exams.value = (await studentApi.exams()).data
+    const submitted = sessionStorage.getItem('studentSubmitSuccess')
+    if (submitted) {
+      const { examId } = JSON.parse(submitted)
+      if (exams.value.some(exam => String(exam.id) === String(examId))) {
+        success.value = '交卷成功，成绩将在教师批阅并统一发布后显示。'
+        sessionStorage.removeItem('studentSubmitSuccess')
+      }
+    }
+  } catch (e) { error.value = e.message } finally { loading.value = false }
+})
+
+async function act(exam) {
+  const status = exam.lifecycleStatus
+  if (status === 'NOT_STARTED') return router.push(`/student/exams/${exam.id}`)
+  if (status === 'RESULTS_RELEASED') return router.push(`/student/results/${exam.submissionId}`)
+  if (!['AVAILABLE', 'IN_PROGRESS'].includes(status)) return
+  busyId.value = exam.id
+  error.value = ''
+  try {
+    const paper = (await studentApi.enter(exam.id)).data
+    router.push(`/student/paper/${paper.submissionId}`)
+  } catch (e) { error.value = e.message } finally { busyId.value = null }
+}
+</script>
+
+<template>
+  <header class="page-heading"><div><p class="eyebrow">STUDENT EXAMS</p><h1>我的考试</h1><p class="muted">查看考试当前进度与下一步操作。</p></div><RouterLink class="secondary" to="/student/results">查看我的成绩</RouterLink></header>
+  <p v-if="success" class="success-message">{{ success }}</p>
+  <p v-if="error" class="error-message">{{ error }}</p>
+  <p v-if="loading" class="empty-state">正在加载考试…</p>
+  <p v-else-if="!exams.length" class="empty-state">当前没有已发布的考试。</p>
+  <div v-else class="course-grid">
+    <article v-for="exam in exams" :key="exam.id" class="surface course-card">
+      <div><span :class="['badge', exam.lifecycleStatus]">{{ lifecycleMeta(exam.lifecycleStatus).label }}</span><h3>{{ exam.title }}</h3></div><p>{{ exam.courseName }}</p>
+      <small class="muted">{{ formatTime(exam.startTime) }} 至 {{ formatTime(exam.endTime) }}</small>
+      <p v-if="lifecycleMeta(exam.lifecycleStatus).hint">{{ lifecycleMeta(exam.lifecycleStatus).hint }}</p>
+      <p v-if="exam.lifecycleStatus === 'RESULTS_RELEASED'">最终成绩：{{ exam.totalScore }} / {{ exam.maxScore }}</p>
+      <button v-if="lifecycleMeta(exam.lifecycleStatus).action" :class="exam.lifecycleStatus === 'NOT_STARTED' ? 'secondary' : 'primary'" :disabled="busyId === exam.id" @click="act(exam)">{{ busyId === exam.id ? '正在进入…' : lifecycleMeta(exam.lifecycleStatus).action }}</button>
+    </article>
+  </div>
+</template>
