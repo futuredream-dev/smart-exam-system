@@ -220,16 +220,22 @@ CREATE TABLE IF NOT EXISTS question_banks (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     name VARCHAR(160) NOT NULL,
     description TEXT NULL,
-    owner_teacher_id BIGINT UNSIGNED NOT NULL,
+    owner_teacher_id BIGINT UNSIGNED NULL,
+    scope VARCHAR(20) NOT NULL DEFAULT 'TEACHER',
     status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
     created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
     PRIMARY KEY (id),
     KEY idx_question_banks_owner_status (owner_teacher_id, status),
     CONSTRAINT chk_question_banks_status CHECK (status IN ('ACTIVE', 'ARCHIVED')),
+    CONSTRAINT chk_question_banks_scope CHECK (scope IN ('TEACHER', 'PLATFORM')),
+    CONSTRAINT chk_question_banks_scope_owner CHECK (
+        (scope = 'TEACHER' AND owner_teacher_id IS NOT NULL)
+        OR (scope = 'PLATFORM' AND owner_teacher_id IS NULL)
+    ),
     CONSTRAINT fk_question_banks_owner FOREIGN KEY (owner_teacher_id) REFERENCES users (id)
         ON UPDATE RESTRICT ON DELETE RESTRICT
-) ENGINE=InnoDB COMMENT='教师个人题库';
+) ENGINE=InnoDB COMMENT='题库：scope=TEACHER教师个人 / PLATFORM平台公共';
 
 CREATE TABLE IF NOT EXISTS question_bank_items (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,

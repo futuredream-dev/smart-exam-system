@@ -7,6 +7,7 @@ import com.smartexam.common.ErrorCode;
 import com.smartexam.dto.QuestionBankRequests;
 import com.smartexam.entity.*;
 import com.smartexam.enums.QuestionBankItemStatus;
+import com.smartexam.enums.QuestionBankScope;
 import com.smartexam.enums.QuestionBankStatus;
 import com.smartexam.enums.QuestionType;
 import com.smartexam.exception.BusinessException;
@@ -30,10 +31,15 @@ public class QuestionBankService {
     private final UsersService users;
     private final ObjectMapper json;
 
+    /** 题库列表：自己的 ACTIVE TEACHER 题库 + 全部 ACTIVE 平台题库。 */
     public List<QuestionBankViews.Bank> listBanks(String username) {
         long ownerId = teacher(username).getId();
-        return banks.selectList(new QueryWrapper<QuestionBank>().eq("owner_teacher_id", ownerId)
-                        .eq("status", QuestionBankStatus.ACTIVE.name()).orderByDesc("updated_at"))
+        return banks.selectList(new QueryWrapper<QuestionBank>()
+                        .eq("status", QuestionBankStatus.ACTIVE.name())
+                        .and(q -> q.eq("scope", QuestionBankScope.PLATFORM.name())
+                                .or(w -> w.eq("scope", QuestionBankScope.TEACHER.name())
+                                        .eq("owner_teacher_id", ownerId)))
+                        .orderByDesc("updated_at"))
                 .stream().map(this::bankView).toList();
     }
 
@@ -43,18 +49,19 @@ public class QuestionBankService {
         bank.setName(request.name().trim());
         bank.setDescription(trimToNull(request.description()));
         bank.setOwnerTeacherId(teacher(username).getId());
+        bank.setScope(QuestionBankScope.TEACHER.name());
         bank.setStatus(QuestionBankStatus.ACTIVE.name());
         banks.insert(bank);
         return bankView(banks.selectById(bank.getId()));
     }
 
     public QuestionBankViews.Bank bank(String username, Long id) {
-        return bankView(ownBank(username, id));
+        return bankView(readableBank(username, id));
     }
 
     @Transactional
     public QuestionBankViews.Bank updateBank(String username, Long id, QuestionBankRequests.Bank request) {
-        QuestionBank bank = activeBank(username, id);
+        QuestionBank bank = writableActiveBank(username, id);
         bank.setName(request.name().trim());
         bank.setDescription(trimToNull(request.description()));
         banks.updateById(bank);
@@ -63,7 +70,7 @@ public class QuestionBankService {
 
     @Transactional
     public QuestionBankViews.Bank archiveBank(String username, Long id) {
-        QuestionBank bank = activeBank(username, id);
+        QuestionBank bank = writableActiveBank(username, id);
         bank.setStatus(QuestionBankStatus.ARCHIVED.name());
         banks.updateById(bank);
         return bank(username, id);
@@ -71,7 +78,7 @@ public class QuestionBankService {
 
     public List<QuestionBankViews.Item> listItems(String username, Long bankId, String keyword,
                                                    QuestionType questionType, QuestionBankItemStatus status) {
-        ownBank(username, bankId);
+        readableBank(username, bankId);
         QueryWrapper<QuestionBankItem> query = new QueryWrapper<QuestionBankItem>().eq("bank_id", bankId);
         if (StringUtils.hasText(keyword)) query.and(q -> q.like("title", keyword.trim()).or().like("content", keyword.trim()));
         if (questionType != null) query.eq("question_type", questionType.name());
@@ -81,7 +88,7 @@ public class QuestionBankService {
 
     @Transactional
     public QuestionBankViews.Item createItem(String username, Long bankId, QuestionBankRequests.Item request) {
-        activeBank(username, bankId);
+        writableActiveBank(username, bankId);
         validateShape(request);
         QuestionBankItem item = new QuestionBankItem();
         item.setBankId(bankId);
@@ -93,13 +100,13 @@ public class QuestionBankService {
     }
 
     public QuestionBankViews.Item item(String username, Long itemId) {
-        return itemView(ownItem(username, itemId));
+        return itemView(readableItem(username, itemId));
     }
 
     @Transactional
     public QuestionBankViews.Item updateItem(String username, Long itemId, QuestionBankRequests.Item request) {
-        QuestionBankItem item = ownItem(username, itemId);
-        activeBank(username, item.getBankId());
+        QuestionBankItem item = writableItem(username, itemId);
+        writableActiveBank(username, item.getBankId());
         if (QuestionBankItemStatus.ARCHIVED.name().equals(item.getStatus())) throw conflict("归档题目不能编辑");
         validateShape(request);
         apply(item, request);
@@ -111,8 +118,8 @@ public class QuestionBankService {
 
     @Transactional
     public QuestionBankViews.Item ready(String username, Long itemId) {
-        QuestionBankItem item = ownItem(username, itemId);
-        activeBank(username, item.getBankId());
+        QuestionBankItem item = writableItem(username, itemId);
+        writableActiveBank(username, item.getBankId());
         if (QuestionBankItemStatus.ARCHIVED.name().equals(item.getStatus())) throw conflict("归档题目不能标记为可用");
         validateReady(item, pointRows(itemId));
         item.setStatus(QuestionBankItemStatus.READY.name());
@@ -122,8 +129,8 @@ public class QuestionBankService {
 
     @Transactional
     public QuestionBankViews.Item archiveItem(String username, Long itemId) {
-        QuestionBankItem item = ownItem(username, itemId);
-        activeBank(username, item.getBankId());
+        QuestionBankItem item = writableItem(username, itemId);
+        writableActiveBank(username, item.getBankId());
         item.setStatus(QuestionBankItemStatus.ARCHIVED.name());
         items.updateById(item);
         return itemView(items.selectById(itemId));
@@ -176,23 +183,43 @@ public class QuestionBankService {
         });
     }
 
-    private QuestionBank ownBank(String username, Long id) {
+    /** 可读：自己的 TEACHER 题库 + 全部 PLATFORM 题库；其他教师的 TEACHER 题库拒绝。 */
+    private QuestionBank readableBank(String username, Long id) {
         QuestionBank bank = banks.selectById(id);
         if (bank == null) throw missing("题库不存在");
+        boolean ownTeacherBank = QuestionBankScope.TEACHER.name().equals(bank.getScope())
+                && bank.getOwnerTeacherId() != null && bank.getOwnerTeacherId().equals(teacher(username).getId());
+        if (!ownTeacherBank && !QuestionBankScope.PLATFORM.name().equals(bank.getScope())) throw forbidden();
+        return bank;
+    }
+
+    /** 可写：仅自己的 TEACHER 题库；PLATFORM 题库对普通教师只读。 */
+    private QuestionBank writableBank(String username, Long id) {
+        QuestionBank bank = banks.selectById(id);
+        if (bank == null) throw missing("题库不存在");
+        if (QuestionBankScope.PLATFORM.name().equals(bank.getScope()))
+            throw forbidden("平台公共题库仅可查看和用于组卷，不能修改");
         if (!bank.getOwnerTeacherId().equals(teacher(username).getId())) throw forbidden();
         return bank;
     }
 
-    private QuestionBank activeBank(String username, Long id) {
-        QuestionBank bank = ownBank(username, id);
+    private QuestionBank writableActiveBank(String username, Long id) {
+        QuestionBank bank = writableBank(username, id);
         if (!QuestionBankStatus.ACTIVE.name().equals(bank.getStatus())) throw conflict("归档题库不能继续修改");
         return bank;
     }
 
-    private QuestionBankItem ownItem(String username, Long itemId) {
+    private QuestionBankItem readableItem(String username, Long itemId) {
         QuestionBankItem item = items.selectById(itemId);
         if (item == null) throw missing("题目不存在");
-        ownBank(username, item.getBankId());
+        readableBank(username, item.getBankId());
+        return item;
+    }
+
+    private QuestionBankItem writableItem(String username, Long itemId) {
+        QuestionBankItem item = items.selectById(itemId);
+        if (item == null) throw missing("题目不存在");
+        writableBank(username, item.getBankId());
         return item;
     }
 
@@ -202,7 +229,7 @@ public class QuestionBankService {
     }
     private QuestionBankViews.Bank bankView(QuestionBank bank) {
         long count = items.selectCount(new QueryWrapper<QuestionBankItem>().eq("bank_id", bank.getId()));
-        return new QuestionBankViews.Bank(bank.getId(), bank.getName(), bank.getDescription(), bank.getStatus(),
+        return new QuestionBankViews.Bank(bank.getId(), bank.getName(), bank.getDescription(), bank.getScope(), bank.getStatus(),
                 bank.getCreatedAt(), bank.getUpdatedAt(), count);
     }
     private QuestionBankViews.Item itemView(QuestionBankItem item) {
@@ -226,4 +253,5 @@ public class QuestionBankService {
     private static BusinessException conflict(String text) { return new BusinessException(HttpStatus.CONFLICT, ErrorCode.CONFLICT, text); }
     private static BusinessException missing(String text) { return new BusinessException(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND, text); }
     private static BusinessException forbidden() { return new BusinessException(HttpStatus.FORBIDDEN, ErrorCode.FORBIDDEN, "无权限访问其他教师的数据"); }
+    private static BusinessException forbidden(String text) { return new BusinessException(HttpStatus.FORBIDDEN, ErrorCode.FORBIDDEN, text); }
 }

@@ -7,7 +7,7 @@ import java.util.List;
 
 public final class QuestionBankViews {
     private QuestionBankViews() {}
-    public record Bank(Long id, String name, String description, String status,
+    public record Bank(Long id, String name, String description, String scope, String status,
                        LocalDateTime createdAt, LocalDateTime updatedAt, long questionCount) {}
     public record Point(Long id, String content, BigDecimal score, Integer sortOrder) {}
     public record Item(Long id, Long bankId, String questionType, String title, String content,

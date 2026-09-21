@@ -10,6 +10,7 @@ import com.smartexam.dto.TeacherRequests;
 import com.smartexam.entity.*;
 import com.smartexam.enums.ExamStatus;
 import com.smartexam.enums.QuestionBankItemStatus;
+import com.smartexam.enums.QuestionBankScope;
 import com.smartexam.enums.QuestionBankStatus;
 import com.smartexam.enums.QuestionType;
 import com.smartexam.enums.UserRole;
@@ -360,7 +361,7 @@ public class TeacherManagementService {
     public List<TeacherViews.BankCandidate> listBankCandidates(String username, Long examId, Long bankId,
             String keyword, QuestionType questionType) {
         draft(ownExam(username, examId, false));
-        QuestionBank bank = ownActiveBank(username, bankId);
+        QuestionBank bank = readableActiveBank(username, bankId);
         Set<Long> added = questions.findByExamId(examId).stream().map(Questions::getSourceBankItemId)
                 .filter(Objects::nonNull).collect(java.util.stream.Collectors.toSet());
         QueryWrapper<QuestionBankItem> query = new QueryWrapper<QuestionBankItem>().eq("bank_id", bank.getId())
@@ -386,7 +387,7 @@ public class TeacherManagementService {
             throw invalid("随机抽题总数不能超过 100");
         Set<Long> bankIds = new LinkedHashSet<>(request.bankIds());
         Map<Long, String> bankNames = new HashMap<>();
-        for (Long bankId : bankIds) bankNames.put(bankId, ownActiveBank(username, bankId).getName());
+        for (Long bankId : bankIds) bankNames.put(bankId, readableActiveBank(username, bankId).getName());
 
         Set<Long> added = questions.findByExamId(examId).stream().map(Questions::getSourceBankItemId)
                 .filter(Objects::nonNull).collect(java.util.stream.Collectors.toSet());
@@ -435,7 +436,7 @@ public class TeacherManagementService {
         for (Long itemId : requestedIds) {
             QuestionBankItem item = bankItems.selectById(itemId);
             if (item == null) throw missing("题库题目");
-            ownActiveBank(username, item.getBankId());
+            readableActiveBank(username, item.getBankId());
             if (!QuestionBankItemStatus.READY.name().equals(item.getStatus()))
                 throw failure(HttpStatus.CONFLICT, ErrorCode.CONFLICT, "只有可用题目可以加入试卷");
             if (!Set.of(QuestionType.SINGLE_CHOICE.name(), QuestionType.SHORT_ANSWER.name()).contains(item.getQuestionType()))
@@ -479,10 +480,13 @@ public class TeacherManagementService {
         return result;
     }
 
-    private QuestionBank ownActiveBank(String username, Long bankId) {
+    /** 组卷题库可读守卫：自己的 ACTIVE TEACHER 题库 + ACTIVE PLATFORM 题库；归档库与其他教师 TEACHER 库拒绝。 */
+    private QuestionBank readableActiveBank(String username, Long bankId) {
         QuestionBank bank = questionBanks.selectById(bankId);
         if (bank == null) throw missing("题库");
-        if (!Objects.equals(bank.getOwnerTeacherId(), teacher(username).getId())) throw forbidden();
+        boolean ownTeacherBank = QuestionBankScope.TEACHER.name().equals(bank.getScope())
+                && bank.getOwnerTeacherId() != null && bank.getOwnerTeacherId().equals(teacher(username).getId());
+        if (!ownTeacherBank && !QuestionBankScope.PLATFORM.name().equals(bank.getScope())) throw forbidden();
         if (!QuestionBankStatus.ACTIVE.name().equals(bank.getStatus()))
             throw failure(HttpStatus.CONFLICT, ErrorCode.CONFLICT, "归档题库不能用于组卷");
         return bank;

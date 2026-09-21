@@ -11,6 +11,7 @@ public class QuestionBank {
     private String name;
     private String description;
     @TableField("owner_teacher_id") private Long ownerTeacherId;
+    private String scope;
     private String status;
     @TableField("created_at") private LocalDateTime createdAt;
     @TableField("updated_at") private LocalDateTime updatedAt;
