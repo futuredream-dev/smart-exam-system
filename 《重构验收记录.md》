@@ -1,0 +1,759 @@
+# 重构验收记录
+
+## 阶段2A：考试考生名单快照
+
+- exam_candidates结构：PASS
+- 发布考试冻结名单：PASS
+- 发布后新增学生不进入旧考试：PASS
+- 发布后移除学生仍保留旧考试资格：PASS
+- 历史考试兼容：PASS
+- 非候选学生权限：PASS
+- targeted tests：14/14 PASS（专项4项 + MVP回归10项）
+- frontend build：PASS
+- git diff --check：PASS
+- 是否待里程碑浏览器验收：是
+
+## 阶段2B：考试级统一成绩发布
+
+- exams.results_released_at 权威事实：PASS
+- 考试级单事务发布与固定锁顺序：PASS
+- 缺考考生不阻塞、实际答卷必须全部完成阅卷：PASS
+- 过期 IN_PROGRESS 复用既有自动提交逻辑：PASS
+- 最终成绩仅使用 auto_score + teacher_score：PASS
+- 旧单份发布接口明确拒绝新发布：PASS
+- 学生成绩列表与详情按考试级发布时间控制：PASS
+- 发布后 AI 阅卷、人工复核、评语修改冻结：PASS
+- 历史升级 SQL：PASS（实际回填 3 场，部分发布 0 场，部分发布且误回填 0 场）
+- targeted tests：21/21 PASS（2B 专项8项 + MVP回归10项 + 成绩导出3项）
+- backend full tests：153/153 PASS
+- frontend build：PASS
+- git diff --check：PASS
+- 是否待里程碑浏览器验收：是
+
+## 阶段3A：教师考试工作区骨架
+
+- 教师一级导航：PASS
+- 考试工作区四区域：PASS
+- workspace聚合接口：PASS
+- 考生情况：PASS
+- 动态生命周期：PASS
+- 阅卷列表并入工作区：PASS
+- 单份发布按钮移除：PASS
+- 整场成绩发布入口：PASS
+- 成绩导出入口：PASS
+- targeted tests：29/29 PASS
+- frontend build：PASS
+- git diff --check：PASS
+- 是否待教师端里程碑浏览器验收：是
+
+## 阶段3B：教师工作台任务化与旧入口收口
+
+- 工作台待阅任务：PASS
+- 工作台待发布任务：PASS
+- 工作台进行中考试：PASS
+- 任务深链接：PASS
+- 旧阅卷一级入口收口：PASS
+- 旧路由兼容：PASS
+- dashboard定向测试：4/4 PASS
+- frontend build：PASS
+- git diff --check：PASS
+
+## 里程碑B：教师端浏览器验收
+
+- 教师导航：PASS
+- 工作台：PASS
+- 考试工作区：PASS
+- 考生情况：PASS
+- 阅卷路径：PASS
+- 单份阅卷：PASS
+- 整场发布UI：PASS（不可发布场次按钮禁用并显示阻断原因；可发布场次保留入口，未执行最终发布）
+- 成绩导出入口：PASS
+- 旧URL兼容：PASS
+
+## 阶段4：连续阅卷体验优化
+
+- 保存并下一份：PASS（浏览器实测：保存后自动进入下一份待阅答卷）
+- 仅进入当前考试：PASS（列表按 examId 查询，无跨考试路径）
+- 跳过已阅答卷：PASS（pendingManualReview=false 的答卷不进入导航集合）
+- 从列表中间继续待阅：PASS（向后查找无果后从头环绕，排除当前卷）
+- 保存失败不跳转：PASS（任一请求失败停留当前页展示后端错误；已保存项同步 baseline）
+- 最后一份返回本场考试：PASS（浏览器实测：返回 ?tab=grading 并显示"本场答卷已全部阅完"）
+- canonical路由保持：PASS（全程 /teacher/exams/{examId}/grading/submissions/{submissionId}）
+- 发布后不可修改：PASS（exam.results_released_at 权威判断，按钮不渲染；后端 409 冻结守卫未改动）
+- 待人工阅卷统一语义：PASS（pendingManualReview = 存在 SHORT_ANSWER 且 grading_status 非 REVIEWED；workspace/dashboard/答卷列表/阅卷状态徽章/考生状态共用同一后端判定）
+- 纯单选答卷不进入待阅集合：PASS（专项测试 + 浏览器数据验证，无循环风险）
+- READY_TO_RELEASE 与 canReleaseResults 一致：PASS（结束仍有 IN_PROGRESS 时保持 REVIEWING 并显示阻断原因；专项测试覆盖）
+- 已阅/待阅进度提示：PASS（阅卷页头部轻量文本，随跳转刷新）
+- targeted tests：29/29 PASS（MvpWorkflow 10 + ExamWorkspace 7（含新增3项）+ ExamResultRelease 8 + TeacherDashboard 4）
+- frontend build：PASS
+- git diff --check：PASS
+- 最小浏览器smoke：PASS（专用测试数据 exam 1045，2份待阅卷连续阅卷闭环；未触碰既有15份AI/教师评分分析数据；未执行成绩发布）
+
+## 阶段5：学生端生命周期与成绩回顾
+
+- 我的考试生命周期：PASS
+- 待开始：PASS
+- 可参加：PASS
+- 已错过入场：PASS
+- 答题中：PASS
+- 已交卷待批阅：PASS
+- 已交卷待公布：PASS
+- 成绩已公布：PASS
+- 缺考状态：PASS
+- 交卷成功提示：PASS
+- 我的成绩只显示正式结果：PASS
+- 成绩详情：PASS
+- 单选正确答案：PASS
+- 简答最终教师分：PASS
+- 学生AI脱敏：PASS
+- 越权保护：PASS
+- targeted tests：25/25 PASS
+- frontend build：PASS
+- git diff --check：PASS
+- 学生端浏览器smoke：PASS（Microsoft Edge headless 真实页面；独立 smoke 数据覆盖待批阅、待公布、成绩已公布、已错过入场、缺考及交卷后刷新）
+- 已发布成绩详情浏览器验收：PASS（最终成绩/总分、教师总评、单选本人答案/正确答案/auto_score、简答本人答案/teacher_score 均正确；未显示简答参考答案及任何 AI 建议、评语、理由、得失分点或 scoring points）
+- 正式成绩入口与刷新：PASS（从“我的考试”和“我的成绩”均进入同一正式成绩详情；详情刷新正常；交卷提示仅出现一次，刷新后生命周期继续由后端返回）
+- 浏览器发现问题最小修复：PASS（交卷成功提示标点由句号修正为规定逗号；受影响前端构建、生命周期映射检查、git diff --check 与 Edge smoke 复测均通过）
+
+## 阶段6A：旧页面、路由与死代码收口
+
+- 旧页面审计：PASS（审计 router、views、components、api、layouts、utils、styles，并全局检查静态 import、dynamic import、组件与测试引用）
+- 删除旧页面：`GradingExamsView.vue`、`GradingSubmissionsView.vue`
+- 删除依据：PASS（两页均为 0 正式 route、0 compatibility route render、0 静态 import、0 dynamic import、0 其他组件引用、0 测试引用；能力已由 `ExamsView`、`ExamDetailView`、`ExamGradingPanel`、`GradingPaperView` 覆盖）
+- 附属死代码：已删除 `teacherApi.gradingExams` 及 `ExamGradingPanel` 的 `legacy` prop/旧阅卷 URL 分支；未发现仅服务旧页面的专属 CSS selector
+- 兼容 grading 路由：PASS（`/teacher/grading`、`/teacher/grading/exams/:examId`、`/teacher/grading/submissions/:submissionId` 均由真实 Edge 验证跳转到 canonical 流程）
+- canonical 阅卷路由：PASS（`/teacher/exams/:examId/grading/submissions/:submissionId` 正常加载 `GradingPaperView`）
+- 教师导航：PASS（真实 Edge 验证一级导航仅为“工作台 / 考试 / 题库 / 课程”）
+- 定向测试：11/11 PASS（ExamWorkspaceIntegrationTest 7 + TeacherDashboardIntegrationTest 4）
+- frontend build：PASS（114 modules transformed）
+- git diff --check：PASS
+- route smoke：PASS（Microsoft Edge headless；实际 exam 1277 / submission 850；工作台 → 考试工作区 → 阅卷 tab → canonical 单份阅卷及三条兼容 URL，无 404、无旧独立阅卷页面）
+
+## 阶段6B：管理员UI统一
+
+- 管理员业务边界：PASS（仍仅为教师账号查看/搜索/新增/启停/重置密码及管理员本人改密；未新增业务 API、路由或数据库字段）
+- 管理员导航：PASS（侧栏仅保留“教师账号”，`/admin` 继续直达教师账号管理；修改密码移至顶部账号区，`/admin/change-password` 保留）
+- 统一工作区视觉：PASS（复用 `AppLayout`、`workspace.css`、通用 surface/table/button/badge/message/modal 体系）
+- 页面状态：PASS（真实 Edge 通过网络延迟/临时请求阻断验证 loading、empty、error、success；新增/搜索/行操作均有 busy 状态）
+- 确认交互：PASS（停用与重置密码复用 `TeacherModal`；重置提示明确旧密码失效和首次登录改密规则）
+- 临时密码隔离：PASS（仅在专用一次性弹窗显示，不写入普通 success/error 文本）
+- 教师账号业务：PASS（真实 Edge 完成搜索、新增、停用、启用、重置密码并最终停用独立 smoke 教师）
+- 角色路由守卫：PASS（真实 Edge 验证 ADMIN 访问 teacher/student 页面均返回 `/admin`）
+- 临时 ADMIN 夹具：PASS（创建前确认用户名不存在；密码经项目现有 PasswordEncoder 生成 BCrypt；按精确 id + username 且角色 ADMIN 删除，删除后确认记录数为 0）
+- 定向测试：22/22 PASS（AdminTeacherAccountIntegrationTest 3 + InitialAdminInitializerTest 3 + AuthenticationIntegrationTest 16）
+- 静态约束检查：PASS（`verify-admin-workspace.mjs`）
+- frontend build：PASS（114 modules transformed）
+- git diff --check：PASS
+- 管理员浏览器 smoke：PASS（Microsoft Edge headless；两次验证账号 `phase6b_smoke_mu0nytvv`、`phase6b_smoke_mu0o2csq` 均保留且最终状态为 `DISABLED`）
+
+## 阶段6C：最终验收准备
+
+- 环境基线：PASS（Git branch=`master`，HEAD=`d0fe120`，工作区 65 项未提交变更属真实开发基线，未执行 reset/clean/checkout；MySQL267=Running，3306=Listening；后端仅一套 8080、前端仅一套 5173、无 5174）
+- 后端完整回归：PASS（26 个测试类；Tests run: 167，Failures: 0，Errors: 0，Skipped: 0；BUILD SUCCESS；46.6s）
+- 前端 build：PASS（114 modules transformed，与阶段6A/6B 一致）
+- git diff --check：PASS（无 whitespace error；输出仅 LF/CRLF 提示信息）
+- 静态检查：PASS（`verify-admin-workspace.mjs`、`verify-student-lifecycle.mjs`）
+- 运行态健康：PASS（`/actuator/health` = UP；http://localhost:5173 = 200）
+- ADMIN smoke：PASS（`/admin` 直达教师账号管理；管理员侧栏仅"教师账号"；无管理概览/考试/题库/阅卷业务；教师列表 4 行、关键词搜索可用；`/admin/change-password` 正常。本轮以临时 ADMIN fixture 完成，用后按精确 id + username + role 删除，残留计数 0）
+- TEACHER smoke：PASS（一级导航=工作台/考试/题库/课程；`/teacher`、`/teacher/exams`、`/teacher/exams/1045`、`/teacher/question-banks`、`/teacher/courses` 均正常；考试工作区四 tab=考试概览/试卷内容/考生情况/阅卷与成绩）
+- STUDENT smoke：PASS（导航=我的考试/我的成绩/修改密码；`/student` 生命周期文案正常；`/student/results` 仅显示已统一公布成绩；成绩详情未泄漏 AI 建议/评语/理由/命中/缺失/评分点；`/student/exams/1045` 详情正常）
+- grading 兼容路由：PASS（`/teacher/grading` → `/teacher/exams`；`/teacher/grading/exams/1045` → `/teacher/exams/1045?tab=grading`；`/teacher/grading/submissions/664` → `/teacher/exams/1045/grading/submissions/664`；canonical `/teacher/exams/1045/grading/submissions/664` 直接加载正常；未恢复已删除的旧阅卷页面）
+- 404 / 未知 URL：PASS（`/totally-unknown-page-6c`、`/teacher/unknown-6c`、`/student/unknown-6c` 均回落 `/login`，无白屏、无 runtime 异常；`/student/exams`（非正式路由）同样回落 `/login`）
+- 权限边界 smoke：PASS（STUDENT→`/api/teacher` 403、STUDENT→`/api/admin` 403、TEACHER→`/api/admin` 403、ADMIN→`/api/teacher` 403、未登录→`/api/teacher` 401、教师本人资源 200；未登录访问受保护页面进入登录流程；TEACHER 访问 `/admin` 回落 `/teacher`；STUDENT 访问 `/teacher`、`/admin` 均回落 `/student`）
+- 教师越权访问另一教师资源：由后端集成测试覆盖（`TeacherManagementIntegrationTest` 34 项、`AuthenticationIntegrationTest` 16 项，本轮完整回归全绿），本轮未另建跨教师数据做浏览器验证
+- 浏览器运行时异常：PASS（`Runtime.exceptionThrown` 采集结果为空数组）
+- 最终验收 fixture：PASS（全部经真实业务 API 创建）
+  - 教师：id 1983 `final_acceptance_teacher`（最终验收专用教师）
+  - 课程：id 1540 最终验收专用课程（final_acceptance），3 名学生入课
+  - 学生：id 1984 / 1985 / 1986 `final_acceptance_student_1..3`（最终验收专用学生一/二/三）
+  - 题库：id 399 最终验收专用题库（final_acceptance）；题目 810、811 单选，812、813 简答，均 READY
+  - 考试：id 1442 最终验收专用考试（final_acceptance）；status=DRAFT，4 题 / 30 分（2 道单选含正确答案；2 道简答含参考答案与各 2 个评分点）；答卷 0；exam_candidates 0（发布时冻结）；canReleaseResults=false，阻断原因"草稿考试不能发布成绩"
+  - 时间窗口：开始=创建时刻-30 分钟，结束=创建时刻+7 天，迟到允许 10080 分钟，最早交卷 0 分钟（DRAFT 期间仍可编辑）
+  - fixture 可用性：PASS（fixture 教师可见该考试并可进入 DRAFT 工作区；3 名学生可登录且未发布状态下可见考试数为 0）
+- 数据保护：PASS（15 人 AI vs 教师评分分析数据指纹前后完全一致：答卷 15、auto_sum=0.00、teacher_sum=73.00、ai_grading_results 15、ai_sum=75.50、学生 15；全局 submissions 52、answers 67、ai_grading_results 28 均未变化；未删除、未覆盖、未重新评分、未重新发布；未使用该数据执行 smoke）
+- 本轮新增数据：仅 4 个 final_acceptance 账号 + 1 课程 + 1 题库（4 题）+ 1 场 DRAFT 考试；临时 ADMIN fixture 已删除（残留 0）；未创建任何答卷
+- Git：未产生代码修改，未新增测试，未 commit，未 push（工作区仍为 65 项未提交，HEAD 仍为 d0fe120）
+- 既有环境事实（非本轮引入，未修复）：现有 `admin` 账号口令与当前 `config/local.env` 的 `ADMIN_INITIAL_PASSWORD` 不一致（`InitialAdminInitializer` 仅在账号不存在时创建、不覆盖既有口令），沿用文档中的初始口令无法登录既有 admin；本轮因此改用临时 ADMIN fixture 完成管理员 smoke
+- 未验证（明确）：阶段7完整考试链（建卷→发布→学生正式参加→全部答题交卷→AI 评分→人工复核→整场发布→学生看成绩）；AI 阅卷真实调用（本轮未触发任何 AI 生成请求）；学生"可参加 / 答题中 / 已错过入场 / 已交卷·待批阅"等分支的浏览器实测（由 `StudentLifecycleIntegrationTest` 覆盖）；跨教师越权的浏览器实测（由集成测试覆盖）；Docker / 生产部署链路
+
+## 阶段7：最终全链路验收与项目封板
+
+- 环境基线：PASS（Git branch=`master`、HEAD=`d0fe120`、工作区 65 项未提交真实基线未变；MySQL267=Running、3306=Listening(PID 80852)；后端仅一套 8080、前端仅一套 5173、无 5174；`/actuator/health`=UP、前端 200）
+- 考试发布：PASS（教师 `final_acceptance_teacher` 真实登录；发布前 exam 1442 = DRAFT / 4 题 / 30 分 / 2 单选 + 2 简答；经正式业务 API 调整考试时间窗后发布 → `status=PUBLISHED`、`published_at=2026-09-14 11:41:13.567`；`exam_candidates` 快照 = 3，精确为 1984 / 1985 / 1986）
+  - 发布后锁定：PASS（改考试规则 → 409「考试已发布，不能修改规则或题目」；改题目 → 409 同因；均为后端拒绝，非仅隐藏入口）
+  - 说明：阶段6C fixture 的结束时间为创建 +7 天，而整场发布要求考试已结束（后端 `now >= end_time`）；本轮由教师在 DRAFT 阶段通过正式 API 将时间窗调整为短期窗口（start=发布前 2 分钟、end=+8 分钟、lateEntry=7、minSubmit=0），属正常发布前教师业务操作，未直接改写业务表
+- 学生完整考试：PASS（三人真实登录，`/student/exams` 均可见该考试且发布前 `lifecycle=AVAILABLE`「可参加」）
+  - 学生1（submission 950）：单选 1 对(B) 1 错(A) → auto=5；简答作答完整
+  - 学生2（submission 951）：单选 2 对(B、C) → auto=10；简答部分正确、遗漏部分评分点
+  - 学生3（submission 952）：单选 2 错(C、D) → auto=0；简答一差一可
+  - 保存恢复：PASS（学生1 保存 4 题后重新进入，答案全部保留；`first_enter_time` 仍为 11:41:13.706 未重建、`last_enter_time` 更新为 11:41:14.969）
+  - 交卷：PASS（三份均 `SUBMITTED`；重复提交 → 409「答卷已提交，请勿重复提交」；交卷后学生端 `lifecycle=PENDING_REVIEW`「已交卷·待批阅」，未显示成绩）
+- 发布前隔离：PASS（学生浏览器 `/student/results` 无 exam 1442、卡片数 0；直接访问 `/student/results/950` 显示「成绩尚未统一发布」；API 该详情返回 403；三学生发布前 `resultsReleasedAt` 均为 null、无成绩字段、无答案 / AI 数据泄漏）
+- AI 辅助阅卷：PASS（真实 OpenAI-compatible / DeepSeek 调用）
+  - 首次尝试 3 次：1 SUCCESS（answer 1398）+ 2 次格式异常（1394、1395，`AI 返回格式异常`）；重试这 2 次全部 SUCCESS；另对学生3 的简答（1402、1403）各调用 1 次均 SUCCESS
+  - 汇总：实际调用 7 次（5 个目标 + 2 次重试）→ SUCCESS 5 / 失败 2（均为瞬时格式异常，重试即恢复）
+  - SUCCESS 记录全部：`aiScore` 合法（10/10/5/0/10）、`aiReason` 与 `aiComment` 非空、matched/missing 正常返回、`error_message` 为空（DB 只读核验 `error_message IS NULL` 全部为真）
+  - AI 不改变最终成绩：PASS（AI 生成后 `teacher_score` 仍为空；最终成绩来源仍为 单选 `auto_score` + 简答 `teacher_score`）
+  - 未跑 AI 的答案（answer 1399）直接人工评分成功 → 证明 AI 不是人工阅卷的强制依赖
+- 人工阅卷：PASS（单选题 `auto_score` 自动产生，人工改单选 → 400「单选题使用系统自动评分，不支持人工改分」；简答按人工判断填写 `teacher_score`：s1=9/8、s2=6/5、s3=2/7；至少一份填写教师最终评语（submission 950））
+- 连续阅卷：PASS（按前端「保存并下一份」的 next 计算：952→951→950→返回阅卷 tab；每次跳转均为同场考试的有效待阅答卷，未跨考试、未进入已完成答卷，收尾回到本场阅卷与成绩 tab）
+- `pendingManualReview` 最终值 = 0；三份答卷均 `status=GRADED`、`grading_status=REVIEWED`；工作台由「待阅卷」进入「待发布成绩」（`lifecycle=READY_TO_RELEASE`、pendingReviewCount=0、reviewedCount=3、canRelease=true、block=null）
+- 整场统一发布：PASS（发布前再次确认学生看不到成绩；`POST /teacher/grading/exams/1442/publish-results` = 200；DB 只读核验 `exams.results_released_at = 2026-09-14 11:49:21.024` IS NOT NULL，为唯一权威字段）
+- 发布后冻结：PASS（AI 重评 → 409「成绩已发布，禁止继续修改」；改简答 `teacher_score` → 409 同因；改最终评语 → 409 同因；再次整场发布 → 409「成绩已经发布」；单份发布 → 409「成绩必须按整场考试统一发布」；学生进入考试 → 409「考试成绩已经发布，不能再进入考试」）
+- 学生正式成绩：PASS（三学生 `lifecycle` 均 `RESULTS_RELEASED`；`/student/results` 均出现 exam 1442；最终成绩 22 / 21 / 9，满分 30；成绩详情含考试、课程、最终分、总分、公布时间、答题回顾；学生1 详情含教师总评）
+- 最终成绩正确性：PASS（页面 / API / DB 交叉核对：单选 `auto_score` 合计 + 简答 `teacher_score` 合计 = 最终总分；学生1 5+17=22、学生2 10+11=21、学生3 0+9=9，`sumCheck` 全部为 true；无 `ai_score` 进入最终成绩）
+- 学生 AI 脱敏：PASS（学生成绩列表页、详情页文本与 `/student/results`、`/student/results/{id}` 原始响应均未出现 aiScore / aiReason / aiComment / matchedPoints / missingPoints / scoringPoints / prompt / AI 错误信息；简答参考答案不展示（shortAnswerHasCorrectAnswer=0）；每题教师评语不展示）
+- 成绩导出：PASS（真实下载 xlsx，content-type 为 xlsx，文件头 PK，3959 字节；解析后表头 9 列、3 行数据，覆盖三名最终验收学生；客观题得分 / 简答得分 / 最终总分 / 教师评语 / 成绩状态与系统一致：9=0+9、21=10+11、22=5+17；成绩状态=已发布；成绩发布时间=2026-09-14 11:49:21）
+- 管理员 sanity check：PASS（临时 ADMIN fixture 登录 role=ADMIN；教师列表可见最终验收教师，`keyword=final_acceptance_teacher` 搜索命中 id 1983；浏览器 `/admin` 侧栏仅「教师账号」、搜索命中；ADMIN→`/api/teacher` 403；临时账号按精确 id + username + role 删除，残留计数 0）
+- 15 人 AI 数据保护：PASS（课程 606 / exam 465 指纹前后逐项一致：answers 15、SUM(auto_score)=0.00、SUM(teacher_score)=73.00、ai_grading_results 15、SUM(ai_score)=75.50、distinct students 15；`gui-test-screenshots/AI人工评分分差分析.xlsx` 未被修改（mtime 仍为 9 月 13 日）；未用该数据跑 smoke）
+- 本轮新增数据（保留为最终演示数据，未清理）：exam 1442 由 DRAFT → PUBLISHED → 成绩已发布；3 份答卷（950/951/952）与 12 条答案；5 条 AI 建议；3 条 `exam_candidates` 快照；考试时间窗调整为短期窗口
+- 自动回归：本轮未修改任何业务代码，因此未重跑测试与 build；阶段6C 完整回归结果继续有效（26 测试类 / 167 tests / 0 失败 / 0 错误 / 0 跳过 / BUILD SUCCESS；`pnpm build` PASS；`git diff --check` PASS）
+- Git：未修改代码、未新增测试、未 commit、未 push（工作区仍为 38 改 / 2 删 / 25 未跟踪 = 65 项，与阶段6C 基线完全一致；HEAD 仍为 `d0fe120`）
+- 发现的问题：未发现需要修复的代码 Bug。AI 首次 2 次返回格式异常属模型 / provider 瞬时输出不可解析，产品既有「生成 / 重试 AI 建议」机制重试后即 SUCCESS，未修改代码
+- 最终结论：**A. PASS —— 最终全链路验收通过，项目正式封板**
+
+## 封板缺陷修复：首次冷启动登录「请先登录」
+
+- Bug 现象：冷启动后第一次输入正确教师凭据、第一次点击登录 → 页面提示「请先登录」→ 第二次点击（或再次操作）才成功；学生端、管理员端同样复现
+- 复现证据（真实 Edge headless + CDP，冷启动全新 profile）：
+  - 用例「冷启动·无历史令牌」TEACHER：`POST /api/auth/login` = 200、Authorization 不带、落地 `/teacher`、首条业务接口 200 → 该场景本来就正常，说明 Bug 需要触发条件
+  - 用例「冷启动·localStorage 残留上一会话过期令牌」（HTTP 有效期 `jwt.expiration=7200000` 即 2 小时，过期令牌仍留在 `smart_exam_token`）：`POST /api/auth/login` = **401**，且该登录请求 **携带 Authorization: Bearer <过期令牌>**；登录页提示 **「请先登录」**；`token storage` 被清为 NOT SET；最终失败点 `POST /api/auth/login -> 401`
+  - 三角色同因复现：TEACHER / STUDENT / ADMIN 三例均为 `login=401`、`landedPath=/login`、`请先登录=true`
+- 根因：前端共享 axios 实例的**请求拦截器无条件**把 `localStorage` 中的令牌写入 `Authorization`，公开端点 `POST /api/auth/login`（同样 `/api/auth/register/student`）也照带；上一会话遗留的**过期 JWT** 因此被带上，后端 `JwtAuthenticationFilter` 解析失败时**立即**调用 `ApiAuthenticationEntryPoint` 返回 401「请先登录」，请求根本到不了 `permitAll` 的登录控制器；同时前端 401 响应拦截器 `clearSession()` 抹掉该令牌，所以第二次点击（不再带 Authorization）才成功。证据佐证：401 消息为「请先登录」（入口点文案）而非「用户名或密码错误」（登录控制器文案），证明失败发生在进入控制器之前
+- 修改文件（仅 1 个前端文件，未改后端、未改数据库结构）：
+  - `frontend/src/api/http.js`：请求拦截器新增公开端点豁免——`PUBLIC_ENDPOINTS = ['/auth/login', '/auth/register/student']`，公开端点不携带历史令牌；其余端点仍**每次请求动态读取**最新令牌，`clearSession` / 401 处理 / router guard / 后端 Security 权限一律未改动
+- TDD：PASS（先写回归 `frontend/scripts/verify-first-login.mjs`，修复前 RED：`ROUND 1 FAIL`，3 个「残留令牌」用例失败；修复后 GREEN：3 轮 × 4 用例全绿）
+  - 修复前 RED 证据：`staleTokenLoginStatus=401`、`staleTokenLoginAuthorization=true`、`staleTokenNotice=请先登录`、`failedRequests=["POST /api/auth/login -> 401"]`
+  - 修复后 GREEN 证据：`staleTokenLoginStatus=200`、`staleTokenLoginAuthorization=false`、`staleTokenNotice=null`、`failedRequests=[]`
+- 三角色冷启动验证：PASS（全新 profile 冷启动，每次**只点击一次**登录）
+  - TEACHER 3 轮：3/3 PASS（`login=200`、`landed=/teacher`、`token=SET`、首条业务接口 `/api/teacher/dashboard` 200 且携带 Authorization）
+  - TEACHER 冷启动·残留过期令牌 3 轮：3/3 PASS
+  - STUDENT 冷启动·残留过期令牌 3 轮：3/3 PASS（`landed=/student`、`/api/student/exams` 200）
+  - ADMIN 冷启动·残留过期令牌 3 轮：3/3 PASS（`landed=/admin`、`/api/admin/teachers` 200；临时 ADMIN fixture 用后按精确 id + username + role 删除，残留 0）
+- 认证负向回归：PASS（未登录 → 教师 API 401；STUDENT → 教师 API 403；STUDENT → 管理员 API 403；TEACHER → 管理员 API 403；ADMIN → 教师 API 403；三角色本人资源均 200；浏览器点击「退出登录」→ 回 `/login` 且 `token=NOT SET`，注销后访问 `/teacher/exams` 仍回到登录流程；无运行时异常）
+- 自动回归：PASS（`AuthenticationIntegrationTest` 16 tests 全绿；backend 完整 Maven 套件 26 测试类 / **167 tests / 0 失败 / 0 错误 / 0 跳过 / BUILD SUCCESS**；`pnpm build` PASS（vite 6.1.0，114 modules，未新增模块）；`git diff --check` PASS 无 whitespace error；`verify-admin-workspace.mjs` PASS；`verify-student-lifecycle.mjs` PASS；既有教师浏览器路由 smoke `teacher-phase6a-route-smoke.cjs` PASS；`frontend/scripts/verify-teacher.cjs` 未执行——依赖外部 playwright（本机未安装）且会创建/删除演示课程，不适用本轮）
+- 数据保护：PASS（exam 1442 最终演示数据完全未变：`status=PUBLISHED`、`results_released_at=2026-09-14 11:49:21.024`、4 题、`exam_candidates=3`、三份答卷 22/21/9 均 `GRADED`、`score_published=1`；15 人 AI vs 教师评分数据指纹前后完全一致：answers 15、SUM(auto_score)=0.00、SUM(teacher_score)=73.00、ai_grading_results 15、SUM(ai_score)=75.50、distinct students 15；全局规模未变：users 40、submissions 55、answers 79、ai_grading_results 33、exam_candidates 102；本轮未创建任何业务数据，仅创建并删除 4 个临时 ADMIN fixture，残留 0）
+- Git：因缺陷修复**产生 1 处代码修改**（`frontend/src/api/http.js`）与**1 个新增回归脚本**（`frontend/scripts/verify-first-login.mjs`，未跟踪）；未 commit、未 push、未 reset、未 clean；HEAD 仍为 `d0fe120`；工作区由 65 项变为 66 项（38 改 / 2 删 / 26 未跟踪），其余为前序阶段既有未提交基线
+- 记录的非阻塞观察（未开发）：后端 `JwtAuthenticationFilter` 对**公开端点**在收到无效令牌时也会先行 401；本轮按「不修改后端认证协议、不放松安全校验」的约束，仅从前端侧（不向公开端点携带历史令牌）修复，未改动该过滤器
+- 环境：MySQL267=Running（未 stop / restart / taskkill）、3306=Listening（PID 80852）、后端仅一套 8080（health=UP）、前端仅一套 5173（200）、5174 无监听
+- 结论：**PASS —— 首次登录 Bug 已定位并修复，三角色认证回归正常**
+
+
+## 封板补充验收1：AI服务断线容错
+
+- 目标：证明 **AI 服务完全不可连接时，教师仍可人工阅卷，并最终正常整场发布成绩**。本轮不涉及超分截断与评分点变更。
+- 范围界定：仅覆盖「AI 失败处理 / AI 结果持久化 / 人工阅卷解耦 / 发布条件解耦 / 学生脱敏」；未重构 AI 模块。
+- 只读侦察结论（先形成当前行为判断，未先改代码）：
+  - AI 请求链路：`TeacherGradingController` → `TeacherGradingService.requestAi` → `AiGradingService.grade` →（真实 HTTP）`OpenAiCompatibleGradingProvider.grade`。
+  - 连接失败路径：JDK HttpClient 抛 IOException → Spring `RestClient` 包装为 `ResourceAccessException` → Provider 转 `AiGradingException("AI 接口超时或无法连接")` → `AiGradingService` 兜底 catch → `clearSuggestion` + `status=FAILED` + `error_message` 落库并 `saveOrUpdate`，**不向调用方抛异常**。
+  - 该链路**不写 answers**：`teacher_score` 与 `grading_status` 均不被 AI 触碰。
+  - 发布条件：`publishExamResults` 只看「非 DRAFT + 已过 end_time + 无 IN_PROGRESS + 全部 GRADED」，**完全不读取 AI 状态**。
+  - 学生侧 VO（`MvpViews.Result` / `ResultQuestion`）不含任何 AI 字段，`AiSuggestion` 只存在于教师视图 `ReviewPaper`。
+- 断线模拟：PASS（真实 HTTP Provider + 真实 Connection refused，非 mock / 非「AI 未配置」）
+  - 制造方式：测试进程内 `new ServerSocket(0)` 取随机端口 → **立即关闭** → 测试期间该端口无人监听；`ai.base-url` 指到 `http://127.0.0.1:{该端口}`，`ai.api-key` / `ai.model` 用测试占位值（不触达真实 DeepSeek，未使用任何真实凭据）。
+  - 端口约束：断言所选端口 ∉ {8080, 5173, 3306}；测试内先真实 `Socket.connect` 一次并断言抛 `IOException`（Connection refused 成立）。
+  - 真实经过 HTTP Provider：断言注入的 `AiGradingProvider` Bean 为 `OpenAiCompatibleGradingProvider` 实例且 `configured()==true`（排除 mock 与 `UnconfiguredAiGradingProvider`）。
+  - 未关闭真实 DeepSeek，未修改 `config/local.env`，未重启 8080 开发后端。
+- AI 失败：PASS
+  - `POST /api/teacher/grading/answers/{answerId}/ai-grade` → HTTP 200（端点为「返回刷新后的答卷」，失败以 `aiSuggestion` 明文呈现给教师，便于原地重试）
+  - 实际响应（真实捕获）：`"aiSuggestion":{"status":"FAILED","aiScore":null,"aiReason":null,"aiComment":null,"matchedPoints":[],"missingPoints":[],"errorMessage":"AI 阅卷失败：AI 接口超时或无法连接"}`
+  - 数据库：`ai_grading_results.status = FAILED`（实现约定的失败态 token，见下方说明）、`error_message` NOT NULL、`ai_score` NULL、`ai_reason`/`ai_comment`/`matched_points`/`missing_points` 均为 NULL
+  - 重复请求 3 次仍只有 1 行（`answer_id` 唯一约束 + 复用既有行），不产生重复记录
+  - 不污染答案/答卷：`answers.teacher_score IS NULL`、`answers.grading_status` 仍 `PENDING`、`submissions.status=SUBMITTED`、`score_published=0`、`pendingManualReview=true`
+  - 无敏感泄露：`error_message` 与四份学生原始响应均不含 `Authorization` / `Bearer` / `api-key` / `apiKey` / `sk-` / `jdbc:` / `JWT_SECRET` / `password`，也不含完整 Prompt、题目正文、评分点或学生答案
+  - **关于 status token 的说明**：本轮验收清单写的是 `status = ERROR`；实现（含既有测试契约 `AiGradingServiceTest`）使用 `FAILED` 作为 AI 失败态。`ai_grading_results.status` 为 `VARCHAR(32)`、无 CHECK 约束，`docs/02` 未定义该枚举。`FAILED` 语义即清单所指的「AI 失败态」，本轮**不做无功能收益的重命名**以避免破坏既有契约，故测试按 `FAILED` 断言并在此显式记录该命名差异。
+- 核心：AI 仍断线时的人工阅卷：PASS
+  - 前提：不恢复 AI（复核前再次真实 connect 断言仍 Connection refused），且 AI 失败行仍为 `FAILED`
+  - `PUT /api/teacher/grading/answers/{answerId}/review`（`teacherScore=8`）→ **200 成功**
+  - 结果：`answers.teacher_score=8`、`grading_status=REVIEWED`、`pendingManualReview=false`、`submissions.status=GRADED`、`total_score=13`（单选 `auto_score` 5 + 简答 `teacher_score` 8）
+  - `ai_grading_results` 失败记录**保留且未被抹除**，证明 AI 失败与人工阅卷完全解耦
+- AI 仍断线时的整场发布：PASS
+  - `POST /api/teacher/grading/exams/{examId}/publish-results` → **200 成功**（不恢复 AI）
+  - `exams.results_released_at IS NOT NULL`、`submissions.score_published=1`
+  - 该答卷全程**不存在任何 `status='SUCCESS'` 的 AI 行** → 证明正式成绩发布不依赖 AI SUCCESS
+- 学生结果：PASS
+  - `/api/student/results` 命中该答卷；`/api/student/results/{id}` → `totalScore=13`
+  - 最终成绩来源正确：单选 `finalScore=5`（`auto_score`）、简答 `finalScore=8`（`teacher_score`），无 `ai_score` 参与
+  - 脱敏：`/api/student/results`、`/api/student/results/{id}`、`/api/student/exams`、`/api/student/exams/{id}` 四份**原始响应**均不含 `aiScore` / `aiReason` / `aiComment` / `matchedPoints` / `missingPoints` / `scoringPoints` / `prompt` / `error_message` / `errorMessage` / `ai_score` / 「AI 阅卷失败」/「无法连接」/ `FAILED`；AI 断线错误只存在于教师/系统内部
+- TDD：产品代码 **无 RED**（既有实现已满足全流程，未做任何修复）
+  - 测试首轮 3 次 RED 全部是**测试自身缺陷**，非产品缺陷：① 编译失败（本机 Jackson 版本无 `JsonNode.parent()`）；② 把 `questionId` 当 `answerId` 传入导致 404；③ 断言 `matchedPoints` 为 `null` 而响应实际为 `[]`
+  - 修正后 GREEN；失败证据与修正过程保留于 `.runtime/8/outage-test.log` 迭代记录中
+- 自动回归：PASS
+  - 定向：`AiGradingServiceTest` + `AiGradingPersistenceIntegrationTest` + `OpenAiCompatibleGradingProviderTest` + `ExamResultReleaseIntegrationTest` + `StudentResultDetailIntegrationTest` + `AuthenticationIntegrationTest` → **35 tests / 0 失败 / 0 错误 / 0 跳过 / BUILD SUCCESS**
+  - 完整：backend Maven 全量 → **169 tests / 0 失败 / 0 错误 / 0 跳过 / BUILD SUCCESS**（封板基线 167 + 本轮新增 2 = 169）
+  - `cd frontend && pnpm build` → PASS（vite 6.1.0，**114 modules**，1.68s，0 error；未新增前端模块）
+  - `git diff --check` → PASS（仅 CRLF「LF will be replaced by CRLF」提示，**无 whitespace error**）
+  - 首次登录 Bug 新回归：PASS（`verify-first-login.mjs` 3 轮 × 4 用例全绿：TEACHER 冷启动 / TEACHER 残留令牌 / STUDENT / ADMIN；临时 ADMIN fixture 精确 id+username+role 删除，残留计数 0）
+- 数据保护：PASS
+  - 15 人 AI 数据（课程 606 / exam 465）指纹**前后逐项完全一致**：answers 15、SUM(auto_score)=0.00、SUM(teacher_score)=73.00、ai_grading_results 15、SUM(ai_score)=75.50、distinct students 15
+  - exam 1442 最终演示数据未变：`status=PUBLISHED`、`results_released_at=2026-09-14 11:49:21.024`、3 份答卷 22 / 21 / 9 均 `GRADED` 且 `score_published=1`、`exam_candidates=3`
+  - 本轮测试数据全部位于 `@Transactional` 内并回滚：`AI断线容错测试课程`=0、`AI断线容错测试考试`=0、`ai_outage_student_%`=0、`p7f_admin_smoke_%`=0
+  - 全局规模未变：users 40、submissions 55、answers 79、ai_grading_results 33、exam_candidates 102
+- 本轮修改内容：**未修改任何生产代码**（0 个生产文件）；新增 1 个测试类 `backend/src/test/java/com/smartexam/service/AiOutageFallbackIntegrationTest.java`（2 例）；**未修改数据库结构**（无 DDL/DML 变更）；**未修改 `config/local.env`**
+- Git：未 commit / 未 push / 未 reset / 未 clean；HEAD 仍 `d0fe120`；工作区 38 改 / 2 删 / 27 未跟踪 = 67 项（较上一轮 66 项仅 +1，即本轮新增测试文件）
+- 环境：MySQL267 = Running（未 stop / restart / taskkill）；3306 Listening；后端仅一套 8080（`/actuator/health`=UP）、前端仅一套 5173（200）、5174 无监听
+- 结论：**A. PASS —— AI完全断线不阻塞人工阅卷与正式成绩发布**
+
+## 封板补充验收2：AI建议分越界保护
+
+- 范围：**仅验证**「AI 返回超出题目合法分值范围的建议分时，后端必须做边界保护，不把非法建议分原样保存」。不做评分点新旧隔离测试。
+- 验收目标：题目满分 20、模型返回 25 → **系统保存 20** 并产生 warning。
+- 结论：**A. PASS —— AI建议分越界保护符合 T08 要求**
+
+### 1. 只读确认原行为（修复前）
+
+| 问题 | 结论 |
+| --- | --- |
+| AI 分数在哪里进入 Service | `AiGradingService.grade()`：`provider.grade(request)` → `grade.score()` 落库 |
+| 是否已限制上限 | **已限制**：`.min(question.getScore())` |
+| 是否已限制下限 | **已限制**：`.max(BigDecimal.ZERO)` |
+| 截断发生在 Provider 还是 Service | **Service 层**（`Provider` 只做字段解析与类型校验，不做分值截断） |
+| 截断后保存的值 | `clamped = max(0, min(rawAiScore, questionScore))` |
+| 当前是否已记录 warning | **没有**（`AiGradingService` 内无 logger，全链路无该 warning） |
+
+→ 属于验收清单「情况A：当前代码已经截断」，但 **warning 缺失**，因此仅针对 warning 建立失败测试并最小补齐；**未为了 TDD 形式故意破坏既有截断逻辑**。
+
+### 2. TDD 证据
+
+- 新增/扩展测试（`AiGradingServiceTest`，8 例）：
+  - Case 1 正常范围：满分 20 / AI=15 → 保存 15，不做截断，**不产生 warning**
+  - Case 2 超上限：满分 20 / AI=25 → 保存 20，`status=SUCCESS`、`error_message=NULL`，**产生 1 条 warning**
+  - Case 3 下限：满分 20 / AI=-3 → 保存 0，**产生 1 条 warning**
+  - Case 4 越界不得污染人工评分：`teacher_score` 仍 NULL、`grading_status` 仍 PENDING、`answers.updateById` 从未被调用
+- **RED**（补齐前）：`Tests run: 8, Failures: 2` —— 仅两条 warning 断言失败，`Expected size: 1 but was: 0 in: []`（截断断言本身已通过，证明既有截断正确、仅 warning 缺失）；证据 `.runtime/8/boundary-red.log`
+- **GREEN**（补齐后）：`Tests run: 10, Failures: 0, Errors: 0`（`AiGradingServiceTest` 8 + `AiGradingPersistenceIntegrationTest` 2）；证据 `.runtime/8/boundary-green.log`
+
+### 3. 超分核心结果
+
+| 项 | 值 |
+| --- | --- |
+| 题目满分 | 20 |
+| Provider 原始分 | 25 |
+| 最终保存分 | **20** |
+| `ai_grading_results.status` | `SUCCESS` |
+| `ai_grading_results.error_message` | `NULL`（模型正常响应，只是内容越界，**绝不写 FAILED**） |
+| 数据库层验证 | `AiGradingPersistenceIntegrationTest.aboveMaximumSuggestionIsClampedBeforePersistingAndStaysSuccessful`（真实 MySQL + `@Transactional` 回滚） |
+
+### 4. warning
+
+- 是否产生：**是**，且仅当 `rawAiScore != clampedScore` 时产生
+- 日志字段（`log.warn`，未新增数据库字段、未写入 `error_message`）：
+  `AI建议分越界，已截断：answerId=10, rawScore=25, maxScore=20, clampedScore=20`
+- 实测输出（`AiGradingService` logger，WARN）：
+  - `answerId=1627, rawScore=25, maxScore=20, clampedScore=20`（集成测试）
+  - `answerId=10, rawScore=-3, maxScore=20, clampedScore=0`（单元测试下限）
+- 日志安全：仅 `answerId / rawScore / maxScore / clampedScore`；测试显式断言不含 `Bearer` / `Authorization` / `api-key` / `apiKey` / `sk-` / `JWT_SECRET` / 完整学生答案 / 题目 / 参考答案
+
+### 5. 最终成绩隔离
+
+- `teacher_score` **未被修改**（越界提醒不触碰人工评分字段；单测与集成测试均断言 `teacher_score` 保持 NULL / 原值）
+- `ai_score` **不参与最终成绩**：最终成绩仍为「单选 → `auto_score`、简答 → `teacher_score`」，AI 建议仅供教师参考
+
+### 6. 修改内容
+
+- 生产代码修改 **1 个文件**：`backend/src/main/java/com/smartexam/service/AiGradingService.java`
+  - 新增 `private static final Logger log`（`org.slf4j.LoggerFactory`，与本项目既有风格一致）
+  - 把内联 `max(0).min(maxScore)` 抽为 `clamp(rawScore, maxScore, answerId)`，**保持同一截断语义**，越界时追加一条 warning；`maxScore == null` 时退化为仅保下限
+  - 仅涉及「AI 失败处理 / AI 结果持久化」允许范围，**未重构 AI 模块、未改 Provider、未改 DTO、未改数据表**
+- 新增/修改测试：`AiGradingServiceTest`（+3 例，含 Logback `ListAppender` 捕获 warning）、`AiGradingPersistenceIntegrationTest`（+1 例真实 MySQL 落库验证）
+- **未修改数据库结构**（无 DDL/DML 变更）；**未修改 `config/local.env`**
+
+### 7. 自动回归：PASS
+
+- AI 定向（`AiGradingServiceTest` + `AiGradingPersistenceIntegrationTest` + `AiOutageFallbackIntegrationTest` + `OpenAiCompatibleGradingProviderTest`）→ **15 tests / 0 失败 / 0 错误 / 0 跳过 / BUILD SUCCESS**
+  - AI 正常评分不受影响；AI 断线 `FAILED` 逻辑不受影响（`AiOutageFallbackIntegrationTest` 2 例全绿）；SUCCESS 后清空旧 `error_message` 逻辑不受影响（`AiGradingPersistenceIntegrationTest` 第 1 例全绿）
+- backend Maven 全量 → **173 tests / 0 失败 / 0 错误 / 0 跳过 / BUILD SUCCESS**（上一轮 169 + 本轮新增 4 = 173）
+- `cd frontend && pnpm build` → PASS（vite 6.1.0，0 error）
+- `git diff --check` → PASS（仅 CRLF「LF will be replaced by CRLF」提示，无 whitespace error）
+- 首次登录回归 `verify-first-login.mjs` → PASS（3 轮 × 4 用例；临时 ADMIN fixture 用后精确删除，残留计数 0）
+
+### 8. 数据保护：PASS
+
+- 15 人 AI 数据（课程 606 / exam 465）**前后逐项完全一致**：answers 15、SUM(auto_score)=0.00、SUM(teacher_score)=73.00、ai_grading_results 15、SUM(ai_score)=75.50、distinct students 15
+- exam 1442 最终演示数据未变：`status=PUBLISHED`、`results_released_at=2026-09-14 11:49:21.024`、3 份答卷 22 / 21 / 9 均 `GRADED` 且 `score_published=1`、`exam_candidates=3`
+- 本轮测试数据全部位于 `@Transactional` 内并回滚：`ai_outage_student_%`=0、`p7f_admin_smoke_%`=0、测试题残留=0
+- 全局规模未变：users 40、submissions 55、answers 79、ai_grading_results 33、exam_candidates 102
+- Git：未 commit / 未 push / 未 reset / 未 clean；HEAD 仍 `d0fe120`；MySQL267 未 stop / restart
+- 未调用真实 DeepSeek 制造超分（使用可控 Provider：单元测试 Mock + 集成测试 `@MockitoBean`）
+
+### 9. 结论
+
+**A. PASS —— AI建议分越界保护符合 T08 要求**（超上限截断至满分、下限截断至 0、越界产生安全 warning、AI 调用仍为 SUCCESS 且 `error_message=NULL`、不污染人工评分与最终成绩）
+
+## 封板补充验收3：评分点变更新旧隔离
+
+- 范围：**仅验证**「题库评分点被修改后，新考试使用新版本，旧考试的题目快照、AI 结果、`teacher_score` 与最终成绩必须保持不变」。不开发新功能。
+- 结论：**A. PASS —— 评分点变更新旧隔离符合 T08 要求**
+
+### 1. 原实现数据流（只读确认）
+
+| 问题 | 结论 |
+| --- | --- |
+| 从题库加入考试时题目是否复制为快照 | **是**。`TeacherManagementService.addQuestionsFromBank` 为每个题库题目 `new Questions()` 并写入 `exam_id`，把 `content` / `score` / `options_json` / `reference_answer` **物理复制**进 `questions` |
+| `scoring_points` 是否同步复制 | **是**。同一事务内遍历 `question_bank_scoring_points`，逐条 `points.save()` 到 `scoring_points(question_id = 快照题目 id)` |
+| 来源追踪字段 | `questions.source_bank_item_id` **仅作来源追踪**（用于「已加入当前考试」去重与回显），阅卷链路从不回查它 |
+| AI 阅卷读取哪里 | `AiGradingService.grade` → `ScoringPointsService.findByQuestionId` → `SELECT * FROM scoring_points WHERE question_id = ?`，即**考试快照表** |
+| 题库后续修改是否反向影响旧考试 | **不会**。题库表与快照表无外键、无触发器、无 join 回读 |
+| 已生成的 `ai_grading_results` 是否受影响 | **不会**。结果以 `answer_id` 存于 `ai_grading_results`，重算只由新的 AI 请求触发 |
+| `teacher_score` / `total_score` 是否依赖题库实时数据 | **不依赖**。`TeacherGradingService.recalculate` 只用 `answers.auto_score`（单选）与 `answers.teacher_score`（简答）求和；`publishExamResults` 只依赖考试状态与阅卷完成度 |
+
+架构与清单一致：
+`question_bank_items / question_bank_scoring_points` --组卷时复制--> `questions / scoring_points`（快照）--阅卷只读--> AI 建议 / `teacher_score` / 最终成绩。
+
+### 2. 考试A / V1
+
+- V1 评分点（题库正式 API 建立）：`P1 隐藏内部实现` 5.00、`P2 使用访问控制保护数据` 5.00，题目总分 10.00，READY。
+- 考试A 通过正式 `POST /api/teacher/exams/{id}/questions/from-bank` 组卷 → 形成独立快照：`source_bank_item_id` 指向题库题目、`questions.score = 10.00`、`scoring_points` 恰为 **P1 + P2 两条**（记录 `examQuestionAId`、`scoringPointAIds`）。
+- AI 建议分 A：**6**（可控 Fake Provider 检查到请求里就是 2 个 V1 评分点，才返回 6/理由 `V1`）；`ai_grading_results.status = SUCCESS`。
+- `teacherScoreA`：**8**（`PUT /answers/{id}/review`，`grading_status = REVIEWED`）。
+- `finalScoreA`：**8**（考试A 整场发布成功，`results_released_at` 非空，`submissions.total_score = 8`、`status = GRADED`）。
+
+### 3. 修改题库为 V2
+
+- 通过**题库正式 API** `PUT /api/teacher/question-bank-items/{itemId}` 把评分点改为 `P1/P2/P3 降低模块耦合/P4 提高代码可维护性`（各 2.50，和仍为 10.00），并**同时修改题干与参考答案**（用于证明考试题目不是实时引用题库），随后重新置 READY。
+- **考试A 未发生任何变化**：`questions.content` 仍为 V1 题干（不是 V2 修订版），`scoring_points` 仍只有 P1/P2 且**主键 id 与组卷时完全一致**（无删除重建、无覆盖）。
+
+### 4. 考试B / V2
+
+- 考试B 从同一已改为 V2 的题库题目重新正式组卷 → 形成**新的**快照：`scoring_points` 为 **P1/P2/P3/P4 四条**，题干为 V2 修订版，`source_bank_item_id` 相同。
+- AI 收到的评分点：**V2 四条**（Fake Provider 因收到 4 个评分点而返回 9/理由 `V2`）。
+- AI 建议分 B：**9**。
+
+### 5. 新旧隔离（逐项核验）
+
+| 旧考试A 数据 | 修改题库前 | 完成考试B 后 | 是否保持不变 |
+| --- | --- | --- | --- |
+| 快照评分点 | P1+P2（2 条） | P1+P2（2 条，id 相同） | **是** |
+| 快照题干 | V1 | V1 | **是** |
+| 旧 AI 结果 | `ai_score=6`、`reason=V1`、`status=SUCCESS` | 同左 | **是** |
+| 旧 `teacher_score` | 8 | 8 | **是** |
+| 旧 `finalScore`（`total_score`） | 8 | 8 | **是** |
+| 旧发布状态 | `results_released_at` = T、`score_published=1` | 同左 | **是** |
+| 旧答卷状态 | `GRADED` | `GRADED` | **是** |
+| 交叉污染 | — | 旧卷无任何字段被 V2 影响；新旧建议分 6 ≠ 9 | **无污染** |
+
+### 6. TDD / Bug 情况
+
+- **未发现 RED，不存在生产代码缺陷**：`ScoringPointSnapshotIntegrationTest` 首轮即 `Tests run: 2, Failures: 0, Errors: 0`。
+- 因此**未做任何修复**（清单 §16「先保留 RED 证据再最小修复」的前置条件不成立），**未修改任何生产代码**。
+
+### 7. 验收覆盖的额外边界
+
+- **题库归档**：题库题目归档（正式 API）后，已生成快照的旧考试仍可正常打开试卷、完成 AI 阅卷与人工阅卷，答卷正常 `GRADED`（`archivingBankItemAfterSnapshotLeavesExistingExamQuestionFullyGradable`）。
+- **可控 Fake Provider 不是固定返回值**：它按请求中实际传入的评分点数量分支（2 → 6 / 4 → 9），数量异常直接失败，使「AI 究竟读到了哪一版评分点」成为可断言证据。
+
+### 8. 修改内容
+
+- 生产代码：**0 个文件修改**；DB 结构：**未修改**（无 DDL/DML 变更）；`config/local.env`：**未修改**。
+- 新增测试：`backend/src/test/java/com/smartexam/questionbank/ScoringPointSnapshotIntegrationTest.java`（2 例，`@SpringBootTest` + `@AutoConfigureMockMvc` + `@Transactional`，真实 MySQL，`@MockitoBean AiGradingProvider` 可控 Fake）。
+- 未调用真实 DeepSeek。
+
+### 9. 自动回归：PASS
+
+- 定向（`ScoringPointSnapshotIntegrationTest` + `QuestionBankIntegrationTest` + `ManualBankAssemblyIntegrationTest` + `RandomPreviewIntegrationTest` + `PlatformBankIntegrationTest` + `AiGradingServiceTest` + `AiGradingPersistenceIntegrationTest`）→ **46 tests / 0 失败 / 0 错误 / 0 跳过 / BUILD SUCCESS**（题库管理、手动组卷、随机组卷、AI 阅卷均无回归）
+- backend Maven 全量 → **175 tests / 0 失败 / 0 错误 / 0 跳过 / BUILD SUCCESS**（上一轮 173 + 本轮新增 2 = 175，测试类 28 个）
+- `cd frontend && pnpm build` → PASS（vite 6.1.0，0 error）
+- `git diff --check` → PASS（仅 CRLF「LF will be replaced by CRLF」提示，无 whitespace error）
+- 首次登录回归 `verify-first-login.mjs` → PASS（3 轮 × 4 用例；临时 ADMIN 用后删除，残留 0）
+- AI 断线容错（`AiOutageFallbackIntegrationTest`）与 AI 越界保护（`AiGradingServiceTest` / `AiGradingPersistenceIntegrationTest`）在定向中全部继续 PASS
+
+### 10. 数据保护：PASS
+
+- 15 人 AI 数据（课程 606 / exam 465）**前后逐项完全一致**：answers 15、SUM(auto_score)=0.00、SUM(teacher_score)=73.00、ai_grading_results 15、SUM(ai_score)=75.50、distinct students 15
+- exam 1442 最终演示数据未变：`status=PUBLISHED`、`results_released_at=2026-09-14 11:49:21.024`、3 份答卷 22 / 21 / 9 均 `GRADED` 且 `score_published=1`、`exam_candidates=3`
+- 本轮测试数据全部位于 `@Transactional` 内并回滚：`评分点快照*` 课程 = 0、`归档隔离*` 课程 = 0、测试题库 = 0、`snapshot_student_%` = 0、`p7f_admin_smoke_%` = 0
+- 全局规模未变：users 40、submissions 55、answers 79、ai_grading_results 33、exam_candidates 102（题库/题目规模：question_banks 9、question_bank_items 29、questions 86、scoring_points 47）
+- Git：未 commit / 未 push / 未 reset / 未 clean；HEAD 仍 `d0fe120`；工作区 40 改 / 2 删 / 28 未跟踪（较上一轮 27 项仅 +1，即本轮新增测试文件）；MySQL267 未 stop / restart
+
+### 11. 结论
+
+**A. PASS —— 评分点变更新旧隔离符合 T08 要求**（新考试读取题库当前版本并形成独立快照；旧考试快照、AI 结果、`teacher_score`、最终成绩与发布状态全部保持不变，无任何交叉污染）
+
+---
+
+## 题库正式数据扩充
+
+### 1. 目标与范围：PASS
+
+- 本轮**只增加题库业务数据**，不开发新功能、不修改数据库结构、不修改 `config/local.env`、不调用真实 DeepSeek。
+- 写入方式：全程走**正式教师题库 API**（`POST /api/teacher/question-banks` → `POST .../items` → `POST /question-bank-items/{id}/ready`），归属教师 `teacher_demo`(id 1)。**未直接 INSERT** `question_bank_items` / `question_bank_scoring_points`，未改 SQL seed 文件，未新增导入功能。
+
+### 2. 扩充前基线
+
+- `数据库原理题库`（id **53**，owner 1）：**已存在但为空（0 道）** → 复用原库。
+- `Java程序设计题库`：**不存在**（无同名 ACTIVE 库）。历史遗留的 id **52「Java程序设计题库（验收编辑）」**为前序验收改名留下的 4 道测试性质题目，本轮**未复用、未修改、未删除**（本轮结束后另行归档，见下）。
+- `question_banks` = 9、`question_bank_items` = 29、`question_bank_scoring_points` = 24。
+
+### 3. Java程序设计题库：PASS
+
+- 题库 **id=611 `Java程序设计题库`**，owner `teacher_demo`(id 1)，scope `TEACHER`，status **ACTIVE**（本轮经正式 API 新建，无同名库）。
+- **单选 20 道 + 简答 10 道 = 30 道，全部 READY**（无 DRAFT 残留）。
+- 单选覆盖 20 个知识域：基本数据类型 / 变量与常量 / 运算符 / if-switch / for-while / 数组 / String / 类与对象 / 构造方法 / 封装 / 继承 / 多态 / 抽象类 / 接口 / 异常处理 / ArrayList-List / HashMap-Map / equals 与 == / static-final / JDBC 基础；含 `int a=5,b=2; a/b` 类代码判断题。
+- 简答覆盖 10 个主题：面向对象与三大特征 / 封装 / 继承 / 多态 / 抽象类与接口 / == 与 equals / 异常处理机制 / List-Set-Map / static / JDBC 步骤；每题均含**参考答案 + 4~5 个独立评分点**，`SUM(评分点分值) = default_score = 10.00` 逐题成立。
+
+### 4. 数据库原理题库：PASS
+
+- 题库 **id=53 `数据库原理题库`**，owner `teacher_demo`(id 1)，status **ACTIVE**（owner 关系未变）。
+- **单选 20 道 + 简答 10 道 = 30 道，全部 READY**。
+- 单选覆盖：基本概念 / DBMS / 关系模型 / 主键 / 外键 / NULL / SELECT / WHERE / ORDER BY / GROUP BY / HAVING / 聚合函数 / INNER JOIN / LEFT JOIN / 子查询 / 事务 / ACID / 索引 / 范式 / 视图与约束；含 SQL 场景题。
+- 简答覆盖 10 个主题：主键作用 / 主键与外键 / 事务 / ACID / 索引优缺点 / INNER JOIN 与 LEFT JOIN / WHERE 与 HAVING / 范式与规范化 / DELETE-DROP-TRUNCATE / SQL 注入与防范；每题均含**参考答案 + 4~5 个独立评分点**，分值合计 = 10.00。
+
+### 5. 数据质量核验：PASS
+
+- 重复题：题干完全重复 **0**；同题评分点内容重复 **0**。
+- 单选正确性：40 道题全部 4 个选项、选项 key 集合恒为 `A,B,C,D`、4 个选项文本互不重复（无「两个都对」）；正确答案分布 Java 5/3/6/6、数据库 3/5/6/6，无答案扎堆。
+- 参考答案：20 道简答 `reference_answer` 全部非空（长度 85~366 字）。
+- 异常项（空题干 / 分值 ≤0 / 非 READY / 简答缺参考答案）：**0**。
+
+### 6. 组卷 smoke：PASS
+
+- 临时 DRAFT 课程 2110 + 考试 1932，全部走正式教师 API，**13/13 PASS**：
+  - 从题库选题：两个库各返回候选 30（按类型 20/10）；关键字「JDBC」命中 2 道新题。
+  - from-bank 正式加入 1 单选 + 1 简答 → 简答快照带 **5 个评分点**、单选快照带 **4 个选项 + 正确答案**、`sourceBankItemId` 正确回指题库项。
+  - 随机预览：`bankIds=[611,53]` 抽出 5 单选 + 3 简答，`estimatedTotalScore=40`，跨两个扩充后的题库。
+- 临时数据已精确清理（exam 1932 / course 2110 / questions 2 / scoring_points 5），**残留 0**。
+
+### 7. 修改范围与数据保护：PASS
+
+- 生产代码 **0 个文件**修改；数据库结构**未修改**；`config/local.env`**未修改**。
+- 数据变化仅为业务数据：`question_banks` +1 行、`question_bank_items` **+60 行**、`question_bank_scoring_points` **+94 行**；原有 8 个题库的题目 id 集合全部未变。
+- exam 1442（`PUBLISHED` / `results_released_at=2026-09-14 11:49:21.024` / 3 份成绩 22·21·9 / candidates 3）与 15 人 AI 数据（answers 15、SUM(auto_score)=0.00、SUM(teacher_score)=73.00、ai_grading_results 15、SUM(ai_score)=75.50、distinct students 15）**前后逐项一致**。
+
+### 8. 结论
+
+**A. PASS —— 两个题库内容已扩充，可用于正式组卷和 AI 阅卷演示**
+
+---
+
+## 项目收尾：正式数据整理与测试痕迹清理
+
+### 1. 归档与补录：PASS
+
+- **历史题库 52**「Java程序设计题库（验收编辑）」经正式 API `DELETE /api/teacher/question-banks/52`（软归档，非物理删除）置为 **ARCHIVED**；4 道题目行完整保留（2 ARCHIVED + 2 READY），其历史快照引用（`questions.id=316` → `exam 327 手动组卷V1浏览器验收`）未受影响；归档后不再出现在教师 ACTIVE 题库列表与组卷候选。
+- 正式题库保持不变：**611 Java程序设计题库 ACTIVE / READY=30（20 单选 + 10 简答）**、**53 数据库原理题库 ACTIVE / READY=30（20 单选 + 10 简答）**。
+
+### 2. 数据库清理：PASS（精确 DELETE，已全库备份）
+
+清理前执行 `mysqldump` 全库备份（`.runtime/10/backup/smart_exam-before-cleanup-20260914-135151.sql`，178 KB）作为回滚网。删除对象均为前序阶段已结束的 smoke fixture：
+
+- 课程 11 门：`1187 阶段4连续阅卷smoke课程`、`1356~1365 阶段5独立Smoke课程-*`
+- 关联考试 61 场（1045、1221~1280）、题目 50 条、评分点 11 条、答卷 34 份、作答 46 条、AI 评分结果 10 条、应考记录 56 条
+- 账号 12 个：`phase5_smoke_*` 学生 10 个、`phase6b_smoke_*` 停用教师 2 个（删除前确认六张外键表依赖全为 0）
+
+删除按 `ai_grading_results → answers → scoring_points → questions → submissions → exam_candidates → exams → course_students → courses → users` 顺序执行，规避 `answers.question_id` 的 RESTRICT；删除后孤立行检查全为 0。
+
+规模变化：users 40→**28**、courses 18→**7**、exams 77→**16**、questions 86→**36**、scoring_points 47→**36**、submissions 55→**21**、answers 79→**33**、ai_grading_results 33→**23**、exam_candidates 102→**46**、course_students 27（不变）。
+
+保留的历史验收数据（有演示/答辩价值，未删）：课程 `1 V1.0 测试课程`、`34 Java程序设计`、`265 MVP流程验收`、`319 MVP验收课程`、`508 随机组卷V1验收`，账号 `teacher_test01`、`student_demo_1/2`、`AITEST001~015`，题库 `25/26/54/103/104/154`。
+
+### 3. 文件清理：PASS
+
+- **删除**：`.runtime/6c/`（阶段6C 临时脚本/截图/临时 seed/日志）、`.runtime/7/`（阶段7 调试截图/临时 JSON/临时 xlsx 导出/临时脚本）、`.runtime/8` 中未被引用的 16 个测试日志与 6 个临时片段、`.runtime/9` 的空日志与临时片段、`.runtime/10` 的临时令牌与临时 JSON、`gui-test-screenshots/` 的 3 个 `.inspect.ndjson` 派生中间产物 + 3 个测试导出 xlsx + 2 个临时 ps1 + 1 个游离 `node_modules` 符号链接。
+- **迁移保留**（唯一性正式验收截图，移入 `gui-test-screenshots/`）：阶段7 末态截图 6 张（`p7-admin`、`p7-student-detail-post`、`p7-student-exams-post`、`p7-student-results-post`、`p7-teacher-grading-post`、`p7-teacher-paper-post`）+ 阶段6C 路由验收截图 5 张（`phase6c-404/admin/compat-route/student/teacher`）。
+- **修复回归依赖**：`.runtime/7f/run-first-login.sh` 与 `run-perm.sh` 原先引用已删除的 `.runtime/6c/sql.sh`，改为引用保留的 `.runtime/8/sql.sh`，回归能力未受损（随后实跑验证 PASS）。
+- **明确保护未动**：`backend/src/test/**`（28 个测试类全保留）、`frontend/scripts/**`（4 个正式回归脚本）、`sql/**`、`docs/**`、`scripts/**`、`README.md`、`gui-test-screenshots/AI人工评分分差分析.xlsx`、`.runtime/tools`（Maven 工具链）、`.runtime/dev-processes.json` 与 `backend/frontend*.log`（`scripts/dev.ps1` 管理）、`.runtime/8/{outage-test.log,boundary-red.log,boundary-green.log}`（本文件引用的证据）、`.runtime/7f`、`.runtime/9` 题库源数据。
+
+### 4. 回归验证：PASS
+
+- 后端全量：**28 类 / 175 tests / 0 失败 / 0 错误 / 0 跳过 / BUILD SUCCESS**（含 `AiOutageFallbackIntegrationTest` 2、`AiGradingServiceTest` 8、`AiGradingPersistenceIntegrationTest` 2、`ScoringPointSnapshotIntegrationTest` 2、`AuthenticationIntegrationTest` 16）。
+- `pnpm build` PASS（vite 6.1.0）；`git diff --check` 仅 CRLF 提示，无 whitespace error。
+- 首次登录回归 `verify-first-login.mjs` PASS（3 轮 × 4 用例；临时 ADMIN 用后删除，残留 0）。
+- `git status`：40 改 / 2 删 / 28 未跟踪，与清理前完全一致；HEAD 仍 `d0fe120`；**未 commit / 未 push / 未 reset / 未 clean**；MySQL267 未 stop / restart。
+
+### 5. 数据保护：PASS
+
+- 15 人 AI 数据（课程 606 / exam 465）**逐项不变**：answers 15、SUM(auto_score)=0.00、SUM(teacher_score)=73.00、ai_grading_results 15、SUM(ai_score)=75.50、distinct students 15。
+- exam 1442 **逐项不变**：`PUBLISHED`、`results_released_at=2026-09-14 11:49:21.024`、3 份成绩 22/21/9 且 `GRADED`/`score_published=1`、`exam_candidates=3`。
+- 本轮临时数据残留全为 0（`p7f_admin_%` / `phase5_smoke_%` / `phase6b_smoke_%` / `%smoke%` 课程 / course 2110 / exam 1932）。
+
+### 6. 结论
+
+**A. PASS —— 临时测试痕迹已安全清理，正式测试与演示资产完整保留**
+
+---
+
+## 封板环境修复：VS Code 一键启动稳定性（2026-09-14）
+
+本轮只做启动稳定性，不新增任何业务功能。
+
+### 1. 5174 真实根因：两处重复启动 + 一处允许漂移
+
+修复前存在两条**各自独立、都会拉起前端**的链路：
+
+| 链路 | 位置 | 前端命令 | 端口行为 |
+|---|---|---|---|
+| A（VS Code 调试会话） | `.vscode/launch.json` 复合配置「智能考试管理系统」= 「后端：SmartExamApplication (Java 17)」+「前端：Vue/Vite」 | `pnpm dev` | `vite.config.js` **未设 `strictPort`** → 5173 被占时**静默漂移到 5174** |
+| B（统一脚本） | `scripts/dev.ps1 -Action start`（`start-dev.bat`、VS Code Task 都走它） | `node vite.js --port 5173 --strictPort` | 端口被占时直接失败（不漂移） |
+
+结论：**A 与 B 各启动一套前端**；后启动的那套（A 的 `pnpm dev`）发现 5173 已占用 → 因缺 `strictPort` 自动改用 **5174**。因此「5174 出现」= 「起了第二套服务」的指纹；只要用户先点过 VS Code 一次、又执行过 `start-dev.bat`/Task，就必然复现。
+
+同时确认另外两处会放大问题的设计缺陷：
+
+- `launch.json` 的「智能考试系统：一键启动」是 `node-terminal` **调试会话**：js-debug 会向会话注入 `NODE_OPTIONS` 并对子 node 进程自动附加，Vite 常驻 → 调试会话永不结束，表现为“一键启动卡住”。证据：VS Code `exthost.log` 出现 `ms-vscode.js-debug … activationEvent: 'onDebugResolve:node-terminal'`。
+- `scripts/dev.ps1` 用 PowerShell `Start-Process` 拉子进程，在**环境块含大小写重复键**时直接抛错，导致冷启动一个服务都起不来（见第 2 节）。
+
+### 2. 冷启动失败的根因：环境块大小写重复键使 Start-Process 崩溃
+
+复现证据（`.runtime/11/probe.txt`、`.runtime/11/coldstart.txt`）：
+
+```
+env key count = 188
+=== case-duplicate env keys ===
+path -> Path | PATH
+https_proxy -> HTTPS_PROXY | https_proxy
+http_proxy -> http_proxy | HTTP_PROXY
+=== Start-Process probe ===
+START-PROCESS FAIL: System.ArgumentException :: Item has already been added. Key in dictionary: 'Path'  Key being added: 'PATH'
+```
+
+```
+########## COLD START (exit=1, seconds=8) ##########
+… BUILD SUCCESS …
+失败：Item has already been added. Key in dictionary: 'Path'  Key being added: 'PATH'
+=== ports after start ===
+3306 = 80852    8080 = none    5173 = none    5174 = none
+```
+
+从 Git Bash 派生或由宿主注入的 shell 会同时带上 `Path`/`PATH`、`http_proxy`/`HTTP_PROXY`、`https_proxy`/`HTTPS_PROXY`。PowerShell 5.1 的 `Start-Process` 在复制环境变量阶段因此抛异常，**后端与前端一个都起不来**。
+
+另有一处会让等待“卡住”：健康/页面探测原本用 `Invoke-RestMethod` / `Invoke-WebRequest`，在有 `http_proxy` 的环境下会走系统代理，出现 `正在读取 Web 响应 … (读取的字节数: 0)` 长时间无响应，把 `WaitReady` 的等待循环一起拖住。
+
+### 3. 修复前启动链
+
+```
+VS Code 运行和调试
+  └─ 复合配置「智能考试管理系统」
+       ├─ 后端：SmartExamApplication (Java 17)   ← preLaunchTask: 检查 MySQL267
+       └─ 前端：Vue/Vite → pnpm dev              ← 无 strictPort，5173 占用即漂移 5174
+（另：standalone）start-dev.bat / 智能考试系统：一键启动(Task)
+  └─ scripts/dev.ps1 -Action start
+       ├─ Start-Process java -jar  (8080)        ← 环境块重复键时直接抛错
+       └─ Start-Process node vite --port 5173 --strictPort
+```
+
+问题：两套并存、无单一入口、5173 可被漂移、子进程创建可因环境而失败。
+
+### 4. 修复后启动链（单一逻辑）
+
+```
+VS Code
+  ├─ 运行和调试 →「智能考试系统：一键启动 / 停止 / 检查状态」
+  ├─ 终端 → 运行任务 → 同名三条 Task
+  └─ start-dev.bat / stop-dev.bat / check-env.bat
+        └──► scripts/dev.ps1  ← 唯一进程管理器
+              Step1 环境检查(Java17/Node/pnpm/Maven/折叠环境块重复键)
+              Step2 MySQL267 Running
+              Step3 3306 Listening
+              Step4 启动 backend(8080)
+              Step5 等 /actuator/health = UP（原生 socket 探测，硬超时）
+              Step6 启动 frontend(5173, strictPort)
+              Step7 等 5173 HTTP 200
+              Step8 断言 5174 NOT LISTENING
+              Step9 打开 http://localhost:5173/login
+```
+
+### 5. 修改文件
+
+| 文件 | 修改 |
+|---|---|
+| `frontend/vite.config.js` | `server` 增加 **`strictPort: true`**；保留 `/api` → `VITE_API_PROXY_TARGET` 代理。端口被占时直接启动失败，不再漂移 5174 |
+| `.vscode/launch.json` | 三条统一入口（一键启动/停止/检查状态）保留但加 `autoAttachChildProcesses: false`（不再让调试器附加到 Vite，会话随 dev.ps1 结束而结束）+ `internalConsoleOptions: neverOpen`；保留 `调试：后端 Spring Boot`、`调试：前端 Vite` 两个开发高级入口；**无**硬编码端口、**无** `serverReadyAction`、**无** 5174 |
+| `.vscode/tasks.json` | 主入口统一为 Task：`智能考试系统：一键启动 / 停止 / 检查状态` + `单独启动后端 / 单独启动前端` + `检查 MySQL267`，全部调用 `scripts/dev.ps1`（`${workspaceFolder}` 动态路径） |
+| `scripts/dev.ps1` | ① 脚本最开头**无条件折叠环境块大小写重复键**，并新增 `Assert-StartProcessUsable` 自检（不可用即明确报错，不再“卡住”）；② 健康/页面探测改为**原生 socket HTTP GET**（不走系统代理、连接与读取均硬超时）；③ `Stop-Owned` 删除状态文件改为 try/catch，删除失败只告警不判失败；④ 保持既有的：互斥量串行化、端口属主 + 命令行归属校验（`Test-ProjectOwned`）、`5174` 清理与严格断言、幂等复用、`-NoBrowser` |
+| `start-dev.bat` / `stop-dev.bat` / `check-env.bat` | 未改（本就薄封装 `%~dp0scripts\dev.ps1`，作为备用入口） |
+
+### 6. 端口与幂等验收：PASS
+
+- 修复后端口：**MySQL 3306 / Backend 8080 / Frontend 5173 / 5174 无监听**。
+- 连续 3 次 `start`（`.runtime/11/idem2.txt`）：`8080=86072 5173=72784 5174=none java=1 node=1` 三次完全一致，`exit=0`；无 EADDRINUSE、无端口漂移。
+- 复用时的输出（`.runtime/11/idem-wording.txt`）：`后端已运行：PID …（8080）` / `前端已运行：PID …（5173）` / `Backend 已运行` / `Frontend 已运行` / `5174: NOT LISTENING` / `Overall: READY` / `System READY`。
+- 冷启动（`.runtime/11/cycle-final.txt` 与 `cyc-a.txt`）：从停止态 `start1 exit=0`，`后端已启动：PID 103184（8080，health=UP）`、`前端已启动：PID 81484（5173，HTTP 200）`、`5174: NOT LISTENING`、`System READY`，全程约 15 秒（含 Maven 打包 2.9 秒）。
+
+### 7. 停止与重启验收：PASS
+
+`.runtime/11/cycle-final.txt`（复跑一轮，含状态文件）：
+
+```
+A. start1 exit=0 → 8080=104428 5173=104308 5174=none  java=1 node=1  MySQL267=Running   （幂等复用，PID 未变）
+B. stop  exit=0 → 8080=none   5173=none   5174=none  java=0 node=0  MySQL267=Running
+C. start2 exit=0 → 8080=88248  5173=103576 5174=none  java=1 node=1  MySQL267=Running
+```
+
+`stop` 只结束本项目 backend/frontend（按端口属主 + 命令行归属校验），**MySQL267 始终 Running、3306 始终 Listening**；停止后 8080/5173/5174 全部无监听；再次启动正常回到 READY。
+
+> 说明：本轮在宿主工具沙箱内执行时，宿主注入的 safe-delete 包装（`SAFE_DELETE_FAIL_CLOSED`）会让 `Remove-Item` 删 `.runtime/dev-processes.json` 失败并抛异常，首轮表现为 `stop exit=1`。该状态文件只是缓存（`Ensure-*` 以端口占用为准，`SaveState` 每次重写），已改为 try/catch 容忍，修复后 `stop exit=0`。真实 VS Code / 资源管理器环境无此包装，删除本来正常。
+
+### 8. 首次登录回归：PASS
+
+`bash .runtime/7f/run-first-login.sh`（真实 Edge headless + CDP）→ `PASS first-login regression: 3 轮 × 4 用例（TEACHER 冷启动/残留令牌、STUDENT、ADMIN）`，`exit=0`；每次 `loginStatus=200`、`loginAuthorization=false`、落地 `/teacher`、`/student`、`/admin`、`showedPleaseLogin=false`、`firstBizStatus=200`。临时 ADMIN fixture 用后精确删除，残留 0。**“首次点击登录失败”缺陷未回归。**
+
+### 9. 自动回归：PASS
+
+- 后端全量：**28 类 / 175 tests / 0 失败 / 0 错误 / 0 跳过 / BUILD SUCCESS（37.6s）**（`.runtime/11/backend-test.log`）。
+- `pnpm build`：PASS，114 modules，`dist/index.html` 0.51 kB / CSS 14.08 kB / JS 223.04 kB，`exit=0`（`.runtime/11/pnpm-build.log`）。
+- `git diff --check`：退出码 0，仅 CRLF 提示，无 whitespace error。
+- `git status`：43 改 / 2 删 / 28 未跟踪；HEAD 仍 `d0fe120`；**未 commit / 未 push / 未 reset / 未 clean**；MySQL267 未 stop / restart。
+
+### 10. 数据保护：PASS
+
+- exam 1442：`PUBLISHED`、`results_released_at=2026-09-14 11:49:21.024`、`exam_candidates=3`、答卷 950/951/952 均 `GRADED`/`score_published=1`、`total_score` 22 / 21 / 9。
+- 15 人 AI 数据（课程 606 / exam 465）：answers **15**、SUM(auto_score) **0.00**、SUM(teacher_score) **73.00**、ai_grading_results **15**、SUM(ai_score) **75.50**、distinct students **15**，逐项与基线一致。
+- 正式题库：**611 Java程序设计题库 ACTIVE（20 单选 + 10 简答 = 30 READY）**、**53 数据库原理题库 ACTIVE（30 READY）**、**52 ARCHIVED**（4 条题目保留）；题库 611 评分点 48 条、53 评分点 46 条。
+
+### 11. 跨电脑 Docker 审计（仅审计，本轮不改）
+
+- `docker-compose.yml` + `backend/Dockerfile`（maven 构建 → temurin-17-jre，非 root 用户，`docker-entrypoint.sh` 校验 `DB_PASSWORD`/`JWT_SECRET` 并拒绝示例值）+ `frontend/Dockerfile`（node 构建 → nginx 1.28-alpine，`VITE_API_BASE_URL=/api`）+ `frontend/nginx.conf`（`/api/` 反代 `backend:8080`、`/healthz` 返回 200、SPA fallback）+ 根 `.env.example`（`MYSQL_ROOT_PASSWORD` / `DB_PASSWORD` / `JWT_SECRET` / `HTTP_PORT`）+ 三个 `healthcheck`，**配置面完整**。
+- `docker compose up --build` 在本机**不可用**：`docker` 不在 PATH，`C:\Program Files\Docker` 与 `Docker Desktop.exe` 均不存在，`com.docker.service` 无（未安装 Docker Desktop）。
+- 补齐清单（后续交付项）：① 安装 Docker Desktop（或 WSL2 + docker engine）；② 复制 `.env.example` 为 `.env` 并改三处示例值；③ 正式数据需另行导入（compose 只挂 `sql/init.sql` 建结构，不含演示数据）；④ 首次构建需联网拉取 `maven:3.9.9-eclipse-temurin-17` 等镜像。不影响本轮 VS Code 启动修复。
+
+### 12. 结论
+
+**A. PASS —— VS Code 继续作为主启动方式，5174 漂移与重复启动问题已解决。**
+
+主方式：打开项目 → `运行和调试` → `智能考试系统：一键启动` → 自动打开 `http://localhost:5173/login`；
+备用：`start-dev.bat`（VS Code 异常时）；底层：`scripts/dev.ps1`（唯一进程管理器，VS Code / bat / PowerShell 共用一套逻辑）。日常不需要手敲 `pnpm dev` / `mvn spring-boot:run`。
+
+---
+
+## V1.0 Git 收口（2026-09-21 ~ 2026-09-22）
+
+封板验收完成后，将工作区积压的约 65 项变更按业务域拆分为 10 个原子提交，逐轮完成「现场恢复 → diff 审计 → 针对性测试 → 前端构建/浏览器 smoke → cached diff 复审」后方可提交；全程未 push、未 reset、未改动既有提交。
+
+### 1. 收口提交清单
+
+| # | 提交 | 内容与验证摘要 |
+|---|---|---|
+| 1 | `3465fe5` feat(exam): 发布考试时冻结应考学生名单 | exam_candidates 冻结快照为唯一应考权威 |
+| 2 | `a5a879b` feat(grading): 支持整场成绩发布查看与导出 | 考试级 results_released_at 单事务发布 |
+| 3 | `8ac3d1a` feat(teacher): 整合考试工作区和阅卷任务入口 | workspace 聚合接口 + 旧阅卷路由收口 |
+| 4 | `2cb0e70` feat(student): 完善考试生命周期与成绩回顾 | 学生答题/交卷/成绩回顾全链路 |
+| 5 | `8da79b0` feat(question-bank): 支持平台公共题库只读组卷 | QuestionBankScope（TEACHER/PLATFORM）、readableBank/writableBank 双守卫、组卷同事务复制题目与评分点快照、幂等升级脚本；验证：升级脚本幂等、后端 36 tests、前端 build、浏览器 smoke 8 项 |
+| 6 | `712e27c` fix(ai-grading): 强化失败持久化和建议分边界保护 | error_message 用 FieldStrategy.ALWAYS 支持 FAILED→SUCCESS 清空；Service 层 clamp 截断越界建议分（warning 仅含 answerId/rawScore/maxScore/clampedScore）；验证：AI 相关 23 tests（含真实断线降级、越界保护、持久化翻转） |
+| 7 | `8755ab0` fix(auth): 避免公开端点携带过期会话令牌 | PUBLIC_ENDPOINTS 白名单（登录/学生注册不带 Authorization）、会话存储迁移 sessionStorage；验证：verify-first-login 3 轮 × 4 用例 + 三角色权限负向回归 |
+| 8 | `bb79828` refactor(ui): 统一教师学生和管理端工作空间样式 | tokens/workspace 通用层 + teacher/student/admin 角色层 CSS 分层，13 个视图结构调整；无 API/权限/路由业务变化；验证：pnpm build 117 modules、三角色浏览器 smoke（含阅卷页、1366/1920 双尺寸） |
+| 9 | `8bc6358` chore(dev): 统一 Windows 开发启停和端口检查 | dev.ps1 start/stop/check/backend/frontend 统一入口（环境块重复键折叠、Start-Process 自检、SERVER_PORT 显式覆盖、PID+StartTime+命令行三重归属的安全停止）、vite strictPort、VS Code 任务/调试统一调用脚本；验证：check、冷启动、重复 start 幂等、stop 安全（MySQL267 不受影响、无误杀）、重启、5173 占用明确失败不漂移、进程归属与 secret 不落盘，全矩阵 PASS |
+| 10 | `（本轮）` docs: 归档 V1.0 验收记录与关键证据 | 本验收文档入库、verify-admin-workspace.mjs 静态验证脚本、7 张核心闭环证据截图、.gitignore 收口（工具私有目录与临时验收产物） |
+
+### 2. V1.0 最终状态
+
+核心闭环（管理员 → 教师 → 课程 → 学生 → 题库 → 组卷 → 发布考试 → 学生答题 → AI 辅助阅卷 → 教师复核 → 成绩发布 → 学生成绩回顾）全链路验收 PASS（阶段 7）。
+
+关键工程能力均已验收并入库：
+
+- JWT 认证与三角色权限（含公开端点白名单、会话隔离、强制改密路由）
+- 应考名单快照（exam_candidates）与试题/评分点快照（阅卷链路不回查题库）
+- 考试级整场成绩发布（results_released_at 唯一权威）与成绩导出
+- AI 失败降级（FAILED 持久化、断线不阻塞发布、失败不写 answers）与建议分边界保护（clamp）
+- 数据库升级脚本（幂等）与三套初始化 SQL
+- 后端集成测试基线：28 个测试类 / 175 tests / 0 失败 / 0 错误 / 0 跳过
+- 前端静态验证脚本（verify-admin-workspace / verify-student-lifecycle）、浏览器级回归（verify-first-login、verify-teacher）、三角色浏览器 smoke
+- Windows 一键启停与健康检查（MySQL 3306 / backend /actuator/health / frontend 5173，strictPort 防漂移）
+
+### 3. 遗留事项（不阻塞 V1.0）
+
+- `README.md` 仍停留在阶段 4，已滞后于实际状态，列为 V1.0 封板后的第一个工程任务（本轮不做大重构）。
+- Docker 跨机器部署链路配置面完整（compose + 三 healthcheck），但本机未安装 Docker Desktop，`docker compose up --build` 未实测（见上文「跨电脑 Docker 审计」）。
+
+### 4. 结论
+
+**A. PASS —— V1.0 Git 收口完成，工作区清零，验收证据归档。**

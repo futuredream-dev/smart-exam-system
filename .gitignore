@@ -30,3 +30,20 @@ config/local.env
 Thumbs.db
 *.tmp
 *.temp
+
+# AI/dev-tool private data (memory, env probes, plan files)
+.workbuddy/
+.zcode/
+
+# Local process snapshot docs (superseded by acceptance record)
+任务进度报告-*.md
+
+# GUI acceptance dir: ignore by default, whitelist formal evidence
+gui-test-screenshots/*
+!gui-test-screenshots/ai-main-preview.png
+!gui-test-screenshots/p7-admin.png
+!gui-test-screenshots/p7-student-exams-post.png
+!gui-test-screenshots/p7-student-detail-post.png
+!gui-test-screenshots/p7-student-results-post.png
+!gui-test-screenshots/p7-teacher-grading-post.png
+!gui-test-screenshots/p7-teacher-paper-post.png
