@@ -4,8 +4,8 @@
   color: var(--text-primary);
   background: var(--page-bg);
   font-family:
-    Inter, "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", sans-serif;
+    "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC",
+    "Noto Sans CJK SC", "Segoe UI", sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
@@ -21,12 +21,14 @@ body {
 }
 
 button,
-input {
+input,
+select,
+textarea {
   font: inherit;
 }
 
 a {
-  color: #315fd6;
+  color: var(--primary);
   text-decoration: none;
 }
 
@@ -35,29 +37,27 @@ a {
   min-height: 100vh;
   place-items: center;
   padding: 24px;
-  background: linear-gradient(145deg, #eaf0ff, #f9fbff 55%, #edf8f4);
+  background: var(--page-bg);
 }
 
 .login-card {
   width: min(100%, 420px);
-  padding: 38px;
-  border: 1px solid #e0e5ef;
-  border-radius: 18px;
-  background: #fff;
-  box-shadow: 0 18px 48px rgb(31 50 90 / 12%);
+  padding: 32px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-modal);
+  background: var(--surface);
 }
 
 .login-card h1,
 .app-content h1 {
   margin: 6px 0 10px;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.35;
 }
 
 .eyebrow {
-  margin: 0;
-  color: #315fd6;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
+  display: none;
 }
 
 .muted {
@@ -66,8 +66,8 @@ a {
 
 .login-form {
   display: grid;
-  gap: 18px;
-  margin-top: 28px;
+  gap: 16px;
+  margin-top: 24px;
 }
 
 .login-form label {
@@ -82,21 +82,21 @@ a {
   width: 100%;
   padding: 11px 12px;
   border: 1px solid #ccd3df;
-  border-radius: 9px;
+  border-radius: var(--radius-control);
   outline: none;
 }
 
 .login-form input:focus {
-  border-color: #315fd6;
-  box-shadow: 0 0 0 3px rgb(49 95 214 / 12%);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgb(53 99 220 / 12%);
 }
 
 .login-form button {
   padding: 12px;
   border: 0;
-  border-radius: 9px;
+  border-radius: var(--radius-control);
   color: #fff;
-  background: #315fd6;
+  background: var(--primary);
   cursor: pointer;
 }
 

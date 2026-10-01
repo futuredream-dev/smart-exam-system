@@ -3,6 +3,8 @@
   --primary-hover: #284fb8;
   --primary-active: #20449e;
   --primary-soft: #edf2ff;
+  --info: var(--primary);
+  --info-soft: var(--primary-soft);
   --text-primary: #24324a;
   --text-secondary: #667085;
   --text-tertiary: #8994a6;
@@ -10,6 +12,8 @@
   --page-bg: #f5f7fb;
   --surface: #fff;
   --surface-muted: #f7f9fc;
+  --neutral-soft: #f2f4f7;
+  --neutral-text: #53647c;
   --border: #dfe5ee;
   --border-subtle: #edf0f5;
   --success: #167655;
@@ -18,18 +22,18 @@
   --warning-soft: #fff5df;
   --danger: #b42332;
   --danger-soft: #fff0f1;
-  --pending: #744ca2;
-  --pending-soft: #f4eaff;
-  --radius-control: 7px;
-  --radius-card: 10px;
-  --radius-modal: 12px;
+  --pending: var(--warning);
+  --pending-soft: var(--warning-soft);
+  --radius-control: 6px;
+  --radius-badge: 6px;
+  --radius-card: 8px;
+  --radius-modal: 10px;
   --control-height: 36px;
   --control-height-lg: 38px;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
   --space-4: 16px;
-  --space-5: 20px;
   --space-6: 24px;
   --space-8: 32px;
 }

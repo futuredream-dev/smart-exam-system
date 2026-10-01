@@ -1,7 +1,8 @@
-export const displayStageNames = {
-  DRAFT: '草稿', SCHEDULED: '待开始', RUNNING: '进行中', ENDED: '已结束',
-  GRADING: '阅卷中', GRADED: '待发布成绩', RESULT_PARTIAL: '成绩部分发布', COMPLETED: '已完成',
-}
+import { examDisplayStage } from './statusDisplay'
+
+export const displayStageNames = Object.fromEntries(
+  Object.entries(examDisplayStage).map(([key, value]) => [key, value.label]),
+)
 
 export const actionNames = {
   CONFIGURE_PAPER: '配置试卷', PUBLISH: '发布考试', VIEW: '查看考试',
