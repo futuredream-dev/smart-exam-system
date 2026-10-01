@@ -3,6 +3,8 @@ package com.smartexam.questionbank;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smartexam.entity.Courses;
+import com.smartexam.entity.QuestionBank;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.smartexam.entity.Exams;
 import com.smartexam.entity.Users;
 import com.smartexam.security.JwtService;
@@ -47,6 +49,7 @@ class RandomPreviewIntegrationTest {
     @Autowired ExamsService exams;
     @Autowired JwtService jwt;
     @Autowired JdbcTemplate jdbc;
+    @Autowired com.smartexam.mapper.QuestionBankMapper bankMapper;
 
     String teacherToken;
     String otherTeacherToken;
@@ -136,20 +139,29 @@ class RandomPreviewIntegrationTest {
     }
 
     @Test
+    void rejectsUnboundBankForPreviewAndConfirm() throws Exception {
+        long bank = createBank("历史随机题库", teacherToken);
+        long item = ready(createItem(bank, singleChoice("历史随机题"), teacherToken), teacherToken);
+        bankMapper.update(null, new UpdateWrapper<QuestionBank>().eq("id", bank).set("course_id", null));
+        assertThat(preview(examId, List.of(bank), 1, 0, teacherToken, 409).path("message").asText()).contains("尚未绑定课程");
+        assertThat(call(post("/api/teacher/exams/" + examId + "/questions/from-bank"),
+                Map.of("bankItemIds", List.of(item)), teacherToken, 409).path("message").asText()).contains("尚未绑定课程");
+        assertThat(questionCount(examId)).isZero();
+    }
+
+    @Test
     void mixesQuestionsAcrossSelectedBanks() throws Exception {
         long firstBank = createBank("甲来源题库", teacherToken);
         long secondBank = createBank("乙来源题库", teacherToken);
         for (int i = 1; i <= 3; i++) ready(createItem(firstBank, singleChoice("甲库单选" + i), teacherToken), teacherToken);
-        for (int i = 1; i <= 3; i++) ready(createItem(secondBank, singleChoice("乙库单选" + i), teacherToken), teacherToken);
+        long secondItem = 0;
+        for (int i = 1; i <= 3; i++) secondItem = ready(createItem(secondBank, singleChoice("乙库单选" + i), teacherToken), teacherToken);
 
-        JsonNode data = preview(examId, List.of(firstBank, secondBank), 5, 0, teacherToken, 200).path("data");
-        List<Long> ids = bankItemIds(data);
-
-        assertThat(ids).hasSize(5).doesNotHaveDuplicates();
-        Set<String> bankNames = new HashSet<>();
-        for (JsonNode item : data.path("items")) bankNames.add(item.path("bankName").asText());
-        assertThat(bankNames).containsExactlyInAnyOrder("甲来源题库", "乙来源题库");
-        for (long id : ids) assertThat(bankItemBankId(id)).isIn(firstBank, secondBank);
+        assertThat(preview(examId, List.of(firstBank, secondBank), 5, 0, teacherToken, 409)
+                .path("message").asText()).contains("课程不一致");
+        assertThat(call(post("/api/teacher/exams/" + examId + "/questions/from-bank"),
+                Map.of("bankItemIds", List.of(secondItem)), teacherToken, 409).path("message").asText()).contains("课程不一致");
+        assertThat(questionCount(examId)).isZero();
     }
 
     @Test
@@ -288,7 +300,16 @@ class RandomPreviewIntegrationTest {
     }
 
     long createBank(String name, String token) throws Exception {
-        return call(post("/api/teacher/question-banks"), Map.of("name", name, "description", "随机组卷测试"), token, 200)
+        long courseId;
+        if (token.equals(teacherToken) && jdbc.queryForObject("SELECT COUNT(*) FROM question_banks WHERE course_id = ?", Integer.class, exams.getById(examId).getCourseId()) == 0) courseId = exams.getById(examId).getCourseId();
+        else {
+            Courses course = new Courses();
+            course.setTeacherId(userForToken(token).getId());
+            course.setCourseName(name + "课程");
+            courses.save(course);
+            courseId = course.getId();
+        }
+        return call(post("/api/teacher/question-banks"), Map.of("name", name, "description", "随机组卷测试", "courseId", courseId), token, 200)
                 .path("data").path("id").asLong();
     }
 

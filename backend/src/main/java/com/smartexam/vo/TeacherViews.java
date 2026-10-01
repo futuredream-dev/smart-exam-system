@@ -14,7 +14,8 @@ public final class TeacherViews {
     public record Exam(Long id, Long courseId, String courseName, String title, String description,
                        LocalDateTime startTime, LocalDateTime endTime, Integer lateEntryMinutes,
                        Integer minSubmitMinutes, String status, LocalDateTime publishedAt,
-                       LocalDateTime createdAt, int questionCount, BigDecimal totalScore) {}
+                       LocalDateTime createdAt, int questionCount, BigDecimal totalScore,
+                       String examKind, Long sourceExamId) {}
     public record Point(Long id, String pointContent, BigDecimal pointScore, Integer sortOrder) {}
     public record Question(Long id, Long sourceBankItemId, String questionType, String content, BigDecimal score,
                            List<Option> options, String referenceAnswer, Integer sortOrder,

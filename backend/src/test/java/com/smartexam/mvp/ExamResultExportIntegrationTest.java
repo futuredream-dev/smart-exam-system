@@ -167,7 +167,7 @@ class ExamResultExportIntegrationTest {
         try (XSSFWorkbook workbook = new XSSFWorkbook(new ByteArrayInputStream(
                 export(empty.getId(), teacherToken, 200).getContentAsByteArray()))) {
             assertThat(workbook.getSheetAt(0).getLastRowNum()).isZero();
-            assertThat(workbook.getSheetAt(0).getRow(0).getPhysicalNumberOfCells()).isEqualTo(9);
+            assertThat(workbook.getSheetAt(0).getRow(0).getPhysicalNumberOfCells()).isEqualTo(11);
         }
     }
 
@@ -178,7 +178,7 @@ class ExamResultExportIntegrationTest {
             assertThat(workbook.getNumberOfSheets()).isEqualTo(1);
             Row header = workbook.getSheetAt(0).getRow(0);
             List<String> headers = List.of("学号", "姓名", "考试名称", "客观题得分", "简答题最终得分",
-                    "最终总分", "教师最终评语", "成绩状态", "成绩发布时间");
+                    "最终总分", "教师最终评语", "成绩状态", "成绩发布时间", "提交状态", "交卷时间");
             for (int i = 0; i < headers.size(); i++) assertThat(header.getCell(i).getStringCellValue()).isEqualTo(headers.get(i));
             String allText = workbook.getSheetAt(0).iterator().next().toString() + workbook.getSheetAt(0).getRow(1);
             assertThat(allText).doesNotContain("AI建议分", "AI评分", "AI评语", "建议详情", "AI建议详情", "AI建议评语", "命中评分点", "缺失评分点");
@@ -191,6 +191,8 @@ class ExamResultExportIntegrationTest {
             assertThat(row.getCell(5).getNumericCellValue()).isEqualTo(total);
             assertThat(row.getCell(6).getStringCellValue()).isEqualTo(finalComment);
             assertThat(row.getCell(7).getStringCellValue()).isEqualTo(scoreStatus);
+            assertThat(row.getCell(9).getStringCellValue()).isEqualTo("GRADED");
+            assertThat(row.getCell(10).getLocalDateTimeCellValue()).isNotNull();
         }
     }
 

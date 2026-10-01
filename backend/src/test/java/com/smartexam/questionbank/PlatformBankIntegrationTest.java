@@ -54,6 +54,7 @@ class PlatformBankIntegrationTest {
     String otherTeacherToken;
     String studentToken;
     String adminToken;
+    Long otherTeacherId;
     long examId;
     String platformBankName;
     long platformBankId;
@@ -106,6 +107,10 @@ class PlatformBankIntegrationTest {
     void readsPlatformBankItemsWithoutWriteAccess() throws Exception {
         JsonNode items = call(get("/api/teacher/question-banks/" + platformBankId + "/items"), null, teacherToken, 200).path("data");
         assertThat(items).hasSize(2);
+        assertThat(call(get("/api/teacher/question-banks/" + platformBankId + "/metadata"), null, teacherToken, 200)
+                .path("data").path("chapters")).isEmpty();
+        call(post("/api/teacher/question-banks/" + platformBankId + "/chapters"),
+                Map.of("name", "禁止修改"), teacherToken, 403);
 
         assertThat(call(put("/api/teacher/question-banks/" + platformBankId),
                 Map.of("name", "改名尝试"), teacherToken, 403).path("message").asText())
@@ -269,7 +274,16 @@ class PlatformBankIntegrationTest {
     }
 
     long createBank(String name, String token) throws Exception {
-        return call(post("/api/teacher/question-banks"), Map.of("name", name, "description", "平台题库测试"), token, 200)
+        long courseId;
+        if (token.equals(teacherToken) && jdbc.queryForObject("SELECT COUNT(*) FROM question_banks WHERE course_id = ?", Integer.class, exams.getById(examId).getCourseId()) == 0) courseId = exams.getById(examId).getCourseId();
+        else {
+            Courses course = new Courses();
+            course.setTeacherId(token.equals(teacherToken) ? users.findByUsername("teacher_demo").getId() : otherTeacherId);
+            course.setCourseName(name + "课程");
+            courses.save(course);
+            courseId = course.getId();
+        }
+        return call(post("/api/teacher/question-banks"), Map.of("name", name, "description", "平台题库测试", "courseId", courseId), token, 200)
                 .path("data").path("id").asLong();
     }
 
@@ -350,6 +364,7 @@ class PlatformBankIntegrationTest {
         user.setRole(role);
         user.setStatus(1);
         users.save(user);
+        if ("TEACHER".equals(role)) otherTeacherId = user.getId();
         return jwt.generate(user);
     }
 

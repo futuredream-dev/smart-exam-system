@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.smartexam.mapper.GradingCourseSummaryMapper">
+    <select id="selectByTeacher" resultType="com.smartexam.vo.GradingCourseSummaryView">
+        SELECT c.id AS course_id, c.course_name,
+               COUNT(e.id) AS exam_count,
+               COALESCE(SUM(COALESCE(sf.submission_count, 0)), 0) AS submission_count,
+               COALESCE(SUM(COALESCE(sf.pending_review_count, 0)), 0) AS pending_review_submission_count,
+               COALESCE(SUM(CASE WHEN e.id IS NOT NULL AND e.status != 'DRAFT'
+                                    AND e.end_time &lt;= NOW() AND e.results_released_at IS NULL
+                                    AND COALESCE(sf.ungraded_count, 0) = 0 THEN 1 ELSE 0 END), 0) AS releasable_exam_count
+        FROM courses c
+        LEFT JOIN exams e ON e.course_id = c.id
+        LEFT JOIN (
+            SELECT s.exam_id,
+                   SUM(s.status IN ('SUBMITTED', 'AUTO_SUBMITTED', 'GRADED')) AS submission_count,
+                   SUM(s.status IN ('SUBMITTED', 'AUTO_SUBMITTED', 'GRADED') AND EXISTS (
+                       SELECT 1 FROM questions q LEFT JOIN answers a
+                         ON a.question_id = q.id AND a.submission_id = s.id
+                       WHERE q.exam_id = s.exam_id AND q.question_type = 'SHORT_ANSWER'
+                         AND (a.grading_status IS NULL OR a.grading_status != 'REVIEWED' OR a.teacher_score IS NULL)
+                   )) AS pending_review_count,
+                   SUM(s.status != 'GRADED') AS ungraded_count
+            FROM submissions s
+            GROUP BY s.exam_id
+        ) sf ON sf.exam_id = e.id
+        WHERE c.teacher_id = #{teacherId}
+        GROUP BY c.id, c.course_name
+        ORDER BY c.id
+    </select>
+</mapper>

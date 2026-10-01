@@ -19,6 +19,7 @@ import com.smartexam.mapper.QuestionBankItemMapper;
 import com.smartexam.mapper.QuestionBankMapper;
 import com.smartexam.mapper.QuestionBankScoringPointMapper;
 import com.smartexam.vo.TeacherViews;
+import com.smartexam.vo.ExamCenterViews;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -81,8 +82,20 @@ public class TeacherManagementService {
     }
 
     private void draft(Exams exam) {
+        if (exam.getArchivedAt() != null)
+            throw failure(HttpStatus.CONFLICT, ErrorCode.CONFLICT, "已归档考试不能修改");
         if (!ExamStatus.DRAFT.name().equals(exam.getStatus()))
             throw failure(HttpStatus.CONFLICT, ErrorCode.CONFLICT, "考试已发布，不能修改规则或题目");
+    }
+
+    /** Rule assembly uses the same ownership, course lock and DRAFT guard as existing paper operations. */
+    Exams ruleDraftExam(String username, Long id, boolean lock) {
+        Exams exam = ownExam(username, id, lock);
+        try { draft(exam); }
+        catch (BusinessException ex) {
+            throw failure(HttpStatus.CONFLICT, ErrorCode.EXAM_NOT_DRAFT, ex.getMessage());
+        }
+        return exam;
     }
 
     public List<TeacherViews.Course> listCourses(String username) {
@@ -170,6 +183,8 @@ public class TeacherManagementService {
     @Transactional(isolation=Isolation.READ_COMMITTED)
     public void deleteCourse(String username, Long id) {
         ownCourse(username, id, true);
+        if (questionBanks.selectCount(new QueryWrapper<QuestionBank>().eq("course_id", id)) > 0)
+            throw failure(HttpStatus.CONFLICT, ErrorCode.CONFLICT, "该课程已绑定题库，无法删除");
         if (exams.count(new QueryWrapper<Exams>().eq("course_id", id)) > 0)
             throw failure(HttpStatus.CONFLICT, ErrorCode.CONFLICT, "该课程下存在考试，无法删除");
         courses.removeById(id);
@@ -177,7 +192,7 @@ public class TeacherManagementService {
 
     public List<TeacherViews.Exam> listExams(String username, Long courseId) {
         ownCourse(username, courseId, false);
-        return exams.findByCourseId(courseId).stream().map(this::examView).toList();
+        return exams.findByCourseId(courseId).stream().filter(e -> e.getArchivedAt() == null).map(this::examView).toList();
     }
 
     public TeacherViews.Exam exam(String username, Long id) {
@@ -197,7 +212,8 @@ public class TeacherManagementService {
         List<Courses> courseRows = courses.findByTeacherId(current.getId());
         if (courseRows.isEmpty()) return new TeacherViews.Dashboard(List.of(), List.of(), List.of());
         Map<Long, Courses> courseById = courseRows.stream().collect(java.util.stream.Collectors.toMap(Courses::getId, row -> row));
-        List<Exams> examRows = exams.list(new QueryWrapper<Exams>().in("course_id", courseById.keySet()).orderByAsc("end_time", "id"));
+        List<Exams> examRows = exams.list(new QueryWrapper<Exams>().in("course_id", courseById.keySet())
+                .isNull("archived_at").orderByAsc("end_time", "id"));
         if (examRows.isEmpty()) return new TeacherViews.Dashboard(List.of(), List.of(), List.of());
         Set<Long> examIds = examRows.stream().map(Exams::getId).collect(java.util.stream.Collectors.toSet());
         Map<Long, List<ExamCandidate>> candidatesByExam = examCandidates.selectList(new QueryWrapper<ExamCandidate>().in("exam_id", examIds)).stream().collect(java.util.stream.Collectors.groupingBy(ExamCandidate::getExamId));
@@ -305,7 +321,8 @@ public class TeacherManagementService {
         BigDecimal total = rows.stream().map(Questions::getScore).reduce(BigDecimal.ZERO, BigDecimal::add);
         return new TeacherViews.Exam(e.getId(), e.getCourseId(), courses.getById(e.getCourseId()).getCourseName(),
                 e.getTitle(), e.getDescription(), e.getStartTime(), e.getEndTime(), e.getLateEntryMinutes(),
-                e.getMinSubmitMinutes(), e.getStatus(), e.getPublishedAt(), e.getCreatedAt(), rows.size(), total);
+                e.getMinSubmitMinutes(), e.getStatus(), e.getPublishedAt(), e.getCreatedAt(), rows.size(), total,
+                e.getExamKind(), e.getSourceExamId());
     }
 
     private void rules(LocalDateTime start, LocalDateTime end, Integer late, Integer submit) {
@@ -324,11 +341,115 @@ public class TeacherManagementService {
         e.setCourseId(courseId);
         e.setCreatedBy(teacher(username).getId());
         e.setStatus(ExamStatus.DRAFT.name());
+        e.setExamKind("NORMAL");
         e.setTitle(request.title().trim()); e.setDescription(request.description());
         e.setStartTime(request.startTime()); e.setEndTime(request.endTime());
         e.setLateEntryMinutes(request.lateEntryMinutes()); e.setMinSubmitMinutes(request.minSubmitMinutes());
         exams.save(e);
         return exam(username, e.getId());
+    }
+
+    @Transactional(isolation=Isolation.READ_COMMITTED)
+    public TeacherViews.Exam copyExam(String username, Long sourceId, @Valid TeacherRequests.Copy request) {
+        Exams source = ownExam(username, sourceId, true);
+        Long targetCourseId = request.targetCourseId() == null ? source.getCourseId() : request.targetCourseId();
+        ownCourse(username, targetCourseId, false);
+        String title = request.title() == null || request.title().isBlank()
+                ? source.getTitle().substring(0, Math.min(source.getTitle().length(), 156)) + "（副本）"
+                : request.title().trim();
+        if (title.isBlank()) throw invalid("考试名称不能为空");
+        LocalDateTime start = source.getStartTime();
+        LocalDateTime end = source.getEndTime();
+        if (!start.isAfter(LocalDateTime.now())) {
+            java.time.Duration duration = java.time.Duration.between(start, end);
+            start = LocalDateTime.now().plusDays(1).withSecond(0).withNano(0);
+            end = start.plus(duration);
+        }
+        rules(start, end, source.getLateEntryMinutes(), source.getMinSubmitMinutes());
+        Exams target = new Exams();
+        target.setCourseId(targetCourseId); target.setCreatedBy(teacher(username).getId());
+        target.setTitle(title); target.setDescription(source.getDescription());
+        target.setStartTime(start); target.setEndTime(end);
+        target.setLateEntryMinutes(source.getLateEntryMinutes()); target.setMinSubmitMinutes(source.getMinSubmitMinutes());
+        target.setStatus(ExamStatus.DRAFT.name()); target.setExamKind("NORMAL");
+        exams.save(target);
+        copyPaper(sourceId, target.getId());
+        return exam(username, target.getId());
+    }
+
+    @Transactional(isolation=Isolation.READ_COMMITTED)
+    public void archiveExam(String username, Long id) {
+        Exams exam = ownExam(username, id, true);
+        if (exam.getArchivedAt() != null) throw failure(HttpStatus.CONFLICT, ErrorCode.CONFLICT, "考试已归档");
+        if (!"DRAFT".equals(exam.getStatus()) && !(exam.getResultsReleasedAt() != null
+                && exam.getEndTime() != null && !exam.getEndTime().isAfter(LocalDateTime.now())))
+            throw failure(HttpStatus.CONFLICT, ErrorCode.CONFLICT, "只允许归档草稿或已结束且成绩已发布的考试");
+        if (submissions.count(new QueryWrapper<Submissions>().eq("exam_id", id).eq("status", "IN_PROGRESS")) > 0)
+            throw failure(HttpStatus.CONFLICT, ErrorCode.CONFLICT, "存在进行中的答卷，不能归档");
+        exams.update(new UpdateWrapper<Exams>().eq("id", id).isNull("archived_at")
+                .set("archived_at", LocalDateTime.now()));
+    }
+
+    @Transactional(isolation=Isolation.READ_COMMITTED)
+    public void restoreExam(String username, Long id) {
+        Exams exam = ownExam(username, id, true);
+        if (exam.getArchivedAt() == null) throw failure(HttpStatus.CONFLICT, ErrorCode.CONFLICT, "考试尚未归档");
+        exams.update(new UpdateWrapper<Exams>().eq("id", id).isNotNull("archived_at").set("archived_at", null));
+    }
+
+    @Transactional(isolation=Isolation.READ_COMMITTED)
+    public TeacherViews.Exam createMakeup(String username, Long sourceId, @Valid TeacherRequests.Makeup request) {
+        Exams source = ownExam(username, sourceId, true);
+        if ("DRAFT".equals(source.getStatus()) || LocalDateTime.now().isBefore(source.getEndTime()))
+            throw failure(HttpStatus.CONFLICT, ErrorCode.CONFLICT, "原考试尚未结束");
+        rules(request.startTime(), request.endTime(), request.lateEntryMinutes(), request.minSubmitMinutes());
+        Set<Long> selected = new LinkedHashSet<>(request.studentIds());
+        if (selected.size() != request.studentIds().size()) throw invalid("补考学生不能重复");
+        Set<Long> sourceIds = examCandidates.selectList(new QueryWrapper<ExamCandidate>()
+                .eq("exam_id", sourceId)).stream().map(ExamCandidate::getStudentId)
+                .collect(java.util.stream.Collectors.toSet());
+        if (!sourceIds.containsAll(selected)) throw invalid("补考学生必须属于原考试应考名单");
+        List<Users> students = users.listByIds(selected);
+        if (students.size() != selected.size() || students.stream().anyMatch(u -> !"STUDENT".equals(u.getRole())
+                || !Integer.valueOf(1).equals(u.getStatus()))) throw invalid("补考名单包含无效学生");
+
+        Exams target = new Exams();
+        target.setCourseId(source.getCourseId()); target.setExamKind("MAKEUP"); target.setSourceExamId(sourceId);
+        target.setTitle(request.title().trim()); target.setDescription(request.description());
+        target.setStartTime(request.startTime()); target.setEndTime(request.endTime());
+        target.setLateEntryMinutes(request.lateEntryMinutes()); target.setMinSubmitMinutes(request.minSubmitMinutes());
+        target.setStatus("DRAFT"); target.setCreatedBy(teacher(username).getId());
+        exams.save(target);
+
+        copyPaper(sourceId, target.getId());
+        for (Long studentId : selected) {
+            ExamCandidate candidate = new ExamCandidate();
+            candidate.setExamId(target.getId()); candidate.setStudentId(studentId);
+            examCandidates.insert(candidate);
+        }
+        return exam(username, target.getId());
+    }
+
+    private void copyPaper(Long sourceId, Long targetId) {
+        List<Questions> sourcePaper = questions.findByExamId(sourceId);
+        List<ScoringPoints> sourcePoints = sourcePaper.isEmpty() ? List.of() : points.list(new QueryWrapper<ScoringPoints>()
+                .in("question_id", sourcePaper.stream().map(Questions::getId).toList()).orderByAsc("sort_order", "id"));
+        Map<Long, List<ScoringPoints>> pointsByQuestion = sourcePoints.stream()
+                .collect(java.util.stream.Collectors.groupingBy(ScoringPoints::getQuestionId));
+        for (Questions original : sourcePaper) {
+            Questions copy = new Questions();
+            copy.setExamId(targetId); copy.setSourceBankItemId(original.getSourceBankItemId());
+            copy.setQuestionType(original.getQuestionType()); copy.setContent(original.getContent());
+            copy.setScore(original.getScore()); copy.setOptionsJson(original.getOptionsJson());
+            copy.setReferenceAnswer(original.getReferenceAnswer()); copy.setSortOrder(original.getSortOrder());
+            questions.save(copy);
+            for (ScoringPoints point : pointsByQuestion.getOrDefault(original.getId(), List.of())) {
+                ScoringPoints cloned = new ScoringPoints();
+                cloned.setQuestionId(copy.getId()); cloned.setPointContent(point.getPointContent());
+                cloned.setPointScore(point.getPointScore()); cloned.setSortOrder(point.getSortOrder());
+                points.save(cloned);
+            }
+        }
     }
 
     @Transactional(isolation=Isolation.READ_COMMITTED)
@@ -360,8 +481,10 @@ public class TeacherManagementService {
 
     public List<TeacherViews.BankCandidate> listBankCandidates(String username, Long examId, Long bankId,
             String keyword, QuestionType questionType) {
-        draft(ownExam(username, examId, false));
+        Exams exam = ownExam(username, examId, false);
+        draft(exam);
         QuestionBank bank = readableActiveBank(username, bankId);
+        requireBankCourse(bank, exam);
         Set<Long> added = questions.findByExamId(examId).stream().map(Questions::getSourceBankItemId)
                 .filter(Objects::nonNull).collect(java.util.stream.Collectors.toSet());
         QueryWrapper<QuestionBankItem> query = new QueryWrapper<QuestionBankItem>().eq("bank_id", bank.getId())
@@ -378,7 +501,8 @@ public class TeacherManagementService {
     /** 随机组卷预览：纯读取不落库，数量不足整单失败；确认阶段仍由 addQuestionsFromBank 做全量校验并写快照。 */
     public TeacherViews.RandomPreview previewRandomPaper(String username, Long examId,
             @Valid TeacherRequests.RandomPreview request) {
-        draft(ownExam(username, examId, false));
+        Exams exam = ownExam(username, examId, false);
+        draft(exam);
         int singleChoiceCount = request.singleChoiceCount();
         int shortAnswerCount = request.shortAnswerCount();
         if (singleChoiceCount == 0 && shortAnswerCount == 0)
@@ -387,7 +511,11 @@ public class TeacherManagementService {
             throw invalid("随机抽题总数不能超过 100");
         Set<Long> bankIds = new LinkedHashSet<>(request.bankIds());
         Map<Long, String> bankNames = new HashMap<>();
-        for (Long bankId : bankIds) bankNames.put(bankId, readableActiveBank(username, bankId).getName());
+        for (Long bankId : bankIds) {
+            QuestionBank bank = readableActiveBank(username, bankId);
+            requireBankCourse(bank, exam);
+            bankNames.put(bankId, bank.getName());
+        }
 
         Set<Long> added = questions.findByExamId(examId).stream().map(Questions::getSourceBankItemId)
                 .filter(Objects::nonNull).collect(java.util.stream.Collectors.toSet());
@@ -427,7 +555,8 @@ public class TeacherManagementService {
     @Transactional(isolation=Isolation.READ_COMMITTED)
     public List<TeacherViews.Question> addQuestionsFromBank(String username, Long examId,
             @Valid TeacherRequests.FromBank request) {
-        draft(ownExam(username, examId, true));
+        Exams exam = ownExam(username, examId, true);
+        draft(exam);
         List<Long> requestedIds = request.bankItemIds();
         if (new HashSet<>(requestedIds).size() != requestedIds.size())
             throw failure(HttpStatus.CONFLICT, ErrorCode.CONFLICT, "所选题目中存在重复题目，请刷新后重新选择");
@@ -436,7 +565,7 @@ public class TeacherManagementService {
         for (Long itemId : requestedIds) {
             QuestionBankItem item = bankItems.selectById(itemId);
             if (item == null) throw missing("题库题目");
-            readableActiveBank(username, item.getBankId());
+            requireBankCourse(readableActiveBank(username, item.getBankId()), exam);
             if (!QuestionBankItemStatus.READY.name().equals(item.getStatus()))
                 throw failure(HttpStatus.CONFLICT, ErrorCode.CONFLICT, "只有可用题目可以加入试卷");
             if (!Set.of(QuestionType.SINGLE_CHOICE.name(), QuestionType.SHORT_ANSWER.name()).contains(item.getQuestionType()))
@@ -452,36 +581,51 @@ public class TeacherManagementService {
         int nextOrder = questions.findByExamId(examId).stream().map(Questions::getSortOrder)
                 .filter(Objects::nonNull).max(Integer::compareTo).orElse(0) + 1;
         List<TeacherViews.Question> result = new ArrayList<>();
-        for (QuestionBankItem item : selected) {
-            Questions snapshot = new Questions();
-            snapshot.setExamId(examId);
-            snapshot.setSourceBankItemId(item.getId());
-            snapshot.setQuestionType(item.getQuestionType());
-            snapshot.setContent(item.getContent());
-            snapshot.setScore(item.getDefaultScore());
-            snapshot.setOptionsJson(item.getOptionsJson());
-            snapshot.setReferenceAnswer(QuestionType.SINGLE_CHOICE.name().equals(item.getQuestionType())
-                    ? item.getCorrectAnswer() : item.getReferenceAnswer());
-            snapshot.setSortOrder(nextOrder++);
-            questions.save(snapshot);
-            if (QuestionType.SHORT_ANSWER.name().equals(item.getQuestionType())) {
-                for (QuestionBankScoringPoint source : bankPoints.selectList(new QueryWrapper<QuestionBankScoringPoint>()
-                        .eq("bank_item_id", item.getId()).orderByAsc("sort_order", "id"))) {
-                    ScoringPoints point = new ScoringPoints();
-                    point.setQuestionId(snapshot.getId());
-                    point.setPointContent(source.getContent());
-                    point.setPointScore(source.getScore());
-                    point.setSortOrder(source.getSortOrder());
-                    points.save(point);
-                }
-            }
-            result.add(questionView(snapshot));
-        }
+        for (QuestionBankItem item : selected)
+            result.add(saveBankSnapshot(examId, item, item.getDefaultScore(), nextOrder++));
         return result;
     }
 
+    record BankSnapshot(QuestionBankItem item, BigDecimal score) {}
+
+    /** Called after RuleAssemblyService has locked and revalidated the complete selection. */
+    List<TeacherViews.Question> appendRuleSnapshots(Long examId, List<BankSnapshot> selected) {
+        int nextOrder = questions.findByExamId(examId).stream().map(Questions::getSortOrder)
+                .filter(Objects::nonNull).max(Integer::compareTo).orElse(0) + 1;
+        List<TeacherViews.Question> result = new ArrayList<>();
+        for (BankSnapshot choice : selected)
+            result.add(saveBankSnapshot(examId, choice.item(), choice.score(), nextOrder++));
+        return result;
+    }
+
+    private TeacherViews.Question saveBankSnapshot(Long examId, QuestionBankItem item, BigDecimal score, int sortOrder) {
+        Questions snapshot = new Questions();
+        snapshot.setExamId(examId);
+        snapshot.setSourceBankItemId(item.getId());
+        snapshot.setQuestionType(item.getQuestionType());
+        snapshot.setContent(item.getContent());
+        snapshot.setScore(score);
+        snapshot.setOptionsJson(item.getOptionsJson());
+        snapshot.setReferenceAnswer(QuestionType.SINGLE_CHOICE.name().equals(item.getQuestionType())
+                ? item.getCorrectAnswer() : item.getReferenceAnswer());
+        snapshot.setSortOrder(sortOrder);
+        questions.save(snapshot);
+        if (QuestionType.SHORT_ANSWER.name().equals(item.getQuestionType())) {
+            for (QuestionBankScoringPoint source : bankPoints.selectList(new QueryWrapper<QuestionBankScoringPoint>()
+                    .eq("bank_item_id", item.getId()).orderByAsc("sort_order", "id"))) {
+                ScoringPoints point = new ScoringPoints();
+                point.setQuestionId(snapshot.getId());
+                point.setPointContent(source.getContent());
+                point.setPointScore(source.getScore());
+                point.setSortOrder(source.getSortOrder());
+                points.save(point);
+            }
+        }
+        return questionView(snapshot);
+    }
+
     /** 组卷题库可读守卫：自己的 ACTIVE TEACHER 题库 + ACTIVE PLATFORM 题库；归档库与其他教师 TEACHER 库拒绝。 */
-    private QuestionBank readableActiveBank(String username, Long bankId) {
+    QuestionBank readableActiveBank(String username, Long bankId) {
         QuestionBank bank = questionBanks.selectById(bankId);
         if (bank == null) throw missing("题库");
         boolean ownTeacherBank = QuestionBankScope.TEACHER.name().equals(bank.getScope())
@@ -490,6 +634,14 @@ public class TeacherManagementService {
         if (!QuestionBankStatus.ACTIVE.name().equals(bank.getStatus()))
             throw failure(HttpStatus.CONFLICT, ErrorCode.CONFLICT, "归档题库不能用于组卷");
         return bank;
+    }
+
+    void requireBankCourse(QuestionBank bank, Exams exam) {
+        if (QuestionBankScope.PLATFORM.name().equals(bank.getScope())) return;
+        if (bank.getCourseId() == null)
+            throw failure(HttpStatus.CONFLICT, ErrorCode.CONFLICT, "该题库尚未绑定课程，请先绑定课程后再用于组卷。");
+        if (!bank.getCourseId().equals(exam.getCourseId()))
+            throw failure(HttpStatus.CONFLICT, ErrorCode.CONFLICT, "题库所属课程与考试课程不一致");
     }
 
     private void validateQuestion(TeacherRequests.Question r) {
@@ -566,14 +718,72 @@ public class TeacherManagementService {
     public TeacherViews.Exam publish(String username, Long id) {
         Exams e = ownExam(username, id, true);
         draft(e);
-        rules(e.getStartTime(), e.getEndTime(), e.getLateEntryMinutes(), e.getMinSubmitMinutes());
-        TeacherViews.Exam view = examView(e);
-        if (view.questionCount() == 0 || view.totalScore().signum() <= 0)
-            throw invalid("至少添加一道题且总分大于零后才能发布");
-        examCandidates.insertActiveCourseStudents(id, e.getCourseId());
+        ExamCenterViews.PublishReadiness readiness = checkPublishReadiness(e);
+        if (!readiness.ready()) throw invalid(String.join("；", readiness.errors()));
+        if (!"MAKEUP".equals(e.getExamKind())) examCandidates.insertActiveCourseStudents(id, e.getCourseId());
         exams.update(new UpdateWrapper<Exams>().eq("id", id)
                 .set("status", ExamStatus.PUBLISHED.name()).set("published_at", LocalDateTime.now()));
         return exam(username, id);
+    }
+
+    public ExamCenterViews.PublishReadiness publishReadiness(String username, Long id) {
+        return checkPublishReadiness(ownExam(username, id, false));
+    }
+
+    private ExamCenterViews.PublishReadiness checkPublishReadiness(Exams exam) {
+        List<String> errors = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
+        if (!ExamStatus.DRAFT.name().equals(exam.getStatus())) errors.add("考试不是草稿，不能发布");
+        Courses course = courses.getById(exam.getCourseId());
+        if (course == null) errors.add("所属课程不存在");
+        if (exam.getStartTime() == null) errors.add("开始时间不能为空");
+        if (exam.getEndTime() == null) errors.add("结束时间不能为空");
+        if (exam.getStartTime() != null && exam.getEndTime() != null) {
+            if (!exam.getEndTime().isAfter(exam.getStartTime())) errors.add("结束时间必须晚于开始时间");
+            else {
+                long seconds = Duration.between(exam.getStartTime(), exam.getEndTime()).getSeconds();
+                if (exam.getLateEntryMinutes() == null || exam.getMinSubmitMinutes() == null
+                        || exam.getLateEntryMinutes() < 0 || exam.getMinSubmitMinutes() < 0
+                        || exam.getLateEntryMinutes().longValue() * 60 > seconds
+                        || exam.getMinSubmitMinutes().longValue() * 60 > seconds)
+                    errors.add("迟到和最早交卷分钟数必须在 0 与考试总时长之间");
+            }
+        }
+        List<Questions> paper = questions.findByExamId(exam.getId());
+        if (paper.isEmpty()) errors.add("至少添加一道题后才能发布");
+        if (paper.stream().anyMatch(q -> q.getScore() == null || q.getScore().signum() <= 0))
+            errors.add("题目分值必须大于零");
+        BigDecimal total = paper.stream().map(Questions::getScore).filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        if (total.signum() <= 0) errors.add("试卷总分必须大于零");
+        int eligible;
+        if ("MAKEUP".equals(exam.getExamKind())) {
+            List<ExamCandidate> selected = examCandidates.selectList(new QueryWrapper<ExamCandidate>()
+                    .eq("exam_id", exam.getId()));
+            eligible = selected.size();
+            if (selected.isEmpty()) errors.add("补考应考名单不能为空");
+            Exams source = exam.getSourceExamId() == null ? null : exams.getById(exam.getSourceExamId());
+            if (source == null || !Objects.equals(source.getCourseId(), exam.getCourseId()))
+                errors.add("补考原考试无效");
+            else {
+                Set<Long> originalIds = examCandidates.selectList(new QueryWrapper<ExamCandidate>()
+                        .eq("exam_id", source.getId())).stream().map(ExamCandidate::getStudentId)
+                        .collect(java.util.stream.Collectors.toSet());
+                if (selected.stream().anyMatch(c -> !originalIds.contains(c.getStudentId())))
+                    errors.add("补考名单包含原考试以外的学生");
+            }
+            if (!selected.isEmpty()) {
+                List<Users> chosen = users.listByIds(selected.stream().map(ExamCandidate::getStudentId).toList());
+                if (chosen.size() != selected.size() || chosen.stream().anyMatch(u -> !"STUDENT".equals(u.getRole())
+                        || !Integer.valueOf(1).equals(u.getStatus()))) errors.add("补考名单包含无效学生");
+            }
+        } else {
+            eligible = course == null ? 0 : (int) memberships.count(new QueryWrapper<CourseStudents>()
+                    .eq("course_id", course.getId()).eq("status", 1));
+            if (course != null && eligible == 0) warnings.add("当前课程暂无参考学生。");
+        }
+        return new ExamCenterViews.PublishReadiness(errors.isEmpty(), List.copyOf(errors), List.copyOf(warnings),
+                paper.size(), total, eligible);
     }
 
     private static BusinessException failure(HttpStatus s, ErrorCode c, String text) { return new BusinessException(s,c,text); }

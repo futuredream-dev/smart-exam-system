@@ -17,16 +17,22 @@ CREATE TABLE IF NOT EXISTS exam_candidates (
 
 -- 历史兼容回填只能保留当前可用性，不能还原考试实际发布时的历史课程名单。
 -- 当前有效课程学生与已有答卷学生取并集，确保已参加过考试的学生不会失去资格。
-INSERT IGNORE INTO exam_candidates (exam_id, student_id)
-SELECT historical.exam_id, historical.student_id
-FROM (
-    SELECT e.id AS exam_id, cs.student_id
-    FROM exams e
-    JOIN course_students cs ON cs.course_id = e.course_id AND cs.status = 1
-    WHERE e.status <> 'DRAFT'
-    UNION
-    SELECT s.exam_id, s.student_id
-    FROM submissions s
-    JOIN exams e ON e.id = s.exam_id
-    WHERE e.status <> 'DRAFT'
-) historical;
+-- 兼容 Phase 8 前后的结构：有 exam_kind 时只回填普通考试，避免重跑脚本扩大补考名单。
+SET @candidate_has_kind = (
+    SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'exams' AND COLUMN_NAME = 'exam_kind'
+);
+SET @candidate_kind_filter = IF(@candidate_has_kind > 0, ' AND e.exam_kind = ''NORMAL''', '');
+SET @candidate_backfill_sql = CONCAT(
+    'INSERT IGNORE INTO exam_candidates (exam_id, student_id) ',
+    'SELECT historical.exam_id, historical.student_id FROM (',
+    'SELECT e.id AS exam_id, cs.student_id FROM exams e ',
+    'JOIN course_students cs ON cs.course_id = e.course_id AND cs.status = 1 ',
+    'WHERE e.status <> ''DRAFT''', @candidate_kind_filter,
+    ' UNION SELECT s.exam_id, s.student_id FROM submissions s ',
+    'JOIN exams e ON e.id = s.exam_id WHERE e.status <> ''DRAFT''', @candidate_kind_filter,
+    ') historical'
+);
+PREPARE candidate_backfill_statement FROM @candidate_backfill_sql;
+EXECUTE candidate_backfill_statement;
+DEALLOCATE PREPARE candidate_backfill_statement;

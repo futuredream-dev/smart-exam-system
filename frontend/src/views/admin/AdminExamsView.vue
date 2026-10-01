@@ -1,0 +1,15 @@
+<script setup>
+import { onMounted, reactive, ref } from 'vue'
+import { adminApi } from '../../api/admin'
+import { formatTime, statusNames } from '../../api/teacher'
+const filters = reactive({ keyword: '', status: '', examKind: '', archived: '' }), rows = ref([]), page = ref(1), total = ref(0), error = ref(''), loading = ref(false)
+const size = 20
+async function load() { loading.value = true; error.value = ''; try { const result = (await adminApi.exams({ keyword: filters.keyword || undefined, status: filters.status || undefined, examKind: filters.examKind || undefined, archived: filters.archived === '' ? undefined : filters.archived === 'true', page: page.value, size })).data; rows.value = result.items; total.value = result.total } catch (e) { error.value = e.message } finally { loading.value = false } }
+function search() { page.value = 1; load() }
+onMounted(load)
+</script>
+
+<template><div class="admin-workspace"><header class="page-heading"><div><h1>考试监管</h1><p class="muted">跨教师查看考试、参考摘要及归档情况。</p></div></header><p v-if="error" class="error-message" role="alert">{{ error }}</p>
+  <form class="surface admin-filter-row" @submit.prevent="search"><input v-model.trim="filters.keyword" aria-label="搜索考试" placeholder="考试、课程或教师"><select v-model="filters.status" aria-label="业务状态"><option value="">全部业务状态</option><option v-for="(name, key) in statusNames" :key="key" :value="key">{{ name }}</option></select><select v-model="filters.examKind" aria-label="考试类型"><option value="">全部类型</option><option value="NORMAL">普通</option><option value="MAKEUP">补考</option></select><select v-model="filters.archived" aria-label="归档状态"><option value="">全部归档状态</option><option value="false">未归档</option><option value="true">已归档</option></select><button class="primary">查询</button></form>
+  <section class="surface"><div class="section-head"><h2>考试列表</h2><span class="muted">共 {{ total }} 场</span></div><p v-if="loading" class="empty-state">正在加载…</p><p v-else-if="!rows.length" class="empty-state">没有符合条件的考试。</p><div v-else class="table-scroll"><table><thead><tr><th>考试</th><th>课程 / 教师</th><th>业务状态</th><th>类型</th><th>时间</th><th>提交 / 应考</th><th>成绩</th><th>归档</th></tr></thead><tbody><tr v-for="row in rows" :key="row.id"><td><strong>{{ row.title }}</strong></td><td>{{ row.courseName }}<small>{{ row.teacherName }}</small></td><td><span :class="['badge', row.status]">{{ statusNames[row.status] || row.status }}</span></td><td>{{ row.examKind === 'MAKEUP' ? '补考' : '普通' }}</td><td>{{ formatTime(row.startTime) }}<small>至 {{ formatTime(row.endTime) }}</small></td><td>{{ row.submittedCount }} / {{ row.candidateCount }}</td><td>{{ row.resultsReleasedAt ? '已发布' : '未发布' }}</td><td>{{ row.archivedAt ? '已归档' : '未归档' }}</td></tr></tbody></table></div><div class="actions admin-pager"><button class="secondary" :disabled="page <= 1" @click="page--; load()">上一页</button><span>第 {{ page }} / {{ Math.max(1, Math.ceil(total / size)) }} 页</span><button class="secondary" :disabled="page * size >= total" @click="page++; load()">下一页</button></div></section>
+</div></template>

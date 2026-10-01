@@ -82,6 +82,7 @@ class ScoringPointSnapshotIntegrationTest {
     @MockitoBean AiGradingProvider provider;
 
     Users teacher;
+    Long bankCourseId;
     String teacherToken;
     /** 记录 Fake Provider 实际收到的请求，用于证明 AI 读到的是哪一版评分点。 */
     private final List<AiGradingProvider.GradeRequest> received = new ArrayList<>();
@@ -257,7 +258,12 @@ class ScoringPointSnapshotIntegrationTest {
     // ---------------------------------------------------------------- 题库 / 组卷工具
 
     private long createBank(String name) throws Exception {
-        return call(post("/api/teacher/question-banks"), Map.of("name", name, "description", "评分点快照测试"),
+        Courses course = new Courses();
+        course.setTeacherId(teacher.getId());
+        course.setCourseName(name + "课程");
+        courses.save(course);
+        bankCourseId = course.getId();
+        return call(post("/api/teacher/question-banks"), Map.of("name", name, "description", "评分点快照测试", "courseId", bankCourseId),
                 teacherToken, 200).path("data").path("id").asLong();
     }
 
@@ -308,13 +314,8 @@ class ScoringPointSnapshotIntegrationTest {
     // ---------------------------------------------------------------- 考试 / 答卷夹具
 
     private Exams draftExam(String title) {
-        Courses course = new Courses();
-        course.setTeacherId(teacher.getId());
-        course.setCourseName(title + "课程");
-        courses.save(course);
-
         Exams exam = new Exams();
-        exam.setCourseId(course.getId());
+        exam.setCourseId(bankCourseId);
         exam.setCreatedBy(teacher.getId());
         exam.setTitle(title);
         exam.setStartTime(LocalDateTime.now().minusMinutes(60));

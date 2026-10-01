@@ -1,8 +1,8 @@
 <script setup>
-import{computed,onMounted,reactive,ref}from'vue';import{useRoute,useRouter}from'vue-router';import{teacherApi,formatTime}from'../../api/teacher'
-const route=useRoute(),router=useRouter(),paper=ref(),workspace=ref(),scores=reactive({}),comments=reactive({}),base=reactive({scores:{},comments:{},finalComment:''}),finalComment=ref(''),activeAnswerId=ref(),error=ref(''),notice=ref(''),busy=ref(false),savingNext=ref(false),returnTo=computed(()=>{const id=route.params.examId||(paper.value&&paper.value.examId);return id?'/teacher/exams/'+id+'?tab=grading':''})
+import{computed,onMounted,reactive,ref}from'vue';import{useRoute,useRouter}from'vue-router';import{teacherApi,formatTime}from'../../api/teacher';import{resolveFinalComment}from'../../utils/gradingPaperState'
+const route=useRoute(),router=useRouter(),paper=ref(),workspace=ref(),scores=reactive({}),comments=reactive({}),base=reactive({scores:{},comments:{},finalComment:''}),finalComment=ref(''),activeAnswerId=ref(),error=ref(''),notice=ref(''),busy=ref(false),savingNext=ref(false),returnTo=computed(()=>{if(route.query.from==='grading-tasks'){const {from,...query}=route.query;return {path:'/teacher/grading-tasks',query}}const id=route.params.examId||(paper.value&&paper.value.examId);return id?'/teacher/exams/'+id+'?tab=grading':''})
 function resetMap(m){for(const k of Object.keys(m))delete m[k]}
-function hydrate(p){paper.value=p;finalComment.value=p.teacherComment||'';resetMap(scores);resetMap(comments);resetMap(base.scores);resetMap(base.comments);p.answers.forEach(a=>{scores[a.answerId]=a.teacherScore??a.autoScore??0;comments[a.answerId]=a.teacherComment||'';base.scores[a.answerId]=scores[a.answerId];base.comments[a.answerId]=comments[a.answerId]});if(!p.answers.some(a=>a.answerId===activeAnswerId.value))activeAnswerId.value=(p.answers.find(a=>a.questionType==='SHORT_ANSWER')||p.answers[0])?.answerId;base.finalComment=finalComment.value}
+function hydrate(p,{preserveFinalComment=false}={}){paper.value=p;const comment=resolveFinalComment(finalComment.value,p.teacherComment,preserveFinalComment);finalComment.value=comment.text;resetMap(scores);resetMap(comments);resetMap(base.scores);resetMap(base.comments);p.answers.forEach(a=>{scores[a.answerId]=a.teacherScore??a.autoScore??0;comments[a.answerId]=a.teacherComment||'';base.scores[a.answerId]=scores[a.answerId];base.comments[a.answerId]=comments[a.answerId]});if(!p.answers.some(a=>a.answerId===activeAnswerId.value))activeAnswerId.value=(p.answers.find(a=>a.questionType==='SHORT_ANSWER')||p.answers[0])?.answerId;base.finalComment=comment.saved}
 const examReleased=computed(()=>!!(workspace.value&&workspace.value.resultsReleasedAt)||!!(paper.value&&paper.value.scorePublished))
 const paperStatusNames={IN_PROGRESS:'答题中',SUBMITTED:'已交卷',AUTO_SUBMITTED:'已自动交卷',GRADED:'已评分'},gradingStatusNames={PENDING:'待阅',REVIEWED:'已阅',PUBLISHED:'已发布',AUTO_GRADED:'已自动评分'}
 const currentAnswer=computed(()=>paper.value?.answers.find(a=>a.answerId===activeAnswerId.value)||paper.value?.answers[0])
@@ -11,8 +11,8 @@ function selectAnswer(answer){activeAnswerId.value=answer.answerId}
 async function loadContext(){if(!paper.value)return;try{workspace.value=(await teacherApi.examWorkspace(paper.value.examId)).data}catch(e){workspace.value=null}}
 async function loadPaper(id){error.value='';notice.value='';paper.value=undefined;workspace.value=null;try{hydrate((await teacherApi.gradingPaper(id)).data);loadContext();const tip=sessionStorage.getItem('gradingNotice');if(tip){sessionStorage.removeItem('gradingNotice');notice.value=tip}window.scrollTo(0,0)}catch(e){error.value=e.message;sessionStorage.removeItem('gradingNotice')}}
 onMounted(()=>loadPaper(route.params.submissionId))
-async function review(a){error.value='';try{hydrate((await teacherApi.reviewAnswer(a.answerId,{teacherScore:scores[a.answerId],teacherComment:comments[a.answerId]})).data);notice.value='评分已保存并重新汇总总分'}catch(e){error.value=e.message}}
-async function aiGrade(a){busy.value=true;try{hydrate((await teacherApi.aiGrade(a.answerId)).data)}catch(e){error.value=e.message}finally{busy.value=false}}
+async function review(a){error.value='';try{hydrate((await teacherApi.reviewAnswer(a.answerId,{teacherScore:scores[a.answerId],teacherComment:comments[a.answerId]})).data,{preserveFinalComment:true});notice.value='评分已保存并重新汇总总分'}catch(e){error.value=e.message}}
+async function aiGrade(a){busy.value=true;try{hydrate((await teacherApi.aiGrade(a.answerId)).data,{preserveFinalComment:true})}catch(e){error.value=e.message}finally{busy.value=false}}
 async function saveComment(){try{hydrate((await teacherApi.saveFinalComment(paper.value.id,finalComment.value)).data);notice.value='最终评语已保存'}catch(e){error.value=e.message}}
 function dirtyEdits(){return(paper.value?paper.value.answers:[]).filter(a=>a.questionType==='SHORT_ANSWER'&&(scores[a.answerId]!==base.scores[a.answerId]||comments[a.answerId]!==base.comments[a.answerId])).map(a=>({answerId:a.answerId,score:scores[a.answerId],comment:comments[a.answerId]}))}
 async function saveAndNext(){
@@ -40,7 +40,7 @@ async function saveAndNext(){
 </script>
 <template>
   <div class="grading-page">
-    <RouterLink v-if="paper&&returnTo" class="grading-back-link" :to="returnTo">← 返回本场答卷</RouterLink>
+    <RouterLink v-if="paper&&returnTo" class="grading-back-link" :to="returnTo">← {{route.query.from==='grading-tasks'?'返回阅卷任务':'返回本场答卷'}}</RouterLink>
     <header v-if="paper" class="grading-page-header">
       <div class="grading-title-row">
         <h1>{{paper.examTitle}}</h1>

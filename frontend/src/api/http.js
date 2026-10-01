@@ -25,7 +25,7 @@ http.interceptors.request.use((config) => {
 http.interceptors.response.use(
   (response) => response.config.rawResponse ? response : response.data,
   (error) => {
-    if (error.response?.status === 401) clearSession()
+    if (error.response?.status === 401 && !error.config?.silentBehaviorEvent) clearSession()
     const apiError = error.response?.data || {
       success: false,
       message: '网络异常，请稍后重试',

@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://smartexam.local/schemas/ai-assembly-intent-v1.json",
+  "title": "AI Assembly Intent 1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "summary", "topics", "difficultyIntent", "questionTypeIntent", "questionCountHint", "totalScoreHint", "scoreHints", "topicKeywords", "unresolvedRequirements"],
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+    "summary": { "$ref": "#/$defs/text500" },
+    "topics": {
+      "type": "array", "maxItems": 30,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["text", "suggestedDimension", "priority"],
+        "properties": {
+          "text": { "$ref": "#/$defs/text120" },
+          "suggestedDimension": { "enum": ["CHAPTER", "KNOWLEDGE_POINT", "TAG"] },
+          "priority": { "enum": ["HIGH", "MEDIUM", "LOW"] }
+        }
+      }
+    },
+    "difficultyIntent": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["overall", "distributionSuggestion"],
+          "properties": {
+            "overall": { "enum": ["EASY", "MEDIUM_LOW", "MEDIUM", "MEDIUM_HIGH", "HARD"] },
+            "distributionSuggestion": {
+              "oneOf": [
+                { "type": "null" },
+                {
+                  "type": "object", "additionalProperties": false,
+                  "required": ["EASY", "MEDIUM", "HARD"],
+                  "properties": {
+                    "EASY": { "type": "integer", "minimum": 0, "maximum": 100 },
+                    "MEDIUM": { "type": "integer", "minimum": 0, "maximum": 100 },
+                    "HARD": { "type": "integer", "minimum": 0, "maximum": 100 }
+                  },
+                  "$comment": "The backend additionally requires EASY + MEDIUM + HARD = 100."
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "questionTypeIntent": {
+      "type": "array", "maxItems": 10,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["questionType", "focus", "countHint"],
+        "properties": {
+          "questionType": { "$ref": "#/$defs/questionType" },
+          "focus": { "$ref": "#/$defs/text200" },
+          "countHint": { "type": ["integer", "null"], "minimum": 1, "maximum": 100 }
+        }
+      }
+    },
+    "questionCountHint": { "type": ["integer", "null"], "minimum": 1, "maximum": 100 },
+    "totalScoreHint": { "$ref": "#/$defs/nullableScore" },
+    "scoreHints": {
+      "type": "array", "maxItems": 10,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["questionType", "scorePerQuestion"],
+        "properties": {
+          "questionType": { "$ref": "#/$defs/questionType" },
+          "scorePerQuestion": { "type": "number", "exclusiveMinimum": 0, "maximum": 999999.99, "multipleOf": 0.01 }
+        }
+      }
+    },
+    "topicKeywords": { "type": "array", "maxItems": 30, "items": { "$ref": "#/$defs/text120" } },
+    "unresolvedRequirements": { "type": "array", "maxItems": 30, "items": { "$ref": "#/$defs/text200" } }
+  },
+  "$defs": {
+    "text500": { "type": "string", "minLength": 1, "maxLength": 500 },
+    "text120": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "text200": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "questionType": { "enum": ["SINGLE_CHOICE", "SHORT_ANSWER"] },
+    "nullableScore": { "oneOf": [{ "type": "null" }, { "type": "number", "exclusiveMinimum": 0, "maximum": 999999.99, "multipleOf": 0.01 }] }
+  }
+}

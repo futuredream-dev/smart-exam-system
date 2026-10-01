@@ -9,6 +9,8 @@ import CourseDetailView from '../views/teacher/CourseDetailView.vue'
 import ExamsView from '../views/teacher/ExamsView.vue'
 import ExamDetailView from '../views/teacher/ExamDetailView.vue'
 import GradingPaperView from '../views/teacher/GradingPaperView.vue'
+import GradingTaskView from '../views/teacher/GradingTaskView.vue'
+import AiEvaluationView from '../views/teacher/AiEvaluationView.vue'
 import LegacyGradingSubmissionRedirect from '../views/teacher/LegacyGradingSubmissionRedirect.vue'
 import QuestionBanksView from '../views/teacher/QuestionBanksView.vue'
 import QuestionBankDetailView from '../views/teacher/QuestionBankDetailView.vue'
@@ -18,6 +20,10 @@ import StudentResultsView from '../views/student/StudentResultsView.vue'
 import StudentResultDetailView from '../views/student/StudentResultDetailView.vue'
 import ChangePasswordView from '../views/student/ChangePasswordView.vue'
 import AdminTeachersView from '../views/admin/AdminTeachersView.vue'
+import AdminDashboardView from '../views/admin/AdminDashboardView.vue'
+import AdminStudentsView from '../views/admin/AdminStudentsView.vue'
+import AdminCoursesView from '../views/admin/AdminCoursesView.vue'
+import AdminExamsView from '../views/admin/AdminExamsView.vue'
 import { authState, restoreSession } from '../auth/auth'
 
 const routes = [
@@ -43,7 +49,11 @@ const routes = [
     props: { portalName: '管理端' },
     meta: { requiresAuth: true, role: 'ADMIN' },
     children: [
-      { path: '', name: 'admin-home', component: AdminTeachersView, meta: { title: '教师账号管理' } },
+      { path: '', name: 'admin-home', component: AdminDashboardView, meta: { title: '系统概览' } },
+      { path: 'teachers', name: 'admin-teachers', component: AdminTeachersView, meta: { title: '教师管理' } },
+      { path: 'students', name: 'admin-students', component: AdminStudentsView, meta: { title: '学生管理' } },
+      { path: 'courses', name: 'admin-courses', component: AdminCoursesView, meta: { title: '课程监管' } },
+      { path: 'exams', name: 'admin-exams', component: AdminExamsView, meta: { title: '考试监管' } },
       { path: 'change-password', name: 'admin-change-password', component: ChangePasswordView, meta: { title: '修改密码' } },
     ],
   },
@@ -63,6 +73,8 @@ const routes = [
       { path: 'courses', component: CoursesView, meta: { title: '课程管理' } },
       { path: 'courses/:courseId', component: CourseDetailView, meta: { title: '课程详情' } },
       { path: 'exams', component: ExamsView, meta: { title: '考试管理' } },
+      { path: 'grading-tasks', component: GradingTaskView, meta: { title: '阅卷任务' } },
+      { path: 'ai-evaluation', component: AiEvaluationView, meta: { title: 'AI评分分析' } },
       { path: 'exams/:examId', component: ExamDetailView, meta: { title: '考试详情' } },
       { path: 'exams/:examId/grading/submissions/:submissionId', component: GradingPaperView, meta: { title: '本场答卷' } },
       { path: 'question-banks', component: QuestionBanksView, meta: { title: '题库管理' } },

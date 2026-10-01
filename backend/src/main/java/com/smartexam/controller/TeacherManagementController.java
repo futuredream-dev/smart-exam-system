@@ -4,6 +4,13 @@ import com.smartexam.common.ApiResponse;
 import com.smartexam.dto.TeacherRequests;
 import com.smartexam.vo.TeacherViews;
 import com.smartexam.service.TeacherManagementService;
+import com.smartexam.service.ExamCenterService;
+import com.smartexam.service.ExamMonitorService;
+import com.smartexam.service.ResultsAnalysisService;
+import com.smartexam.vo.ResultsAnalysisViews;
+import com.smartexam.vo.ExamCenterViews;
+import com.smartexam.vo.ExamMonitorViews;
+import com.smartexam.common.PageResponse;
 import com.smartexam.service.StudentExcelImportService;
 import com.smartexam.vo.StudentImportViews;
 import com.smartexam.vo.PasswordResetVO;
@@ -26,6 +33,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TeacherManagementController {
     private final TeacherManagementService service;
+    private final ExamCenterService examCenter;
+    private final ExamMonitorService examMonitor;
+    private final ResultsAnalysisService resultsAnalysis;
     private final StudentExcelImportService studentImports;
     private final AccountLifecycleService accountLifecycle;
 
@@ -120,14 +130,52 @@ public class TeacherManagementController {
         return ApiResponse.success(service.listExams(a.getName(), courseId));
     }
 
+    @GetMapping("/exams")
+    public ApiResponse<PageResponse<ExamCenterViews.Summary>> examCenter(Authentication a,
+            @RequestParam(required = false) String keyword, @RequestParam(required = false) Long courseId,
+            @RequestParam(required = false) String stage, @RequestParam(defaultValue = "false") boolean archived,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ApiResponse.success(examCenter.list(a.getName(), keyword, courseId, stage, archived, page, size));
+    }
+
     @PostMapping("/courses/{courseId}/exams")
     public ApiResponse<TeacherViews.Exam> createExam(Authentication a, @PathVariable Long courseId, @Valid @RequestBody TeacherRequests.Exam r) {
         return ApiResponse.success(service.createExam(a.getName(), courseId, r));
     }
 
+    @PostMapping("/exams/{examId}/makeups")
+    public ApiResponse<TeacherViews.Exam> createMakeup(Authentication a, @PathVariable Long examId,
+            @Valid @RequestBody TeacherRequests.Makeup request) {
+        return ApiResponse.success(service.createMakeup(a.getName(), examId, request));
+    }
+
+    @PostMapping("/exams/{examId}/copy")
+    public ApiResponse<TeacherViews.Exam> copyExam(Authentication a, @PathVariable Long examId,
+            @Valid @RequestBody TeacherRequests.Copy request) {
+        return ApiResponse.success(service.copyExam(a.getName(), examId, request));
+    }
+
+    @PostMapping("/exams/{examId}/archive")
+    public ApiResponse<Void> archiveExam(Authentication a, @PathVariable Long examId) {
+        service.archiveExam(a.getName(), examId);
+        return ApiResponse.success(null);
+    }
+
+    @PostMapping("/exams/{examId}/restore")
+    public ApiResponse<Void> restoreExam(Authentication a, @PathVariable Long examId) {
+        service.restoreExam(a.getName(), examId);
+        return ApiResponse.success(null);
+    }
+
     @GetMapping("/exams/{examId}")
-    public ApiResponse<TeacherViews.Exam> exam(Authentication a, @PathVariable Long examId) {
-        return ApiResponse.success(service.exam(a.getName(), examId));
+    public ApiResponse<ExamCenterViews.Detail> exam(Authentication a, @PathVariable Long examId) {
+        return ApiResponse.success(examCenter.detail(a.getName(), examId));
+    }
+
+    @GetMapping("/exams/{examId}/publish-readiness")
+    public ApiResponse<ExamCenterViews.PublishReadiness> publishReadiness(Authentication a, @PathVariable Long examId) {
+        return ApiResponse.success(service.publishReadiness(a.getName(), examId));
     }
 
     @GetMapping("/exams/{examId}/workspace")
@@ -135,9 +183,26 @@ public class TeacherManagementController {
         return ApiResponse.success(service.workspace(a.getName(), examId));
     }
 
+    @GetMapping("/exams/{examId}/results/analysis")
+    public ApiResponse<ResultsAnalysisViews.Analysis> resultsAnalysis(Authentication a, @PathVariable Long examId) {
+        return ApiResponse.success(resultsAnalysis.analyze(a.getName(), examId));
+    }
+
     @GetMapping("/exams/{examId}/candidates")
     public ApiResponse<List<TeacherViews.ExamCandidate>> examCandidates(Authentication a, @PathVariable Long examId) {
         return ApiResponse.success(service.examCandidates(a.getName(), examId));
+    }
+
+    @GetMapping("/exams/{examId}/monitor")
+    public ApiResponse<ExamMonitorViews.Snapshot> monitor(Authentication a, @PathVariable Long examId) {
+        return ApiResponse.success(examMonitor.snapshot(a.getName(), examId));
+    }
+
+    @GetMapping("/exams/{examId}/monitor/students/{studentId}/events")
+    public ApiResponse<PageResponse<ExamMonitorViews.Event>> monitorEvents(
+            Authentication a, @PathVariable Long examId, @PathVariable Long studentId,
+            @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "20") int size) {
+        return ApiResponse.success(examMonitor.events(a.getName(), examId, studentId, page, size));
     }
 
     @PutMapping("/exams/{examId}")

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.smartexam.mapper.GradingTaskMapper">
+    <!-- One row per submission. Unique (submission_id,question_id) and answer_id
+         constraints make each expected question join to at most one answer/result. -->
+    <sql id="facts">
+        SELECT s.id AS submission_id, s.exam_id, e.title AS exam_name,
+               s.student_id, u.name AS student_name, u.username AS student_no,
+               s.status AS submission_status, s.submit_time, s.total_score,
+               COUNT(q.id) AS manual_required_count,
+               SUM(CASE WHEN a.grading_status = 'REVIEWED' AND a.teacher_score IS NOT NULL
+                        THEN 1 ELSE 0 END) AS manual_reviewed_count,
+               COUNT(q.id) AS ai_required_count,
+               SUM(CASE WHEN ai.status = 'SUCCESS' THEN 1 ELSE 0 END) AS ai_success_count,
+               SUM(CASE WHEN ai.status = 'FAILED' THEN 1 ELSE 0 END) AS ai_failed_count,
+               SUM(CASE WHEN ai.status = 'NOT_CONFIGURED' THEN 1 ELSE 0 END) AS ai_not_configured_count,
+               SUM(CASE WHEN q.id IS NOT NULL AND ai.id IS NULL THEN 1 ELSE 0 END) AS ai_no_result_count,
+               COALESCE(s.score_published = 1, 0) AS score_published,
+               (e.results_released_at IS NOT NULL) AS results_released
+        FROM submissions s
+        JOIN exams e ON e.id = s.exam_id
+        JOIN courses c ON c.id = e.course_id AND c.teacher_id = #{teacherId}
+        JOIN users u ON u.id = s.student_id
+        LEFT JOIN questions q ON q.exam_id = e.id AND q.question_type = 'SHORT_ANSWER'
+        LEFT JOIN answers a ON a.submission_id = s.id AND a.question_id = q.id
+        LEFT JOIN ai_grading_results ai ON ai.answer_id = a.id
+        WHERE s.status IN ('SUBMITTED', 'AUTO_SUBMITTED', 'GRADED')
+        <if test="query.examId != null">AND s.exam_id = #{query.examId}</if>
+        <if test="query.keywordPattern != null">
+            AND (u.name LIKE #{query.keywordPattern} ESCAPE '!'
+                 OR u.username LIKE #{query.keywordPattern} ESCAPE '!')
+        </if>
+        GROUP BY s.id, s.exam_id, e.title, s.student_id, u.name, u.username,
+                 s.status, s.submit_time, s.total_score, s.score_published, e.results_released_at
+    </sql>
+
+    <!-- The list, count and summary all consume these exact derived states. -->
+    <sql id="derivedTasks">
+        SELECT f.*,
+               (f.manual_required_count = f.manual_reviewed_count) AS manual_review_completed,
+               (f.ai_failed_count &gt; 0) AS ai_has_failure,
+               CASE WHEN f.results_released = 1 AND f.score_published = 1 THEN 'RELEASED'
+                    WHEN f.results_released = 0 AND f.score_published = 0 THEN 'UNRELEASED'
+                    ELSE 'INCONSISTENT' END AS release_status
+        FROM (<include refid="facts"/>) f
+    </sql>
+
+    <sql id="filters">
+        <where>
+            <if test="query.taskStatus != null">
+                <choose>
+                    <when test="query.taskStatus.name() == 'PENDING_REVIEW'">AND t.manual_review_completed = 0</when>
+                    <when test="query.taskStatus.name() == 'REVIEWED'">AND t.manual_review_completed = 1</when>
+                    <when test="query.taskStatus.name() == 'PENDING_RELEASE'">
+                        AND t.manual_review_completed = 1 AND t.release_status != 'RELEASED'
+                    </when>
+                    <when test="query.taskStatus.name() == 'RELEASED'">AND t.release_status = 'RELEASED'</when>
+                </choose>
+            </if>
+            <if test="query.aiStatus != null">
+                <choose>
+                    <when test="query.aiStatus.name() == 'SUCCESS'">
+                        AND t.ai_required_count &gt; 0 AND t.ai_success_count = t.ai_required_count
+                    </when>
+                    <when test="query.aiStatus.name() == 'FAILED'">AND t.ai_failed_count &gt; 0</when>
+                    <when test="query.aiStatus.name() == 'NOT_CONFIGURED'">AND t.ai_not_configured_count &gt; 0</when>
+                    <when test="query.aiStatus.name() == 'NO_RESULT'">AND t.ai_no_result_count &gt; 0</when>
+                </choose>
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectTasks" resultType="com.smartexam.vo.GradingTaskView">
+        SELECT t.* FROM (<include refid="derivedTasks"/>) t
+        <include refid="filters"/>
+        ORDER BY t.submit_time DESC, t.submission_id DESC
+        LIMIT #{query.size} OFFSET #{query.offset}
+    </select>
+
+    <select id="countTasks" resultType="long">
+        SELECT COUNT(*) FROM (<include refid="derivedTasks"/>) t
+        <include refid="filters"/>
+    </select>
+
+    <select id="summarize" resultType="com.smartexam.vo.GradingTaskSummaryView">
+        SELECT COUNT(*) AS total,
+               COALESCE(SUM(t.manual_review_completed = 0), 0) AS pending_review,
+               COALESCE(SUM(t.manual_review_completed = 1), 0) AS reviewed,
+               COALESCE(SUM(t.manual_review_completed = 1 AND t.release_status != 'RELEASED'), 0) AS pending_release,
+               COALESCE(SUM(t.release_status = 'RELEASED'), 0) AS released,
+               COALESCE(SUM(t.ai_has_failure = 1), 0) AS ai_failed,
+               COALESCE(SUM(t.ai_not_configured_count &gt; 0), 0) AS ai_not_configured,
+               COALESCE(SUM(t.ai_no_result_count &gt; 0), 0) AS ai_no_result
+        FROM (<include refid="derivedTasks"/>) t
+        <include refid="filters"/>
+    </select>
+</mapper>

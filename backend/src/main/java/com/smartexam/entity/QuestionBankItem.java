@@ -10,7 +10,9 @@ import java.time.LocalDateTime;
 public class QuestionBankItem {
     @TableId(type = IdType.AUTO) private Long id;
     @TableField("bank_id") private Long bankId;
+    @TableField("chapter_id") private Long chapterId;
     @TableField("question_type") private String questionType;
+    private String difficulty;
     private String title;
     private String content;
     @TableField("options_json") private String optionsJson;

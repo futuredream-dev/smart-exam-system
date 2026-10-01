@@ -1,14 +1,15 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { teacherApi } from '../api/teacher'
+import { banksForExam } from '../utils/questionBankMetadata'
 
-const props = defineProps({ examId: [Number, String] })
+const props = defineProps({ examId: [Number, String], courseId: [Number, String] })
 const emit = defineEmits(['saved', 'close'])
 const banks = ref([]), selectedBankIds = ref([]), singleChoiceCount = ref(0), shortAnswerCount = ref(0)
 const preview = ref(null), loading = ref(false), busy = ref(false), error = ref('')
 
 async function loadBanks() {
-  try { banks.value = (await teacherApi.questionBanks()).data }
+  try { banks.value = banksForExam((await teacherApi.questionBanks()).data, props.courseId) }
   catch (e) { error.value = e.message }
 }
 

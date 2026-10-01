@@ -69,6 +69,9 @@ CREATE TABLE IF NOT EXISTS exams (
     late_entry_minutes INT UNSIGNED NOT NULL DEFAULT 0,
     min_submit_minutes INT UNSIGNED NOT NULL DEFAULT 0,
     status VARCHAR(20) NOT NULL DEFAULT 'DRAFT',
+    exam_kind VARCHAR(16) NOT NULL DEFAULT 'NORMAL',
+    source_exam_id BIGINT UNSIGNED NULL,
+    archived_at DATETIME(3) NULL,
     created_by BIGINT UNSIGNED NOT NULL,
     published_at DATETIME(3) NULL,
     results_released_at DATETIME(3) NULL,
@@ -78,13 +81,18 @@ CREATE TABLE IF NOT EXISTS exams (
     KEY idx_exams_course_status (course_id, status),
     KEY idx_exams_time_range (start_time, end_time),
     KEY idx_exams_created_by (created_by),
+    KEY idx_exams_source_exam_id (source_exam_id),
     CONSTRAINT chk_exams_status CHECK (status IN ('DRAFT', 'PUBLISHED', 'GRADING', 'RELEASED')),
+    CONSTRAINT chk_exams_kind CHECK (exam_kind IN ('NORMAL', 'MAKEUP')),
+    CONSTRAINT chk_exams_source CHECK ((exam_kind = 'NORMAL' AND source_exam_id IS NULL) OR (exam_kind = 'MAKEUP' AND source_exam_id IS NOT NULL)),
     CONSTRAINT chk_exams_time CHECK (end_time > start_time),
     CONSTRAINT fk_exams_course
         FOREIGN KEY (course_id) REFERENCES courses (id)
         ON UPDATE RESTRICT ON DELETE CASCADE,
     CONSTRAINT fk_exams_creator
         FOREIGN KEY (created_by) REFERENCES users (id)
+        ON UPDATE RESTRICT ON DELETE RESTRICT,
+    CONSTRAINT fk_exams_source FOREIGN KEY (source_exam_id) REFERENCES exams (id)
         ON UPDATE RESTRICT ON DELETE RESTRICT
 ) ENGINE=InnoDB COMMENT='考试';
 
@@ -195,6 +203,21 @@ CREATE TABLE IF NOT EXISTS answers (
         ON UPDATE RESTRICT ON DELETE RESTRICT
 ) ENGINE=InnoDB COMMENT='学生答案';
 
+CREATE TABLE IF NOT EXISTS exam_behavior_events (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    submission_id BIGINT UNSIGNED NOT NULL,
+    event_type VARCHAR(24) NOT NULL,
+    occurred_at DATETIME(3) NOT NULL,
+    client_event_id VARCHAR(64) NOT NULL,
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_exam_behavior_events_submission_client (submission_id, client_event_id),
+    KEY idx_exam_behavior_events_submission_time (submission_id, occurred_at, id),
+    CONSTRAINT chk_exam_behavior_events_type CHECK (event_type IN ('TAB_HIDDEN', 'PAGE_LEAVE', 'RE_ENTER')),
+    CONSTRAINT fk_exam_behavior_events_submission FOREIGN KEY (submission_id) REFERENCES submissions (id)
+        ON UPDATE RESTRICT ON DELETE CASCADE
+) ENGINE=InnoDB COMMENT='学生考试轻量行为记录';
+
 CREATE TABLE IF NOT EXISTS ai_grading_results (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     answer_id BIGINT UNSIGNED NOT NULL,
@@ -221,12 +244,14 @@ CREATE TABLE IF NOT EXISTS question_banks (
     name VARCHAR(160) NOT NULL,
     description TEXT NULL,
     owner_teacher_id BIGINT UNSIGNED NULL,
+    course_id BIGINT UNSIGNED NULL,
     scope VARCHAR(20) NOT NULL DEFAULT 'TEACHER',
     status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
     created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
     PRIMARY KEY (id),
     KEY idx_question_banks_owner_status (owner_teacher_id, status),
+    UNIQUE KEY uk_question_banks_course (course_id),
     CONSTRAINT chk_question_banks_status CHECK (status IN ('ACTIVE', 'ARCHIVED')),
     CONSTRAINT chk_question_banks_scope CHECK (scope IN ('TEACHER', 'PLATFORM')),
     CONSTRAINT chk_question_banks_scope_owner CHECK (
@@ -234,13 +259,34 @@ CREATE TABLE IF NOT EXISTS question_banks (
         OR (scope = 'PLATFORM' AND owner_teacher_id IS NULL)
     ),
     CONSTRAINT fk_question_banks_owner FOREIGN KEY (owner_teacher_id) REFERENCES users (id)
+        ON UPDATE RESTRICT ON DELETE RESTRICT,
+    CONSTRAINT fk_question_banks_course FOREIGN KEY (course_id) REFERENCES courses (id)
         ON UPDATE RESTRICT ON DELETE RESTRICT
 ) ENGINE=InnoDB COMMENT='题库：scope=TEACHER教师个人 / PLATFORM平台公共';
+
+CREATE TABLE IF NOT EXISTS question_bank_chapters (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    bank_id BIGINT UNSIGNED NOT NULL,
+    parent_id BIGINT UNSIGNED NULL,
+    name VARCHAR(160) NOT NULL,
+    sort_order INT UNSIGNED NOT NULL DEFAULT 0,
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    PRIMARY KEY (id),
+    KEY idx_qbc_bank_parent_sort (bank_id, parent_id, sort_order),
+    KEY idx_qbc_parent (parent_id),
+    CONSTRAINT fk_qbc_bank FOREIGN KEY (bank_id) REFERENCES question_banks (id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT fk_qbc_parent FOREIGN KEY (parent_id) REFERENCES question_bank_chapters (id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT chk_qbc_status CHECK (status IN ('ACTIVE', 'ARCHIVED'))
+) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS question_bank_items (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     bank_id BIGINT UNSIGNED NOT NULL,
+    chapter_id BIGINT UNSIGNED NULL,
     question_type VARCHAR(24) NOT NULL,
+    difficulty VARCHAR(10) NULL,
     title VARCHAR(160) NOT NULL,
     content TEXT NOT NULL,
     options_json JSON NULL,
@@ -253,10 +299,14 @@ CREATE TABLE IF NOT EXISTS question_bank_items (
     PRIMARY KEY (id),
     KEY idx_question_bank_items_bank_status (bank_id, status),
     KEY idx_question_bank_items_bank_type (bank_id, question_type),
+    KEY idx_qbi_chapter (chapter_id),
     CONSTRAINT chk_question_bank_items_type CHECK (question_type IN ('SINGLE_CHOICE', 'SHORT_ANSWER')),
     CONSTRAINT chk_question_bank_items_status CHECK (status IN ('DRAFT', 'READY', 'ARCHIVED')),
     CONSTRAINT chk_question_bank_items_score CHECK (default_score > 0),
+    CONSTRAINT chk_question_bank_items_difficulty CHECK (difficulty IN ('EASY', 'MEDIUM', 'HARD')),
     CONSTRAINT fk_question_bank_items_bank FOREIGN KEY (bank_id) REFERENCES question_banks (id)
+        ON UPDATE RESTRICT ON DELETE RESTRICT,
+    CONSTRAINT fk_qbi_chapter FOREIGN KEY (chapter_id) REFERENCES question_bank_chapters (id)
         ON UPDATE RESTRICT ON DELETE RESTRICT
 ) ENGINE=InnoDB COMMENT='题库题目';
 
@@ -274,6 +324,49 @@ CREATE TABLE IF NOT EXISTS question_bank_scoring_points (
     CONSTRAINT fk_question_bank_scoring_points_item FOREIGN KEY (bank_item_id) REFERENCES question_bank_items (id)
         ON UPDATE RESTRICT ON DELETE RESTRICT
 ) ENGINE=InnoDB COMMENT='题库简答题评分点';
+
+CREATE TABLE IF NOT EXISTS question_bank_knowledge_points (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    bank_id BIGINT UNSIGNED NOT NULL,
+    name VARCHAR(160) NOT NULL,
+    description TEXT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    PRIMARY KEY (id),
+    KEY idx_qbkp_bank_status (bank_id, status),
+    CONSTRAINT fk_qbkp_bank FOREIGN KEY (bank_id) REFERENCES question_banks (id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT chk_qbkp_status CHECK (status IN ('ACTIVE', 'ARCHIVED'))
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS question_bank_tags (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    bank_id BIGINT UNSIGNED NOT NULL,
+    name VARCHAR(160) NOT NULL,
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_qbt_bank_name (bank_id, name),
+    CONSTRAINT fk_qbt_bank FOREIGN KEY (bank_id) REFERENCES question_banks (id) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS question_bank_item_knowledge_points (
+    item_id BIGINT UNSIGNED NOT NULL,
+    knowledge_point_id BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (item_id, knowledge_point_id),
+    KEY idx_qbikp_point (knowledge_point_id),
+    CONSTRAINT fk_qbikp_item FOREIGN KEY (item_id) REFERENCES question_bank_items (id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT fk_qbikp_point FOREIGN KEY (knowledge_point_id) REFERENCES question_bank_knowledge_points (id) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS question_bank_item_tags (
+    item_id BIGINT UNSIGNED NOT NULL,
+    tag_id BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (item_id, tag_id),
+    KEY idx_qbit_tag (tag_id),
+    CONSTRAINT fk_qbit_item FOREIGN KEY (item_id) REFERENCES question_bank_items (id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT fk_qbit_tag FOREIGN KEY (tag_id) REFERENCES question_bank_tags (id) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB;
 
 -- 基础测试数据。password_hash 为 BCrypt 哈希，不存储明文密码。
 INSERT INTO users (username, password_hash, name, role, status)

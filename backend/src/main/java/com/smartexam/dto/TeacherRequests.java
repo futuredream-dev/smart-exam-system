@@ -15,6 +15,11 @@ public final class TeacherRequests {
     public record Exam(@NotBlank @Size(max=160) String title, @Size(max=10000) String description,
             @NotNull LocalDateTime startTime, @NotNull LocalDateTime endTime,
             @NotNull @Min(0) Integer lateEntryMinutes, @NotNull @Min(0) Integer minSubmitMinutes) {}
+    public record Makeup(@NotBlank @Size(max=160) String title, @Size(max=10000) String description,
+            @NotNull LocalDateTime startTime, @NotNull LocalDateTime endTime,
+            @NotNull @Min(0) Integer lateEntryMinutes, @NotNull @Min(0) Integer minSubmitMinutes,
+            @NotEmpty List<@NotNull Long> studentIds) {}
+    public record Copy(Long targetCourseId, @Size(max=160) String title) {}
     public record Option(@NotBlank @Pattern(regexp="[A-D]") String key,
                          @NotBlank @Size(max=2000) String text) {}
     public record Point(@NotBlank @Size(max=10000) String pointContent,

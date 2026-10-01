@@ -3,6 +3,8 @@ package com.smartexam.questionbank;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smartexam.entity.Courses;
+import com.smartexam.entity.QuestionBank;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.smartexam.entity.Exams;
 import com.smartexam.entity.Users;
 import com.smartexam.security.JwtService;
@@ -43,6 +45,7 @@ class ManualBankAssemblyIntegrationTest {
     @Autowired ExamsService exams;
     @Autowired JwtService jwt;
     @Autowired JdbcTemplate jdbc;
+    @Autowired com.smartexam.mapper.QuestionBankMapper bankMapper;
 
     String teacherToken;
     String otherTeacherToken;
@@ -134,6 +137,18 @@ class ManualBankAssemblyIntegrationTest {
     }
 
     @Test
+    void rejectsUnboundAndWrongCourseBanksWithoutChangingSnapshots() throws Exception {
+        long bank = createBank("课程校验题库", teacherToken);
+        long item = ready(createItem(bank, singleChoice("待校验题", "A"), teacherToken), teacherToken);
+        long otherExam = draftExam(users.findByUsername("teacher_demo"), "其他课程考试");
+        assertThat(add(otherExam, List.of(item), teacherToken, 409).path("message").asText()).contains("课程不一致");
+        bankMapper.update(null, new UpdateWrapper<QuestionBank>().eq("id", bank).set("course_id", null));
+        assertThat(add(examId, List.of(item), teacherToken, 409).path("message").asText()).contains("尚未绑定课程");
+        assertThat(questionCount(examId)).isZero();
+        assertThat(questionCount(otherExam)).isZero();
+    }
+
+    @Test
     void rejectsOtherTeachersBankAndExamAndNonDraftExam() throws Exception {
         long ownBank = createBank("自己的题库", teacherToken);
         long ownItem = ready(createItem(ownBank, singleChoice("自己的题", "own"), teacherToken), teacherToken);
@@ -159,7 +174,16 @@ class ManualBankAssemblyIntegrationTest {
     }
 
     long createBank(String name, String token) throws Exception {
-        return call(post("/api/teacher/question-banks"), Map.of("name", name, "description", "组卷测试"), token, 200)
+        long courseId;
+        if (token.equals(teacherToken) && jdbc.queryForObject("SELECT COUNT(*) FROM question_banks WHERE course_id = ?", Integer.class, exams.getById(examId).getCourseId()) == 0) courseId = exams.getById(examId).getCourseId();
+        else {
+            Courses course = new Courses();
+            course.setTeacherId(userForToken(token).getId());
+            course.setCourseName(name + "课程");
+            courses.save(course);
+            courseId = course.getId();
+        }
+        return call(post("/api/teacher/question-banks"), Map.of("name", name, "description", "组卷测试", "courseId", courseId), token, 200)
                 .path("data").path("id").asLong();
     }
 
