@@ -18,6 +18,7 @@ frontend/.env.local
 # Local configuration
 backend/src/main/resources/application-local.yml
 config/local.env
+.tok_teacher.txt
 
 # IDE / OS
 .idea/
