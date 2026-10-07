@@ -2,7 +2,7 @@
 
 ## 全新环境
 
-`sql/init.sql` 是全新环境的结构初始化入口，创建 `smart_exam` 和当前完整的 **19 张表**。随后执行 `sql/demo-data.sql`，得到独立的演示账号与业务数据。P12-B 曾验证当时版本的 `init.sql`；当前两步初始化以 P12-D 验证结果为准。
+`sql/init.sql` 是全新环境的结构初始化入口，创建 `smart_exam` 和当前完整的 **19 张表**。随后执行 `sql/demo-data.sql`，得到独立的演示账号与业务数据。
 
 `init.sql` 是 **first-run bootstrap**，不是可无限重复运行的 migration。`demo-data.sql` 可在演示环境重复运行，不重置账号、考试状态、发布时冻结的应考名单或答卷。普通启动不执行这两份 SQL；已有业务数据库不要运行演示脚本。SQL 文件声明适用 MySQL 8.0.16 及以上。
 
@@ -15,7 +15,7 @@ SOURCE sql/demo-data.sql;
 
 初始化后可查询 `information_schema.tables`，确认 `smart_exam` 下有 19 张基础表。演示数据包含 `admin_demo`、`teacher_demo`、`student_demo_1`、`student_demo_2`，密码均为 `password`，只适合受控演示环境。另有 1 门课程、1 个题库、7 道 READY 题和 1 场已发布、尚无答卷的考试。启动时 `InitialAdminInitializer` 发现已存在 ADMIN，不会另建管理员。考试开放时间从首次导入起一年；需重新获得全新起点时使用全新空库初始化。
 
-本地环境变量示例见 `config/local.env.example`；Compose 示例见根目录 `.env.example`。不要提交真实数据库密码。
+本地环境变量示例见 `config/local.env.example`。不要提交真实数据库密码。
 
 ## 历史文件
 

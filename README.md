@@ -1,326 +1,155 @@
 # 智能考试管理系统
 
-> 面向教学场景的 AI 辅助阅卷与考试管理平台
+Smart Exam Management System
 
-**Current Version: V1.0 Release Candidate · 验收通过，准备首次 GitHub 发布**
+基于 Spring Boot 和 Vue 3 的前后端分离考试管理系统，面向管理员、教师和学生，覆盖课程与题库管理、组卷与发布、在线考试、阅卷和成绩查看。AI 用于辅助组卷需求理解和简答题评分建议；题目选择受业务规则约束，最终主观题评分由教师确认。
 
-## 项目简介
+## 核心功能
 
-项目按真实考试业务流程设计，覆盖课程与学生管理、题库、组卷、发布、答题、AI 辅助阅卷、教师复核、成绩发布与学生回顾。当前支持单选题和简答题，提供管理员、教师、学生三个角色的独立工作空间。
+| 角色 | 已实现功能 |
+|---|---|
+| 管理员 | 系统概览；教师、学生、课程和考试的管理与监管 |
+| 教师 | 课程与学生管理、学生批量导入；题库与题目管理；手动、规则随机和 AI 辅助组卷；考试发布、监控、复制、补考与归档；答卷复核、成绩发布、统计与导出 |
+| 学生 | 注册与登录、查看可参加的考试、在线作答与保存、交卷、查看已发布成绩及答题回顾 |
 
-AI 根据参考答案和评分点生成结构化建议，教师拥有简答题的最终评分权。AI 建议与人工评分分别存储；模型超时、服务异常或返回格式错误时，仍可完成人工阅卷和成绩发布。
+目前支持单选题和简答题。考试发布时冻结应考名单，组卷时保存试题和评分点快照；单选题由系统按标准答案评分，简答题须经教师确认后才能完成阅卷。成绩按整场考试发布，发布前学生不能查看。
 
-## 核心亮点
+## AI 能力设计
 
-- **结构化 AI 建议**：OpenAI-compatible Provider 支持 DeepSeek 接入，返回建议分、评分理由、命中与缺失评分点、评语；建议分限定在 0～题目满分。
-- **AI 故障降级**：Provider 异常持久化为 `FAILED`，清除失效建议，不阻断人工复核和后续发布。
-- **完整考试规则**：首次进入、重入、保存答案、迟到限制、最早交卷、到期自动提交和已交卷锁定均由后端校验。
-- **双重快照隔离**：发布时冻结应考名单；组卷时复制试题与评分点，隔离课程成员和源题库的后续变化。
-- **整场成绩发布**：实际答卷全部完成阅卷后统一发布，拒绝重复发布，发布后锁定评分与评语，支持 XLSX 导出。
-- **权限与数据隔离**：三角色认证、教师资源归属校验、公共题库只读使用；学生 API 隐藏 AI 内部建议、评分点和未发布成绩。
-- **可验证的工程实践**：SQL 升级脚本、单元与集成测试、API 黄金路径、浏览器回归、Windows 一键启停及数据库健康检查。
+### AI 辅助组卷
 
-## 项目截图
+教师输入自然语言需求 → 兼容 OpenAI 接口的模型解析意图 → 应用将其转换为结构化条件 → 本地题库筛选与推荐 → 规则服务校验题数、题型、分值、状态和权限等硬约束 → 教师确认试卷。
 
-以下为历史功能验收截图，账号、答案和成绩属于演示或测试数据。截图来自早期界面，可能与 Phase 11 当前外观不同；最终截图筛选与隐私复核留待 GitHub 发布收口。
+模型负责理解模糊需求，不生成新题，也不代替后端决定最终组卷规则。未配置模型服务时，仍可手动或按规则随机组卷。
 
-### 教师：考试工作区与阅卷
+### AI 辅助简答题阅卷
 
-在一场考试内查看考生情况、阅卷进度、成绩发布状态和导出入口。
+学生答案与评分点 → 模型生成建议分、理由和评语 → 教师查看建议并人工复核 → 确认最终分数 → 发布成绩。
 
-![教师考试工作区与阅卷列表](gui-test-screenshots/p7-teacher-grading-post.png)
-
-<details>
-<summary>查看完整答卷：AI 建议与教师评分分别展示</summary>
-
-![教师答卷与人工复核](gui-test-screenshots/p7-teacher-paper-post.png)
-
-</details>
-
-### 学生：考试与成绩回顾
-
-学生从考试列表进入考试或已发布成绩；成绩详情包含本人答案、逐题得分与教师总评。
-
-![学生考试列表](gui-test-screenshots/p7-student-exams-post.png)
-
-<details>
-<summary>查看成绩详情与答题回顾</summary>
-
-![学生成绩详情与答题回顾](gui-test-screenshots/p7-student-detail-post.png)
-
-</details>
-
-### 管理员：教师账号管理
-
-![管理员教师账号管理入口](gui-test-screenshots/p7-admin.png)
-
-### AI 建议分与教师最终分
-
-15 份测试样本的人工整理对照，用于观察建议分与最终分的差异；不是线上统计看板，也不代表模型准确率评测。
-
-![AI 建议分与教师最终分对照](gui-test-screenshots/ai-main-preview.png)
-
-## 系统架构
-
-```mermaid
-flowchart TD
-    UI[Vue 3 前端] -->|Axios HTTP 请求| API[Spring Boot REST API]
-    API --> AUTH[Spring Security + JWT 认证与权限校验]
-    AUTH --> SERVICE[业务服务：考试 / 题库 / 答卷 / 阅卷]
-    SERVICE --> ORM[MyBatis-Plus]
-    ORM --> DB[(MySQL)]
-    SERVICE --> AI[AiGradingService]
-    AI --> PROVIDER[OpenAI-compatible Provider]
-    PROVIDER --> MODEL[DeepSeek / 兼容模型]
-    MODEL -->|结构化建议| AI
-    AI -->|保存建议结果| ORM
-    AI -->|展示建议| REVIEW[教师人工复核]
-    REVIEW -->|确认评分| SERVICE
-```
-
-模型不直接访问数据库，也不决定最终成绩；建议结果由应用服务校验和持久化。
-
-## 核心业务流程
-
-```mermaid
-flowchart TD
-    A[教师建课 / 管理学生与题库] --> B[手动或随机组卷]
-    B --> C[发布考试 / 冻结应考名单]
-    C --> D[学生答题 / 保存 / 交卷]
-    D --> E[单选题自动评分]
-    E --> F[教师发起简答题 AI 建议]
-    F --> G[教师人工复核]
-    F -->|AI 失败或未配置| G
-    G --> H[整场成绩发布]
-    H --> I[学生查看成绩与答题回顾]
-```
-
-AI 为可选辅助步骤。单选题按标准答案自动评分，简答题由教师确认，最终总分由后端汇总。
+AI 建议与教师评分分别保存。模型未配置或请求失败时，教师仍可人工阅卷；AI 不直接决定最终成绩。
 
 ## 技术栈
 
-| 层级 | 技术 |
+| 部分 | 当前项目使用 |
 |---|---|
-| 后端 | Java 17、Spring Boot 3.4.5、Spring MVC、Validation |
-| 安全 | Spring Security、JWT（JJWT 0.12.6）、BCrypt |
-| 数据访问 | MyBatis-Plus 3.5.12、MySQL |
-| 前端 | Vue 3.5.13、Vite 6.1.0、Vue Router 4.5.0、Axios 1.7.9 |
-| AI | OpenAI-compatible Chat Completions API / DeepSeek |
-| Excel | Apache POI 5.4.1，学生导入与成绩导出 |
-| 测试 | JUnit、Spring Boot Test、MockMvc、浏览器回归脚本 |
-| 开发与运行 | Maven、pnpm、PowerShell、Spring Boot Actuator |
-| 部署结构 | Docker Compose、Nginx；配置已提供，真实部署验收待完成 |
+| 后端 | Java 17、Spring Boot 3.4.5、Spring Security、JWT、MyBatis-Plus 3.5.12、Apache POI 5.4.1 |
+| 前端 | Vue 3.5.13、Vue Router 4.5.0、Axios 1.7.9、Vite 6.1.0 |
+| 数据库 | MySQL 8.0.16 及以上 |
+| AI 接口 | OpenAI 兼容的 HTTP Provider，通过环境变量配置地址、密钥与模型 |
+| 构建与本地开发 | Maven、pnpm、PowerShell 开发脚本 |
 
-## 角色与功能
+版本来自 [后端依赖](backend/pom.xml)、[前端依赖](frontend/package.json) 和 SQL 约束。Node.js 20 及以上是本地启动脚本的检查要求；pnpm 需要可执行，项目未锁定其全局版本。
 
-| 角色 | 主要功能 |
-|---|---|
-| ADMIN | 创建教师账号、启用/停用、重置临时密码；首次登录强制改密 |
-| TEACHER | 课程与学生管理、Excel 导入、个人题库、PLATFORM 公共题库只读使用、手动/随机组卷、考试发布、AI 建议、人工复核、整场成绩发布、XLSX 导出 |
-| STUDENT | 注册/登录、考试列表、进入与重入、保存答案、交卷、成绩查看、答题回顾 |
+## 项目结构
 
-## AI 辅助阅卷设计
+~~~text
+backend/     Spring Boot API、业务服务与测试
+frontend/    Vue 页面、路由与构建配置
+sql/         全新建库、Demo 数据与历史升级脚本
+scripts/     Windows 本地启动、检查、停止及 Maven 准备
+config/      本地环境变量模板
+docs/        运行说明及其他项目文档
+~~~
 
-```text
-学生简答答案 + 试题快照 + 参考答案 + 评分点
-    → AiGradingService → AiGradingProvider → LLM
-    → 结构化建议 → 校验 / 分数边界保护 → ai_grading_results
-    → 教师查看与人工复核 → answers.teacher_score
-```
+## 本地运行
 
-结构化结果包含 `aiScore`、`aiReason`、`matchedPoints`、`missingPoints`、`aiComment`。服务层将越界建议分截断至合法范围；AI 只写建议记录，不直接写入 `teacher_score`。
+以下命令在 Windows PowerShell 的**项目根目录**执行。其他系统可分别启动后端和前端，但本仓库的一键脚本面向 Windows。
 
-| 场景 | 持久化状态 | 后续处理 |
-|---|---|---|
-| 正常返回 | `SUCCESS` | 教师参考建议，独立确认评分 |
-| 超时、Provider 异常或无效结果 | `FAILED` | 清空本次失效建议，记录错误，继续人工评分 |
-| 未配置 AI | `NOT_CONFIGURED` | 使用人工阅卷流程 |
+### 1. 准备环境
 
-教师完成简答题复核后，后端以单选题 `auto_score` 与简答题 `teacher_score` 汇总总分。AI 建议分不会参与最终总分计算。
+安装并启动 MySQL 8.0.16 及以上；安装 JDK 17、Node.js 20 及以上和 pnpm，并确保 java、node、pnpm 在 PATH 中。启动脚本优先使用 PATH 或 MAVEN_HOME 中的 Maven；若没有，会下载并校验 Maven 3.9.9，首次下载需要网络。
 
-实现入口：[AiGradingService](backend/src/main/java/com/smartexam/service/AiGradingService.java)、[Provider](backend/src/main/java/com/smartexam/service/ai/OpenAiCompatibleGradingProvider.java)、[TeacherGradingService](backend/src/main/java/com/smartexam/service/TeacherGradingService.java)。
+### 2. 初始化数据库
 
-## 关键业务设计
+使用有建库权限的 MySQL 账号，在项目根目录进入 MySQL 命令行：
 
-### 考试名单快照
-
-发布考试时生成 `exam_candidates`。后续课程新增学生不会获得旧考试资格，移除课程成员也不会改变已经冻结的名单。
-
-### 试题与评分点快照
-
-题库是组卷来源。组卷后复制题干、选项、答案、分值及评分点；源题目编辑或归档不会污染既有考试。AI 阅卷读取考试快照中的参考答案和评分点。
-
-### 成绩发布锁
-
-以 `exams.results_released_at` 记录整场发布时间。发布前检查实际答卷已完成阅卷，缺考学生不阻塞发布；发布后拒绝改分、AI 重评、评语修改和重复发布，学生此时才可查看成绩。
-
-### AI 与人工评分隔离
-
-`ai_score` 与 `teacher_score` 是独立字段，不存在自动覆盖关系。建议失败不会删除教师评分；简答题最终成绩以教师确认结果为准。
-
-## 安全设计
-
-- JWT 无状态认证，密码使用 BCrypt 哈希，覆盖 ADMIN / TEACHER / STUDENT 权限及首次改密流程。
-- 教师接口检查课程、考试、答卷与题库的资源归属；PLATFORM 题库允许教师只读使用，禁止越权修改。
-- 学生接口不返回 AI 建议、内部错误或评分点；未发布成绩不可见。发布后的单选题回顾可显示正确选项。
-- 数据库密码、JWT 签名密钥、管理员初始密码和 AI 凭据通过环境变量提供；`config/local.env` 已被 `.gitignore` 排除。
-- 初始化脚本含公开演示账号，仅用于受控开发环境；对外部署前应删除或重置演示账号。
-
-## 测试与质量
-
-以下为 V1.0 RC 已完成的验收基线，不是本次文档修改重新运行的结果，也不是持续集成状态。
-
-| 验证层次 | 已记录结果 |
-|---|---|
-| 后端 Unit / Integration | 28 个测试类，175 tests / 0 failures / 0 errors / 0 skipped |
-| API 黄金路径 | 66 assertions / 0 FAIL |
-| 前端构建 | 117 modules / build PASS |
-| Browser smoke / 监控 | 0 HTTP 500 / 0 Vue runtime error |
-
-原 V1.0 RC 正式验收记录未纳入当前仓库，以上数字仅保留为当时的汇总口径，不能作为本次重新运行的结果。后续专项验收记录见[历史开发资料](docs/archive/README.md)。重点覆盖 AI 断线降级、建议分越界、快照隔离、成绩发布锁和跨角色访问。
-
-后端集成测试连接真实 MySQL，需要准备独立测试数据库和环境变量。`frontend/scripts/` 保留专项回归脚本；历史验收用的部分临时脚本与原始日志不随仓库发布，不能将这些数字理解为一次命令即可全部复现。
-
-## 快速开始
-
-### 环境要求
-
-- Java 17、MySQL 8.0.16+（8.x）、Node.js 20+、pnpm。
-- Maven 3.9+ 可选预装；`scripts/ensure-maven.ps1` 可下载 Maven 3.9.9、校验 SHA-512 并缓存到项目忽略目录，首次准备需联网。
-- 以下命令在 Windows PowerShell 的项目根目录执行。业务时区为 `Asia/Shanghai`，数据库字符集为 `utf8mb4`。
-
-### 1. 初始化数据库
-
-启动 MySQL，用具备建库和建表权限的账号打开客户端：
-
-```powershell
+~~~powershell
 mysql -u root -p --default-character-set=utf8mb4
-```
+~~~
 
-在 MySQL 客户端中执行：
+在 MySQL 提示符依次运行：
 
-```sql
+~~~sql
 SOURCE sql/init.sql;
 SOURCE sql/demo-data.sql;
-```
+~~~
 
-`init.sql` 只建立 `smart_exam` 表结构；`demo-data.sql` 创建可重复的演示账号、课程、题库、题目和一场已发布的入门考试。后者可以再次执行而不重置已生成的答卷、成绩和发布时冻结的应考名单。不要在已有业务数据库中运行演示脚本。
+[init.sql](sql/init.sql) 创建 smart_exam 库与当前 19 张表，只用于**全新环境**。[demo-data.sql](sql/demo-data.sql) 加入稳定账号、课程、题库、题目和已发布考试；可在演示库重复运行，不会持续创建重复数据，也不会重置已有答卷和考试状态。已有业务库不要运行演示数据脚本。历史库升级注意事项见[数据库说明](sql/README_数据库共享说明.md)。
 
-| 演示角色 | 用户名 | 密码 |
-|---|---|---|
-| ADMIN | `admin_demo` | `password` |
-| TEACHER | `teacher_demo` | `password` |
-| STUDENT | `student_demo_1`（另有 `student_demo_2`） | `password` |
+### 3. 配置本地环境
 
-这些公开凭据仅供本地演示。演示考试在全新初始化后开放一年，默认没有答卷和成绩；答题、阅卷与发布成绩由演示操作产生。
+首次使用时复制模板；已有 config/local.env 时不要覆盖：
 
-### 2. 填写本地配置
-
-首次配置时复制示例文件；已有本地配置时不要覆盖：
-
-```powershell
+~~~powershell
 Copy-Item config/local.env.example config/local.env
-```
+~~~
 
-在编辑器中填写配置，勿提交真实值。JWT 签名密钥应使用至少 32 字符的高熵随机值。需要初始管理员时填写全部三个 `ADMIN_*` 字段；仅在数据库尚无 ADMIN 且配置完整时创建，首次登录要求改密。
+编辑被 Git 忽略的 config/local.env，至少填写本机的 DB_PASSWORD 和自行生成的高熵 JWT_SECRET（至少 32 字符）。模板已有 DB_HOST、DB_PORT、DB_NAME、DB_USERNAME 的本机默认值；需要使用其他连接参数时修改对应字段。开发脚本读取该文件，已有进程环境变量优先。不要提交真实密码、密钥或访问令牌。
 
-### 3. 启动、检查与停止
+AI_BASE_URL、AI_API_KEY、AI_MODEL 三项均填写后启用 AI 辅助能力；不填写时仍可使用规则组卷与人工阅卷。ADMIN_USERNAME、ADMIN_INITIAL_PASSWORD、ADMIN_NAME 只供空库首次创建管理员；使用上述 Demo 数据时无需填写。其他可选变量见[后端配置](backend/src/main/resources/application.yml)。
 
-```powershell
+### 4. 启动、检查和停止
+
+~~~powershell
 .\scripts\dev.ps1 -Action start
-```
-
-启动脚本读取 `config/local.env`，已有进程环境变量优先；检查 MySQL、准备 Maven、打包后端并启动前端。前端依赖缺失时执行锁文件安装，等待数据库健康与前端就绪后打开 [登录页](http://localhost:5173/login)。
-
-```powershell
 .\scripts\dev.ps1 -Action check
 .\scripts\dev.ps1 -Action stop
-```
+~~~
 
-`check` 查看状态，`stop` 停止本项目服务，按需单独执行。也可使用根目录 `start-dev.bat`、`check-env.bat`、`stop-dev.bat`。端口约定为后端 8080、前端 5173；启动脚本不会通过换端口绕过占用。
+三条命令按需分别执行，不要连续运行。start 会检查环境和端口、准备 Maven、打包后端、在前端依赖缺失时按锁文件安装依赖，并等待服务就绪；不希望自动打开浏览器时加 -NoBrowser。检查与停止只针对本项目脚本管理的服务。
 
-## 环境变量
-
-[config/local.env.example](config/local.env.example) 当前包含以下字段，表中仅列用途，不提供凭据值：
-
-| 变量 | 用途 |
+| 地址 | 用途 |
 |---|---|
-| `DB_PASSWORD` | 本地数据库连接密码 |
-| `JWT_SECRET` | JWT 签名密钥，必填，无默认密钥 |
-| `ADMIN_USERNAME` | 首个管理员登录名 |
-| `ADMIN_INITIAL_PASSWORD` | 首个管理员初始密码 |
-| `ADMIN_NAME` | 首个管理员显示名称 |
+| http://localhost:5173/login | 前端登录页 |
+| http://localhost:8080 | 后端服务，API 路径以 /api 开头 |
+| http://localhost:8080/actuator/health | 后端与数据库健康状态 |
 
-以下可选变量由 [application.yml](backend/src/main/resources/application.yml) 支持；其中数据库连接字段与 AI 三项已列入上述 example，其余可按需写入本地 `config/local.env` 或通过进程环境变量提供：
+脚本固定检查后端 8080、前端 5173 和本机 MySQL 3306；端口被其他进程占用时先处理占用。更详细的排查见[本地运行说明](docs/04_部署与运行说明.md)。
 
-| 变量 | 用途 |
-|---|---|
-| `DB_HOST` / `DB_PORT` / `DB_NAME` / `DB_USERNAME` | 数据库主机、端口、库名和账号 |
-| `AI_BASE_URL` / `AI_API_KEY` / `AI_MODEL` | 兼容模型服务地址、访问凭据和模型；三者配置完整时启用 AI |
-| `AI_TIMEOUT_SECONDS` | AI 请求超时 |
-| `JWT_EXPIRATION` | 登录令牌有效期 |
-| `SERVER_PORT` / `CORS_ALLOWED_ORIGINS` | 后端端口和跨域来源；一键脚本按固定端口约定运行 |
+## Demo 账号
 
-AI 未配置时仍可使用人工阅卷。根目录 `.env.example` 属于 Docker Compose 配置，与 Windows 开发用 `config/local.env` 分开管理。
+| 角色 | 用户名 | 密码 |
+|---|---|---|
+| ADMIN | admin_demo | password |
+| TEACHER | teacher_demo | password |
+| STUDENT | student_demo_1 | password |
+| 备用学生 | student_demo_2 | password |
 
-## 数据库初始化与 Migration
+这些公开凭据仅用于本地开发和受控演示，请勿用于生产环境。全新演示库还包含一门课程、一个题库、七道可用题和一场已发布且尚无答卷的考试；考试开放期从首次导入起一年。
 
-| 文件 | 用途 |
-|---|---|
-| `sql/init.sql` | 全新数据库结构初始化入口，19 张表；first-run bootstrap |
-| `sql/demo-data.sql` | 独立、可重复执行的演示账号与业务起点 |
-| `sql/archive/smart_exam_team_v1.sql` | 历史共享副本，保留当时的基础 seed；新库不再执行 |
-| `sql/upgrade_t08_2a_exam_candidates.sql` | 增加应考名单快照，并兼容回填历史考试名单 |
-| `sql/upgrade_t08_2b_exam_result_release.sql` | 增加整场成绩发布时间并兼容旧发布记录 |
-| `sql/upgrade_t08_2c_question_bank_scope.sql` | 增加 TEACHER / PLATFORM 题库作用域与约束 |
+## 快速演示
 
-升级脚本仅供历史已有数据库升级参考：先备份并核对当前 schema，再选择适用版本；不要对新库执行，也不能按文件名无条件全部执行。演示新库依次执行一次 `init.sql` 和 `demo-data.sql`；重复演示数据初始化仅重跑后者。详见[数据库说明](sql/README_数据库共享说明.md)。
+1. 用管理员账号查看教师、学生、课程和考试。
+2. 用教师账号查看课程与题库；可另建草稿考试，选择手动、规则随机或 AI 辅助组卷，然后发布。
+3. 用学生账号进入已发布的演示考试，保存答案并交卷。
+4. 返回教师账号查看答卷和客观题得分，对简答题获取可选 AI 建议并人工复核，完成后发布成绩。
+5. 用学生账号查看成绩和答题回顾；教师可查看考试统计并导出成绩。
 
-## 项目目录
+演示考试的答卷和成绩会随操作改变。需要全新起点时，在**新的空库**重新执行两步初始化，不要用 init.sql 覆盖现有业务库。
 
-```text
-backend/               Spring Boot API、业务服务与测试
-frontend/              Vue 页面、路由、样式与专项回归脚本
-sql/                   初始化、演示 seed 与增量升级脚本
-scripts/               Windows 启停及 Maven 准备
-config/                本地配置示例
-gui-test-screenshots/   早期验收截图，待发布前最终筛选
-docs/                  当前运行说明、数据来源说明及 archive/ 历史资料
-```
+## 开发命令
 
-## 开发与测试命令
+脚本启动是推荐路径。单独开发时，先在当前终端设置 DB_*、JWT_SECRET 等环境变量；手工启动不会自动读取 config/local.env：
 
-后端测试：先在当前 PowerShell 进程配置与测试数据库对应的 `DB_*`、`JWT_SECRET` 环境变量。直接调用 Maven 不会自动读取 `config/local.env`；可在同一终端通过开发脚本加载配置后运行。
-
-```powershell
+~~~powershell
 $maven = .\scripts\ensure-maven.ps1
-& $maven -f backend/pom.xml test
-```
+& $maven -f backend/pom.xml spring-boot:run
+~~~
 
-前端安装与构建：
+另开一个终端：
 
-```powershell
+~~~powershell
 Push-Location frontend
 pnpm install --frozen-lockfile
-$env:CI = 'true'
+pnpm dev
+~~~
+
+前端构建命令：
+
+~~~powershell
+Push-Location frontend
 pnpm build
 Pop-Location
-```
+~~~
 
-前端开发可在 `frontend/` 下运行 `pnpm dev`；统一启停优先使用前述 `dev.ps1`。测试应使用专用数据环境，不能以测试命令替代生产数据备份。
-
-## Docker 状态
-
-仓库包含前后端 Dockerfile、`docker-compose.yml` 与 Nginx 配置，提供 MySQL、后端 API 和前端静态服务的部署结构。
-
-**Docker / Compose 尚待 P12-D 真实容器验收，不列为已验证发布能力。** 镜像构建、容器启动、Nginx 路由、登录与数据卷持久化仍需实测；当前 Compose 已提供可选 AI 与管理员初始化变量。运行边界见[部署说明](docs/04_部署与运行说明.md)。
-
-## 项目状态与后续规划
-
-V1.0 Release Candidate 已通过功能验收，正在准备首次 GitHub 发布；尚未创建版本 Tag，许可证待决定。
-
-后续事项包括 AI 与教师评分差异统计、试题/考试数据分析、运行监控、Docker 正式部署验证和 CI/CD；早期 Phase 计划和验收记录已移入 `docs/archive/phase-history/`。
-
-## 项目背景
-
-个人工程实践项目，重点用于验证真实考试业务建模、AI 应用集成、权限安全、测试与工程化能力。
+历史测试与迁移资料保留在 docs/archive/ 和 sql/upgrade_*.sql；新库不需要执行升级脚本。
