@@ -367,38 +367,3 @@ CREATE TABLE IF NOT EXISTS question_bank_item_tags (
     CONSTRAINT fk_qbit_item FOREIGN KEY (item_id) REFERENCES question_bank_items (id) ON DELETE RESTRICT ON UPDATE RESTRICT,
     CONSTRAINT fk_qbit_tag FOREIGN KEY (tag_id) REFERENCES question_bank_tags (id) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB;
-
--- 基础测试数据。password_hash 为 BCrypt 哈希，不存储明文密码。
-INSERT INTO users (username, password_hash, name, role, status)
-VALUES
-    ('teacher_demo', '$2a$10$m3Q7Hg7AWomEjgF1hgjuy.CWv760cerwLw0RkuuFG5JJtxbJCl8Da', '测试教师', 'TEACHER', 1),
-    ('student_demo_1', '$2a$10$m3Q7Hg7AWomEjgF1hgjuy.CWv760cerwLw0RkuuFG5JJtxbJCl8Da', '测试学生一', 'STUDENT', 1),
-    ('student_demo_2', '$2a$10$m3Q7Hg7AWomEjgF1hgjuy.CWv760cerwLw0RkuuFG5JJtxbJCl8Da', '测试学生二', 'STUDENT', 1)
-ON DUPLICATE KEY UPDATE
-    password_hash = VALUES(password_hash),
-    name = VALUES(name),
-    role = VALUES(role),
-    status = VALUES(status);
-
-INSERT INTO courses (course_name, teacher_id, description)
-SELECT 'V1.0 测试课程', teacher.id, '用于阶段开发与联调的基础测试课程'
-FROM users AS teacher
-WHERE teacher.username = 'teacher_demo'
-  AND NOT EXISTS (
-      SELECT 1
-      FROM courses AS existing_course
-      WHERE existing_course.course_name = 'V1.0 测试课程'
-        AND existing_course.teacher_id = teacher.id
-  );
-
-INSERT INTO course_students (course_id, student_id, status)
-SELECT course.id, student.id, 1
-FROM courses AS course
-JOIN users AS teacher
-    ON teacher.id = course.teacher_id
-   AND teacher.username = 'teacher_demo'
-JOIN users AS student
-    ON student.username IN ('student_demo_1', 'student_demo_2')
-WHERE course.course_name = 'V1.0 测试课程'
-ON DUPLICATE KEY UPDATE
-    status = VALUES(status);

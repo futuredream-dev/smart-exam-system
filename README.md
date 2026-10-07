@@ -201,9 +201,18 @@ mysql -u root -p --default-character-set=utf8mb4
 
 ```sql
 SOURCE sql/init.sql;
+SOURCE sql/demo-data.sql;
 ```
 
-首次初始化会创建 `smart_exam`、当前表结构及必要演示 seed；不依赖作者电脑的数据。日常启动无需重复初始化，截图中的验收考试与 AI 测试样本不会自动导入。
+`init.sql` 只建立 `smart_exam` 表结构；`demo-data.sql` 创建可重复的演示账号、课程、题库、题目和一场已发布的入门考试。后者可以再次执行而不重置已生成的答卷、成绩和发布时冻结的应考名单。不要在已有业务数据库中运行演示脚本。
+
+| 演示角色 | 用户名 | 密码 |
+|---|---|---|
+| ADMIN | `admin_demo` | `password` |
+| TEACHER | `teacher_demo` | `password` |
+| STUDENT | `student_demo_1`（另有 `student_demo_2`） | `password` |
+
+这些公开凭据仅供本地演示。演示考试在全新初始化后开放一年，默认没有答卷和成绩；答题、阅卷与发布成绩由演示操作产生。
 
 ### 2. 填写本地配置
 
@@ -258,13 +267,14 @@ AI 未配置时仍可使用人工阅卷。根目录 `.env.example` 属于 Docker
 
 | 文件 | 用途 |
 |---|---|
-| `sql/init.sql` | 全新数据库唯一完整初始化入口，19 张表及基础 seed；first-run bootstrap |
-| `sql/archive/smart_exam_team_v1.sql` | 与 `init.sql` 内容相同的历史共享副本；新库不再执行 |
+| `sql/init.sql` | 全新数据库结构初始化入口，19 张表；first-run bootstrap |
+| `sql/demo-data.sql` | 独立、可重复执行的演示账号与业务起点 |
+| `sql/archive/smart_exam_team_v1.sql` | 历史共享副本，保留当时的基础 seed；新库不再执行 |
 | `sql/upgrade_t08_2a_exam_candidates.sql` | 增加应考名单快照，并兼容回填历史考试名单 |
 | `sql/upgrade_t08_2b_exam_result_release.sql` | 增加整场成绩发布时间并兼容旧发布记录 |
 | `sql/upgrade_t08_2c_question_bank_scope.sql` | 增加 TEACHER / PLATFORM 题库作用域与约束 |
 
-升级脚本仅供历史已有数据库升级参考：先备份并核对当前 schema，再选择适用版本；不要对新库执行，也不能按文件名无条件全部执行。新库只执行一次 `init.sql`；不要用初始化 seed 覆盖已有业务账号。详见[数据库说明](sql/README_数据库共享说明.md)。
+升级脚本仅供历史已有数据库升级参考：先备份并核对当前 schema，再选择适用版本；不要对新库执行，也不能按文件名无条件全部执行。演示新库依次执行一次 `init.sql` 和 `demo-data.sql`；重复演示数据初始化仅重跑后者。详见[数据库说明](sql/README_数据库共享说明.md)。
 
 ## 项目目录
 
