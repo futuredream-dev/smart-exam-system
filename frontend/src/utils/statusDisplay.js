@@ -63,7 +63,7 @@ export const aiStatus = {
 }
 
 export const releaseStatus = {
-  PENDING_RELEASE: { label: '待发布', tone: 'warning' },
+  PENDING_RELEASE: { label: '待发布成绩', tone: 'warning' },
   RELEASED: { label: '成绩已发布', tone: 'success' },
   UNRELEASED: { label: '成绩未发布', tone: 'neutral' },
   INCONSISTENT: { label: '数据异常', tone: 'danger' },

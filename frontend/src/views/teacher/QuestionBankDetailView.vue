@@ -12,6 +12,7 @@ import QuestionBankExcelImport from '../../components/QuestionBankExcelImport.vu
 const route = useRoute()
 const bank = ref(null), rows = ref([]), metadata = ref({ chapters: [], knowledgePoints: [], tags: [] }), allMetadata = ref({ chapters: [], knowledgePoints: [], tags: [] })
 const loading = ref(true), error = ref(''), notice = ref(''), opened = ref(false), selected = ref(null)
+const listLoading = ref(false)
 const managerOpen = ref(false), batchOpen = ref(false), importOpen = ref(false), selectedIds = ref([])
 const platformBank = computed(() => bank.value?.scope === 'PLATFORM')
 const canEdit = computed(() => bank.value?.scope === 'TEACHER' && bank.value?.status === 'ACTIVE')
@@ -24,14 +25,15 @@ const allVisibleSelected = computed(() => selectableRows.value.length > 0 && sel
 let listRequestSequence = 0
 
 async function loadRows() {
-  error.value = ''
+  error.value = ''; listLoading.value = true
   const sequence = ++listRequestSequence
   try {
     const result = await teacherApi.bankItems(route.params.bankId, bankFilterParams(filters))
     if (sequence !== listRequestSequence) return
     rows.value = result.data
     selectedIds.value = []
-  } catch (e) { if (sequence === listRequestSequence) error.value = e.message || '题目加载失败' }
+  } catch (e) { if (sequence === listRequestSequence) error.value = e.message || '题目加载失败，请重新搜索' }
+  finally { if (sequence === listRequestSequence) listLoading.value = false }
 }
 async function refreshMetadata() {
   const [active, all] = await Promise.all([teacherApi.bankMetadata(route.params.bankId), teacherApi.bankMetadata(route.params.bankId, true)])
@@ -87,7 +89,7 @@ onMounted(load)
   <div class="bank-detail-page">
     <p v-if="error" class="error-message" role="alert">{{ error }}</p>
     <p v-if="notice" class="success-message" role="status">{{ notice }}</p>
-    <p v-if="loading" class="empty-state">正在加载题库…</p>
+    <p v-if="loading" class="loading-state" role="status">正在加载题库…</p>
     <template v-if="bank">
       <div class="bank-breadcrumb"><RouterLink to="/teacher/question-banks">题库管理</RouterLink><span>/</span><span>题库详情</span></div>
       <header class="page-heading"><div><h1>{{ bank.name }}</h1><div class="bank-context"><span>{{ platformBank ? '平台公共题库' : `所属课程：${bank.courseName || '未绑定课程'}` }}</span><span :class="['badge', bank.status]">{{ bank.status === 'ACTIVE' ? '可用' : '已归档' }}</span></div><p class="muted preserve">{{ bank.description || '暂无说明' }}</p></div>
@@ -110,7 +112,8 @@ onMounted(load)
         </div>
       </section>
       <div v-if="canEdit && selectableRows.length" class="bank-selection-bar"><label><input type="checkbox" :checked="allVisibleSelected" @change="toggleVisible" />选择当前列表题目（{{ selectableRows.length }}）</label><span>已选择 {{ selectedIds.length }} 道题</span><button v-if="selectedIds.length" class="ghost" @click="selectedIds = []">清空选择</button><button v-if="selectedIds.length" class="primary" @click="batchOpen = true">批量设置</button></div>
-      <div v-if="!rows.length" class="empty-state">没有符合条件的题目。</div>
+      <p v-if="listLoading" class="loading-state" role="status">正在加载题目…</p>
+      <div v-else-if="!error && !rows.length" class="empty-state">{{ Object.values(filters).some(value => Array.isArray(value) ? value.length : String(value).trim()) ? '没有符合条件的题目，请调整筛选条件。' : '题库暂无题目。' }}</div>
       <div v-else class="bank-question-list"><article v-for="item in rows" :key="item.id" class="bank-question">
         <header class="section-head"><div class="actions"><label v-if="canEdit && item.status !== 'ARCHIVED'" class="bank-item-select"><input v-model="selectedIds" type="checkbox" :value="item.id" :aria-label="`选择题目 ${item.title}`" /></label><span class="badge" :class="item.questionType">{{ typeNames[item.questionType] }}</span><span class="badge" :class="item.status">{{ statusNames[item.status] }}</span><strong>{{ item.defaultScore }} 分</strong></div>
           <div v-if="canEdit" class="actions"><button v-if="item.status !== 'ARCHIVED'" class="ghost" @click="edit(item)">编辑</button><button v-if="item.status === 'DRAFT'" class="ghost" @click="ready(item)">标记为可用</button><button v-if="item.status !== 'ARCHIVED'" class="danger" @click="archive(item)">归档</button></div></header>

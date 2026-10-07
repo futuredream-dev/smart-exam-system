@@ -51,9 +51,9 @@ onMounted(async () => {
   <div class="ai-evaluation-page">
     <header class="page-heading"><div><h1>AI评分分析</h1><p class="muted">比较 AI 建议分与教师最终分，仅包含已完成人工复核的简答题</p></div></header>
     <section class="surface evaluation-filter"><label>考试选择 <select v-model="examId"><option value="">请选择考试</option><option v-for="exam in exams" :key="exam.id" :value="String(exam.id)">{{ exam.title || exam.examName }}</option></select></label></section>
-    <p v-if="examsError" class="error-message">{{ examsError }}</p>
-    <p v-if="error" class="error-message">{{ error }} <button class="ghost" @click="load">重试</button></p>
-    <p v-if="loading" class="empty-state" role="status">正在加载分析数据…</p>
+    <p v-if="examsError" class="error-message" role="alert">{{ examsError }}</p>
+    <p v-if="error" class="error-message" role="alert">{{ error }} <button class="ghost" @click="load">重试</button></p>
+    <p v-if="loading" class="loading-state" role="status">正在加载分析数据…</p>
     <template v-else-if="summary">
       <p v-if="!summary.sampleCount" class="empty-state">暂无可分析样本</p>
       <section class="evaluation-metrics" aria-label="总体指标">

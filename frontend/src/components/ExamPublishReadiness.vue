@@ -29,7 +29,7 @@ onMounted(load)
 
 <template>
   <TeacherModal :title="`发布检查 · ${title || '考试'}`" size="confirm" :busy="busy" @close="emit('close')">
-    <p v-if="loading" class="empty-state">正在检查发布条件…</p>
+    <p v-if="loading" class="loading-state" role="status">正在检查发布条件…</p>
     <template v-else-if="readiness">
       <div class="exam-readiness-facts">
         <span>基本信息检查：{{ readiness.errors?.some(item => item.includes('所属课程') || item.includes('草稿')) ? '请查看下方问题' : '已通过' }}</span>

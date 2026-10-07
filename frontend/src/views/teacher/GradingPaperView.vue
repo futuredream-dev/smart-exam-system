@@ -54,9 +54,9 @@ async function saveAndNext(){
       </dl>
     </header>
 
-    <p v-if="error" class="error-message">{{error}}</p>
-    <p v-if="notice" class="success-message">{{notice}}</p>
-    <p v-if="!paper&&!error" class="empty-state">正在加载答卷…</p>
+    <p v-if="error" class="error-message" role="alert">{{error}}</p>
+    <p v-if="notice" class="success-message" role="status">{{notice}}</p>
+    <p v-if="!paper&&!error" class="loading-state" role="status">正在加载答卷…</p>
 
     <div v-if="paper" class="grading-workbench">
       <main class="grading-paper-pane" aria-label="答卷内容">
@@ -107,7 +107,7 @@ async function saveAndNext(){
             </div>
             <p v-if="!a.aiSuggestion" class="muted">尚未生成 AI 建议。</p>
             <template v-else>
-              <p v-if="a.aiSuggestion.errorMessage" class="error-message">{{a.aiSuggestion.errorMessage}}</p>
+              <p v-if="a.aiSuggestion.errorMessage" class="error-message" role="alert">{{a.aiSuggestion.errorMessage}}</p>
               <dl v-else class="grading-ai-details">
                 <div><dt>AI建议分</dt><dd>{{a.aiSuggestion.aiScore}}</dd></div>
                 <div><dt>建议理由</dt><dd>{{a.aiSuggestion.aiReason}}</dd></div>

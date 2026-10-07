@@ -73,15 +73,16 @@ a {
 .login-form label {
   display: grid;
   gap: 8px;
-  color: #344054;
+  color: var(--text-primary);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .login-form input {
   width: 100%;
-  padding: 11px 12px;
-  border: 1px solid #ccd3df;
+  min-height: var(--control-height-lg);
+  padding: 7px 11px;
+  border: 1px solid var(--border);
   border-radius: var(--radius-control);
   outline: none;
 }
@@ -92,12 +93,25 @@ a {
 }
 
 .login-form button {
-  padding: 12px;
+  min-height: var(--control-height-lg);
+  padding: 7px 14px;
   border: 0;
   border-radius: var(--radius-control);
-  color: #fff;
+  color: var(--text-inverse);
   background: var(--primary);
   cursor: pointer;
+  font-weight: 500;
+}
+
+.login-form button:hover { background: var(--primary-hover); }
+.login-form button:active { background: var(--primary-active); }
+.login-form button:disabled { background: #d9e2f5; color: #4d607e; cursor: not-allowed; }
+
+.login-card .notice {
+  border: 1px solid #edc8ce;
+  border-radius: var(--radius-control);
+  color: var(--danger);
+  background: var(--danger-soft);
 }
 
 .notice {
@@ -110,9 +124,10 @@ a {
 
 .success-notice {
   padding: 10px 12px;
-  border-radius: 8px;
-  color: #176b45;
-  background: #eaf8f1;
+  border: 1px solid #c5e7d5;
+  border-radius: var(--radius-control);
+  color: var(--success);
+  background: var(--success-soft);
   font-size: 13px;
 }
 

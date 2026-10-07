@@ -129,7 +129,9 @@ tr:last-child td { border-bottom: 0; }
 .import-panel { display: grid; gap: 16px; }
 .mapping-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .mapping-grid label { display: grid; gap: 6px; color: #45556e; font-size: 13px; }
-.password-form { width: min(520px, 100%); margin: 0 auto; display: grid; gap: 20px; }
+.password-form { width: min(640px, 100%); margin: 0; padding: var(--space-6); display: grid; gap: 20px; }
+.password-form .editor-form { width: min(440px, 100%); gap: var(--space-4); }
+.password-form .primary { justify-self: start; }
 .password-form input { width: 100%; box-sizing: border-box; border: 1px solid var(--border); padding: 10px 12px; border-radius: var(--radius-control); font: inherit; }
 .temporary-password { padding: 16px; border-radius: var(--radius-card); background: var(--surface-muted); font: 600 22px/1.4 monospace; letter-spacing: 1px; text-align: center; }
 .admin-workspace { display: grid; gap: 24px; }

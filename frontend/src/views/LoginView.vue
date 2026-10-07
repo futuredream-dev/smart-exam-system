@@ -31,12 +31,11 @@ async function handleSubmit() {
 <template>
   <main class="login-page">
     <section class="login-card">
-      <p class="eyebrow">SMART EXAM</p>
       <h1>智能考试管理系统</h1>
       <p class="muted">管理员、教师与学生统一登录入口</p>
-      <p v-if="registrationNotice" class="success-notice">{{ registrationNotice }}</p>
+      <p v-if="registrationNotice" class="success-notice" role="status">{{ registrationNotice }}</p>
 
-      <form class="login-form" @submit.prevent="handleSubmit">
+      <form class="login-form" :aria-busy="loading" @submit.prevent="handleSubmit">
         <label>
           用户名
           <input v-model.trim="username" autocomplete="username" placeholder="请输入用户名" />
@@ -53,7 +52,7 @@ async function handleSubmit() {
         <button type="submit" :disabled="loading">{{ loading ? '登录中…' : '登录' }}</button>
       </form>
 
-      <p v-if="notice" class="notice">{{ notice }}</p>
+      <p v-if="notice" class="notice" role="alert">{{ notice }}</p>
       <p class="auth-switch">还没有学生账号？<RouterLink to="/register/student">学生注册</RouterLink></p>
     </section>
   </main>

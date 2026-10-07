@@ -92,7 +92,7 @@ onMounted(() => { consumeNotice(); load() })
   <div class="exam-center-detail">
     <p v-if="error" class="error-message" role="alert">{{ error }}</p>
     <p v-if="notice" class="success-message" role="status">{{ notice }}</p>
-    <p v-if="loading" class="empty-state">正在加载考试…</p>
+    <p v-if="loading" class="loading-state" role="status">正在加载考试…</p>
     <template v-if="!loading && exam && workspace">
       <div class="exam-detail-breadcrumb"><RouterLink to="/teacher/exams">考试管理</RouterLink><span>/</span><span>考试详情</span></div>
       <header class="exam-center-detail-head">

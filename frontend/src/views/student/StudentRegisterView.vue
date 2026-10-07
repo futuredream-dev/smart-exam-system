@@ -39,11 +39,10 @@ async function handleSubmit() {
 <template>
   <main class="login-page">
     <section class="login-card">
-      <p class="eyebrow">STUDENT REGISTER</p>
       <h1>学生注册</h1>
       <p class="muted">创建学生账号后，请返回统一登录页登录</p>
 
-      <form class="login-form" @submit.prevent="handleSubmit">
+      <form class="login-form" :aria-busy="loading" @submit.prevent="handleSubmit">
         <label>
           学号/登录账号
           <input v-model="username" autocomplete="username" placeholder="请输入学号" />
@@ -63,7 +62,7 @@ async function handleSubmit() {
         <button type="submit" :disabled="loading">{{ loading ? '注册中…' : '注册' }}</button>
       </form>
 
-      <p v-if="notice" class="notice">{{ notice }}</p>
+      <p v-if="notice" class="notice" role="alert">{{ notice }}</p>
       <p class="auth-switch">已有账号？<RouterLink to="/login">返回登录</RouterLink></p>
     </section>
   </main>

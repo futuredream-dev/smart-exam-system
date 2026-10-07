@@ -23,7 +23,7 @@ let requestId = 0
 const pageCount = computed(() => Math.max(1, Math.ceil(total.value / 20)))
 const summaryItems = [
   ['全部', 'total', '', ''], ['待教师复核', 'pendingReview', 'PENDING_REVIEW', ''],
-  ['AI异常', 'aiFailed', '', 'FAILED'], ['待发布', 'pendingRelease', 'PENDING_RELEASE', ''],
+  ['AI异常', 'aiFailed', '', 'FAILED'], ['待发布成绩', 'pendingRelease', 'PENDING_RELEASE', ''],
   ['成绩已发布', 'released', 'RELEASED', ''],
 ]
 function queryFor(filters) {
@@ -83,8 +83,8 @@ onMounted(async () => {
     <header class="page-heading"><div><h1>阅卷任务</h1><p class="muted">统一查看并处理当前教师名下考试的阅卷进度</p></div></header>
     <section class="task-summary" aria-label="任务概览">
       <div class="task-section-title"><h2>任务概览</h2><small>当前筛选范围，不受分页影响</small></div>
-      <p v-if="summaryLoading && !summary" class="muted">正在加载任务概览…</p>
-      <p v-else-if="summaryError" class="error-message">{{ summaryError }} <button class="ghost" @click="load">重试</button></p>
+      <p v-if="summaryLoading && !summary" class="muted" role="status">正在加载任务概览…</p>
+      <p v-else-if="summaryError" class="error-message" role="alert">{{ summaryError }} <button class="ghost" @click="load">重试</button></p>
       <template v-else-if="summary">
         <div class="task-summary-grid"><button v-for="[label, key, taskStatus, aiStatus] in summaryItems" :key="key" type="button" :class="['task-summary-item', { selected: selectedSummary(taskStatus, aiStatus) }]" :aria-pressed="selectedSummary(taskStatus, aiStatus)" @click="selectSummary(taskStatus, aiStatus)"><span>{{ label }}</span><strong>{{ summary[key] }}</strong></button></div>
         <p class="task-summary-extra">AI未配置 {{ summary.aiNotConfigured }} · AI未生成 {{ summary.aiNoResult }}</p>
@@ -100,9 +100,9 @@ onMounted(async () => {
     </form>
     <section class="task-results">
       <div class="task-section-title"><h2>任务列表</h2><small v-if="!loading && !error">共 {{ total }} 条</small></div>
-      <p v-if="error" class="error-message">{{ error }} <button class="ghost" @click="load">重试</button></p>
-      <p v-else-if="loading" class="empty-state" role="status">正在加载阅卷任务…</p>
-      <p v-else-if="!total" class="empty-state">暂无符合条件的阅卷任务</p>
+      <p v-if="error" class="error-message" role="alert">{{ error }} <button class="ghost" @click="load">重试</button></p>
+      <p v-else-if="loading" class="loading-state" role="status">正在加载阅卷任务…</p>
+      <p v-else-if="!total" class="empty-state">{{ applied.examId || applied.taskStatus || applied.aiStatus || applied.keyword ? '没有符合当前条件的阅卷任务，请调整筛选条件。' : '暂无阅卷任务。学生交卷后可在这里查看。' }}</p>
       <template v-else>
         <div class="table-scroll"><table><thead><tr><th>学生</th><th>考试</th><th>提交状态</th><th>阅卷状态</th><th>AI状态</th><th>得分</th><th>成绩发布</th><th>提交时间</th><th class="table-action">操作</th></tr></thead><tbody><tr v-for="row in rows" :key="row.submissionId">
           <td><strong>{{ row.studentName }}</strong><small>{{ row.studentNo }}</small></td>

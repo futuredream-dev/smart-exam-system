@@ -35,7 +35,7 @@ onMounted(async () => {
     </header>
 
     <p v-if="error" class="error-message" role="alert">{{ error }}</p>
-    <p v-if="loading" class="loading-state">正在加载工作台…</p>
+    <p v-if="loading" class="loading-state" role="status">正在加载工作台…</p>
     <template v-else-if="!error">
       <nav class="teacher-home-summary" aria-label="工作台任务概览">
         <a href="#pending-review"><span>待阅卷</span><strong>{{ pendingPaperCount }}</strong><small>份答卷</small></a>
