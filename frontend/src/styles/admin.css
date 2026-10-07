@@ -1,75 +1,111 @@
-.role-admin .workspace-content {
-  max-width: 1180px;
-}
+/* Admin presentation is scoped to the platform portal. */
+.role-admin .workspace-content { max-width: 1440px; }
+.role-admin .admin-workspace { gap: var(--space-6); }
+.role-admin .page-heading { align-items: flex-start; }
+.role-admin .page-heading p { margin-bottom: 0; }
+.role-admin .admin-workspace > .error-message,
+.role-admin .admin-workspace > .success-message { margin: 0; }
 
-.role-admin .admin-workspace {
-  gap: 20px;
-}
+.role-admin .admin-overview { padding: 0; overflow: hidden; }
+.role-admin .admin-platform-scale { padding: var(--space-4) var(--space-6); border-bottom: 1px solid var(--border); }
+.role-admin .admin-scale-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: var(--space-3) 0 0; }
+.role-admin .admin-scale-row > div { display: flex; align-items: baseline; gap: var(--space-4); padding: 0 var(--space-6); border-left: 1px solid var(--border-subtle); }
+.role-admin .admin-scale-row > div:first-child { padding-left: 0; border-left: 0; }
+.role-admin .admin-scale-row dt { color: var(--text-secondary); }
+.role-admin .admin-scale-row dt a { color: inherit; }
+.role-admin .admin-scale-row dt a:hover { color: var(--primary); text-decoration: underline; }
+.role-admin .admin-scale-row dd { display: flex; align-items: baseline; gap: var(--space-2); margin: 0; }
+.role-admin .admin-scale-row strong { font-size: 24px; font-weight: 600; line-height: 1.3; font-variant-numeric: tabular-nums; }
+.role-admin .admin-scale-row dd span { color: var(--text-secondary); font-size: 12px; }
+.role-admin .admin-overview-states { display: grid; grid-template-columns: 1fr 1fr; }
+.role-admin .admin-overview-states > section { min-width: 0; padding: var(--space-4) var(--space-6); }
+.role-admin .admin-overview-states > section + section { border-left: 1px solid var(--border); }
+.role-admin .admin-summary-head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-3); }
+.role-admin .admin-summary-head p,
+.role-admin .admin-summary-head a { margin: 0; font-size: 12px; }
+.role-admin .admin-summary-head p { color: var(--text-secondary); }
+.role-admin .admin-summary-table th { height: auto; padding: 6px 12px; }
+.role-admin .admin-summary-table td,
+.role-admin .admin-summary-table th { padding: 6px 12px; }
+.role-admin .admin-summary-table td:last-child { font-variant-numeric: tabular-nums; font-weight: 600; }
+.role-admin .admin-summary-links { display: flex; gap: var(--space-4); margin-top: var(--space-4); font-size: 13px; }
 
-.role-admin .admin-create-panel {
-  gap: 14px;
-  padding: 18px 20px;
-}
+.role-admin .admin-list-section { display: grid; gap: 0; padding: 0; min-width: 0; overflow: hidden; }
+.role-admin .admin-filter-row { display: flex; align-items: end; flex-wrap: wrap; gap: var(--space-3); padding: var(--space-4) var(--space-6); margin: 0; border-bottom: 1px solid var(--border); }
+.role-admin .admin-filter-row label { display: grid; gap: 6px; flex: 0 1 152px; min-width: 128px; font-size: 12px; color: var(--text-secondary); }
+.role-admin .admin-filter-row .admin-filter-main { flex: 1 1 260px; min-width: 200px; max-width: 420px; }
+.role-admin .admin-filter-row input,
+.role-admin .admin-filter-row select { width: 100%; min-width: 0; min-height: var(--control-height); padding: 6px 10px; background: var(--surface); color: var(--text-primary); border: 1px solid var(--border); border-radius: var(--radius-control); font-size: 14px; }
+.role-admin .admin-filter-actions { gap: var(--space-2); flex-wrap: nowrap; }
+.role-admin .admin-filter-actions button { white-space: nowrap; }
+.role-admin .admin-exam-filters label { flex-basis: 136px; }
+.role-admin .admin-exam-filters .admin-filter-main { flex-basis: 240px; max-width: none; }
+.role-admin .admin-list-head { margin: 0; padding: var(--space-4) var(--space-6); gap: var(--space-3); }
+.role-admin .admin-list-head h2 { font-size: 16px; }
+.role-admin .admin-list-head .muted { font-size: 13px; }
+.role-admin .admin-list-section .table-scroll { border-width: 1px 0; border-radius: 0; min-width: 0; }
+.role-admin .admin-list-section th { height: 40px; }
+.role-admin .admin-list-section td,
+.role-admin .admin-list-section th { padding: 9px 12px; }
+.role-admin .admin-list-section td { vertical-align: middle; }
+.role-admin .admin-list-section th:first-child,
+.role-admin .admin-list-section td:first-child { padding-left: var(--space-6); }
+.role-admin .admin-list-section th:last-child,
+.role-admin .admin-list-section td:last-child { padding-right: var(--space-6); }
+.role-admin .admin-list-section td strong { font-weight: 500; }
+.role-admin .admin-account-table { min-width: 640px; }
+.role-admin .admin-student-table { min-width: 860px; }
+.role-admin .admin-course-table { min-width: 780px; }
+.role-admin .admin-exam-table { min-width: 1040px; }
+.role-admin .admin-title-cell { max-width: 230px; }
+.role-admin .admin-title-cell > strong,
+.role-admin .admin-title-cell > span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+.role-admin .admin-title-cell small { max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px; }
+.role-admin .admin-time { white-space: nowrap; color: var(--text-secondary); font-size: 13px; }
+.role-admin .admin-number { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.role-admin .admin-secondary-state { color: var(--text-secondary); font-size: 13px; white-space: nowrap; }
+.role-admin .admin-release-state { color: var(--text-secondary); font-size: 13px; white-space: nowrap; }
+.role-admin .admin-release-state[data-tone="success"] { color: var(--success); }
+.role-admin .admin-archive-state { font-size: 12px; }
+.role-admin .admin-readonly-label { display: inline-flex; color: var(--text-secondary); font-size: 13px; border: 1px solid var(--border); border-radius: var(--radius-badge); padding: 4px 10px; background: var(--surface); white-space: nowrap; margin-top: 4px; }
+.role-admin .admin-table-actions { justify-content: flex-end; gap: var(--space-1); min-width: 160px; flex-wrap: nowrap; }
+.role-admin .admin-table-actions .ghost { min-height: 30px; padding: 4px 8px; color: var(--text-secondary); white-space: nowrap; font-size: 13px; }
+.role-admin .admin-table-actions .ghost:hover { color: var(--primary); }
+.role-admin .admin-table-actions .admin-danger-link { color: var(--danger); }
+.role-admin .admin-table-actions .admin-danger-link:hover { color: var(--danger); background: var(--danger-soft); }
+.role-admin .admin-pager { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-3); padding: var(--space-4) var(--space-6); margin: 0; color: var(--text-secondary); font-size: 13px; }
+.role-admin .admin-pager .actions { gap: var(--space-3); }
+.role-admin .admin-pager button { padding: 6px 12px; }
+.role-admin .admin-table-message { margin: 0; padding: var(--space-8) var(--space-6); text-align: center; color: var(--text-secondary); border-block: 1px solid var(--border-subtle); }
+.role-admin .admin-dialog-intro { color: var(--text-secondary); margin: 0 0 var(--space-6); font-size: 13px; }
+.role-admin .admin-field-hint { color: var(--text-secondary); font-size: 12px; margin: -10px 0 0; }
+.role-admin .admin-confirm-object { display: grid; gap: var(--space-1); padding-bottom: var(--space-3); border-bottom: 1px solid var(--border-subtle); }
+.role-admin .admin-confirm-object span { font-size: 13px; color: var(--text-secondary); overflow-wrap: anywhere; }
+.role-admin .modal-body { margin-bottom: var(--space-6); }
+.role-admin .password-form { width: min(640px, 100%); margin: 0; padding: var(--space-6); }
+.role-admin .password-form .editor-form { width: min(440px, 100%); gap: var(--space-4); }
+.role-admin .password-form .primary { justify-self: start; }
 
-.role-admin .admin-create-panel p {
-  margin: 4px 0 0;
+@media (min-width: 1600px) {
+  .role-admin .admin-title-cell { max-width: 320px; }
 }
-
-.role-admin .admin-create-panel .form-grid {
-  gap: 12px;
-}
-
-.role-admin .admin-create-panel .primary {
-  min-width: 108px;
-}
-
-.role-admin .admin-toolbar {
-  gap: 20px;
-}
-
-.role-admin .admin-search {
-  flex-wrap: nowrap;
-}
-
-.role-admin .admin-search input {
-  width: 240px;
-}
-
-.role-admin .admin-search .secondary {
-  min-width: 76px;
-}
-
-.role-admin .admin-table-actions {
-  min-width: 184px;
-  flex-wrap: nowrap;
-}
-
-.role-admin .warning {
-  color: var(--warning);
-}
-
-.role-admin .confirmation-copy .warning {
-  border-color: #e9ca87;
-  background: var(--warning-soft);
-}
-
 @media (max-width: 1200px) {
-  .role-admin .admin-create-panel .form-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .role-admin .admin-create-panel .primary {
-    justify-self: start;
-  }
-
-  .role-admin .admin-toolbar {
-    align-items: flex-start;
-    flex-direction: column;
-  }
+  .role-admin .admin-filter-row,
+  .role-admin .admin-list-head,
+  .role-admin .admin-pager { padding-inline: var(--space-4); }
+  .role-admin .admin-list-section td:first-child,
+  .role-admin .admin-list-section th:first-child { padding-left: var(--space-4); }
+  .role-admin .admin-list-section td:last-child,
+  .role-admin .admin-list-section th:last-child { padding-right: var(--space-4); }
+  .role-admin .admin-summary-head { align-items: flex-start; flex-direction: column; }
+  .role-admin .admin-scale-row > div { gap: var(--space-2); padding-inline: var(--space-4); }
 }
-.admin-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 16px; }
-.admin-metrics .surface { display: flex; flex-direction: column; gap: 8px; }
-.admin-metrics strong { font-size: 2rem; }
-.admin-filter-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 16px; }
-.admin-filter-row input, .admin-filter-row select { min-width: 150px; flex: 1; }
-.admin-pager { justify-content: flex-end; align-items: center; margin-top: 16px; }
+@media (max-width: 760px) {
+  .role-admin .admin-overview-states { grid-template-columns: 1fr; }
+  .role-admin .admin-overview-states > section + section { border-left: 0; border-top: 1px solid var(--border); }
+  .role-admin .admin-scale-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
+  .role-admin .admin-scale-row > div { padding: 0; border: 0; }
+  .role-admin .admin-filter-row label,
+  .role-admin .admin-filter-row .admin-filter-main { flex: 1 1 160px; max-width: none; }
+  .role-admin .admin-pager .actions { flex-wrap: wrap; }
+}

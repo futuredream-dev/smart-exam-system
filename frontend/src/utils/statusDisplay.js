@@ -90,6 +90,11 @@ export const examKind = {
   MAKEUP: { label: '补考', tone: 'neutral' },
 }
 
+export const archiveStatus = {
+  ARCHIVED: { label: '已归档', tone: 'neutral' },
+  UNARCHIVED: { label: '未归档', tone: 'neutral' },
+}
+
 export const examBusinessStatusNames = Object.fromEntries(
   Object.entries(examBusinessStatus).map(([key, value]) => [key, value.label]),
 )
