@@ -22,7 +22,7 @@ AI 根据参考答案和评分点生成结构化建议，教师拥有简答题�
 
 ## 项目截图
 
-以下为本系统正式验收截图，账号、答案和成绩均属于演示或测试数据。
+以下为历史功能验收截图，账号、答案和成绩属于演示或测试数据。截图来自早期界面，可能与 Phase 11 当前外观不同；最终截图筛选与隐私复核留待 GitHub 发布收口。
 
 ### 教师：考试工作区与阅卷
 
@@ -177,7 +177,7 @@ AI 为可选辅助步骤。单选题按标准答案自动评分，简答题由�
 | 前端构建 | 117 modules / build PASS |
 | Browser smoke / 监控 | 0 HTTP 500 / 0 Vue runtime error |
 
-后端与构建结果、专项边界和浏览器验收说明见[正式验收记录](%E3%80%8A%E9%87%8D%E6%9E%84%E9%AA%8C%E6%94%B6%E8%AE%B0%E5%BD%95.md%E3%80%8B)；黄金路径及浏览器零错误计数采用 V1.0 RC 汇总验收口径。重点覆盖 AI 断线降级、建议分越界、快照隔离、成绩发布锁和跨角色访问。
+原 V1.0 RC 正式验收记录未纳入当前仓库，以上数字仅保留为当时的汇总口径，不能作为本次重新运行的结果。后续专项验收记录见[历史开发资料](docs/archive/README.md)。重点覆盖 AI 断线降级、建议分越界、快照隔离、成绩发布锁和跨角色访问。
 
 后端集成测试连接真实 MySQL，需要准备独立测试数据库和环境变量。`frontend/scripts/` 保留专项回归脚本；历史验收用的部分临时脚本与原始日志不随仓库发布，不能将这些数字理解为一次命令即可全部复现。
 
@@ -242,7 +242,7 @@ Copy-Item config/local.env.example config/local.env
 | `ADMIN_INITIAL_PASSWORD` | 首个管理员初始密码 |
 | `ADMIN_NAME` | 首个管理员显示名称 |
 
-以下可选变量由 [application.yml](backend/src/main/resources/application.yml) 支持，尚未列入上述 example。需要时可通过进程环境变量提供，或补入本地 `config/local.env`：
+以下可选变量由 [application.yml](backend/src/main/resources/application.yml) 支持；其中数据库连接字段与 AI 三项已列入上述 example，其余可按需写入本地 `config/local.env` 或通过进程环境变量提供：
 
 | 变量 | 用途 |
 |---|---|
@@ -258,13 +258,13 @@ AI 未配置时仍可使用人工阅卷。根目录 `.env.example` 属于 Docker
 
 | 文件 | 用途 |
 |---|---|
-| `sql/init.sql` | 新数据库的完整结构与必要演示 seed，包含名单快照和题库结构 |
-| `sql/smart_exam_team_v1.sql` | 团队初始化脚本，供首次建库参考 |
+| `sql/init.sql` | 全新数据库唯一完整初始化入口，19 张表及基础 seed；first-run bootstrap |
+| `sql/archive/smart_exam_team_v1.sql` | 与 `init.sql` 内容相同的历史共享副本；新库不再执行 |
 | `sql/upgrade_t08_2a_exam_candidates.sql` | 增加应考名单快照，并兼容回填历史考试名单 |
 | `sql/upgrade_t08_2b_exam_result_release.sql` | 增加整场成绩发布时间并兼容旧发布记录 |
 | `sql/upgrade_t08_2c_question_bank_scope.sql` | 增加 TEACHER / PLATFORM 题库作用域与约束 |
 
-升级脚本需先备份、选中目标数据库并核对现有结构，再按适用版本顺序执行；不是自动迁移框架，也不能替代缺失的前置表结构。新库按当前 `init.sql` 初始化即可；不要用初始化 seed 覆盖已有业务账号。
+升级脚本仅供历史已有数据库升级参考：先备份并核对当前 schema，再选择适用版本；不要对新库执行，也不能按文件名无条件全部执行。新库只执行一次 `init.sql`；不要用初始化 seed 覆盖已有业务账号。详见[数据库说明](sql/README_数据库共享说明.md)。
 
 ## 项目目录
 
@@ -274,8 +274,8 @@ frontend/              Vue 页面、路由、样式与专项回归脚本
 sql/                   初始化、演示 seed 与增量升级脚本
 scripts/               Windows 启停及 Maven 准备
 config/                本地配置示例
-gui-test-screenshots/   已归档的正式截图
-docs/                  需求与设计资料，部分保留早期阶段口径
+gui-test-screenshots/   早期验收截图，待发布前最终筛选
+docs/                  当前运行说明、数据来源说明及 archive/ 历史资料
 ```
 
 ## 开发与测试命令
@@ -303,13 +303,13 @@ Pop-Location
 
 仓库包含前后端 Dockerfile、`docker-compose.yml` 与 Nginx 配置，提供 MySQL、后端 API 和前端静态服务的部署结构。
 
-**当前 V1.0 RC 的 Docker 部署尚未完成正式环境验收，因此暂不将其列为已验证发布能力。** 镜像构建、容器启动、Nginx 路由、登录与数据卷持久化仍需实机验收；当前 Compose 也未传入 AI 和管理员初始化变量，完整功能部署需后续补齐验证。
+**Docker / Compose 尚待 P12-D 真实容器验收，不列为已验证发布能力。** 镜像构建、容器启动、Nginx 路由、登录与数据卷持久化仍需实测；当前 Compose 已提供可选 AI 与管理员初始化变量。运行边界见[部署说明](docs/04_部署与运行说明.md)。
 
 ## 项目状态与后续规划
 
 V1.0 Release Candidate 已通过功能验收，正在准备首次 GitHub 发布；尚未创建版本 Tag，许可证待决定。
 
-V2 规划（尚未实现）：AI 阅卷任务中心、AI 与教师评分差异统计、试题/考试数据分析、运行监控、Docker 正式部署验证、CI/CD。
+后续事项包括 AI 与教师评分差异统计、试题/考试数据分析、运行监控、Docker 正式部署验证和 CI/CD；早期 Phase 计划和验收记录已移入 `docs/archive/phase-history/`。
 
 ## 项目背景
 

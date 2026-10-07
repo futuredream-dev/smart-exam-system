@@ -19,7 +19,7 @@ Phase 5 三个 Batch 已接入现有教师考试工作区。教师在 DRAFT 考�
 | 测试 | 5 个新增 `AiAssembly*Test.java`、`service/RuleAssemblyIntegrationTest.java`、`frontend/tests/aiPaperComposer.test.mjs` | 协议、映射、排序、权限、降级、快照与 stale state |
 | 测试夹具 | `teacher/MissingBankParameterIntegrationTest.java` | 为旧测试题库补齐课程绑定，以符合现有课程校验 |
 
-文件路径相对于 `backend/src/main/java/com/smartexam`、`backend/src/test/java/com/smartexam` 或 `frontend/src`；报告、设计和实施清单位于 `docs/`。
+文件路径相对于 `backend/src/main/java/com/smartexam`、`backend/src/test/java/com/smartexam` 或 `frontend/src`；报告、设计和实施清单现归档于 `docs/archive/phase-history/`。
 
 ## 最终业务流程与职责边界
 

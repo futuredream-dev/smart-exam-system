@@ -1,27 +1,24 @@
-# 智能考试管理系统 数据库 V1.0 共享说明
+# 数据库初始化与历史升级说明
 
-本目录的 `smart_exam_team_v1.sql` 是组员首次配置数据库时使用的完整初始化脚本。脚本会创建 `smart_exam`、9 张核心表和基础测试数据。
+## 全新环境
 
-## 第一次配置
+`sql/init.sql` 是当前唯一的完整初始化入口。在全新、空白的 MySQL 实例中执行一次，即可创建 `smart_exam`、当前完整的 **19 张表**和基础 seed。P12-B 已在独立 MySQL 26.7.0 实例中原样执行该文件，并验证 19 张表、关键约束、Backend 启动和健康端点。
 
-1. 安装并启动 MySQL 8.0.16 或更高版本。
-2. 打开 MySQL Workbench，并使用自己电脑上的 MySQL root 账号连接。
-3. 在 Workbench 中打开 `smart_exam_team_v1.sql`。
-4. 点击执行全部 SQL。
-5. 刷新左侧 `SCHEMAS`。
-6. 确认出现 `smart_exam`。
-7. 展开 `Tables`，确认共有 9 张表：`users`、`courses`、`course_students`、`exams`、`questions`、`scoring_points`、`submissions`、`answers`、`ai_grading_results`。
+`init.sql` 是 **first-run bootstrap**，不是可无限重复运行的 migration。普通启动不再执行；已有业务数据库不要用它重建或覆盖 seed。SQL 文件声明适用 MySQL 8.0.16 及以上，P12-B 的实际空库验收环境为 MySQL 26.7.0；Docker / Compose 容器运行仍待 P12-D 验收。
 
-脚本可重复执行，不会重复插入基础用户、课程和课程学生关联。日常开发不需要重复执行该脚本。
+可以在具备建库权限的 MySQL 客户端中，从项目根目录执行：
 
-## 后端环境变量
-
-```text
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_NAME=smart_exam
-DB_USERNAME=root
-DB_PASSWORD=组员自己电脑的MySQL密码
+```sql
+SOURCE sql/init.sql;
 ```
 
-组员不需要知道其他人的 MySQL 密码。请不要将 `.env`、IDEA 本机运行配置或数据库密码提交到 Git。
+初始化后可查询 `information_schema.tables`，确认 `smart_exam` 下有 19 张基础表。`users` 的角色约束支持 `ADMIN`、`TEACHER`、`STUDENT`；SQL seed 包含教师、学生、课程与选课关系，**不预置 ADMIN**。首个 ADMIN 由 Backend 在配置完整的 `ADMIN_USERNAME`、`ADMIN_INITIAL_PASSWORD`、`ADMIN_NAME` 后初始化。
+
+本地环境变量示例见 `config/local.env.example`；Compose 示例见根目录 `.env.example`。不要提交真实数据库密码。
+
+## 历史文件
+
+- `sql/archive/smart_exam_team_v1.sql`：旧团队共享的完整脚本副本，归档留作历史参考。它与当前 `init.sql` 内容一致，**不是新环境需要再执行的第二步**。
+- `sql/upgrade_*.sql`：保留用于**已有历史数据库**的结构升级参考。新环境不执行这些文件；已有库必须先备份、核对当前 schema 与目标版本，再选择适用的升级脚本，不能按文件名无条件全部执行。
+
+本仓库没有引入 Flyway 或 Liquibase；这些历史升级文件也不能替代全新环境的 `init.sql`。

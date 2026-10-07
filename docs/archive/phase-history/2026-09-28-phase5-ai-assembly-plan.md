@@ -8,7 +8,7 @@
 
 **Tech Stack:** Spring Boot 3 / Java 17 / Jackson / RestClient / MyBatis Plus；Vue 3 / Vite / Node test。
 
-**Spec:** `docs/superpowers/specs/2026-09-28-phase5-ai-assembly-design.md`
+**Spec:** `docs/archive/phase-history/2026-09-28-phase5-ai-assembly-design.md`
 
 ## Global Constraints
 
@@ -65,7 +65,7 @@
 
 ### Task 5: 阶段验收与开发报告
 
-**Files:** Create `docs/Phase5-AI辅助智能组卷开发报告.md`。
+**Files:** Create `docs/archive/phase-history/Phase 5 AI辅助智能组卷开发报告.md`（归档后路径）。
 
 - [x] 运行后端和前端阶段级回归，检查 Git diff 和业务零写入边界。
 - [x] 填写文件清单、流程、协议、Resolver、Ranking、降级、Confirm 复用、交互、测试结果和限制。
