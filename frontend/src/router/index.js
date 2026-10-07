@@ -94,7 +94,7 @@ const routes = [
         path: '',
         name: 'student-home',
         component: StudentHomeView,
-        meta: { title: '学生工作台' },
+        meta: { title: '我的考试' },
       },
       { path: 'exams/:examId', component: StudentExamDetailView, meta: { title: '考试详情' } },
       { path: 'paper/:submissionId', component: StudentPaperView, meta: { title: '在线答题' } },

@@ -43,13 +43,13 @@ export const candidateStatus = {
 
 export const studentExamStatus = {
   NOT_STARTED: { label: '待开始', tone: 'neutral' },
-  AVAILABLE: { label: '可参加考试', tone: 'info' },
+  AVAILABLE: { label: '可进入', tone: 'info' },
   MISSED_ENTRY: { label: '已错过入场', tone: 'danger' },
   IN_PROGRESS: { label: '答题中', tone: 'info' },
-  PENDING_REVIEW: { label: '已交卷 · 待批阅', tone: 'warning' },
-  PENDING_RELEASE: { label: '已交卷 · 待公布', tone: 'warning' },
+  PENDING_REVIEW: { label: '待批阅', tone: 'warning' },
+  PENDING_RELEASE: { label: '待公布', tone: 'warning' },
   RESULTS_RELEASED: { label: '成绩已公布', tone: 'success' },
-  ABSENT: { label: '已结束 · 未参加', tone: 'neutral' },
+  ABSENT: { label: '未参加', tone: 'neutral' },
 }
 
 export const aiStatus = {
