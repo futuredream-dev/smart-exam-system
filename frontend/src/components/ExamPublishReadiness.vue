@@ -28,7 +28,7 @@ onMounted(load)
 </script>
 
 <template>
-  <TeacherModal :title="`发布检查 · ${title || '考试'}`" @close="!busy && emit('close')">
+  <TeacherModal :title="`发布检查 · ${title || '考试'}`" size="confirm" :busy="busy" @close="emit('close')">
     <p v-if="loading" class="empty-state">正在检查发布条件…</p>
     <template v-else-if="readiness">
       <div class="exam-readiness-facts">
@@ -40,8 +40,8 @@ onMounted(load)
       <div v-if="readiness.errors?.length" class="error-message" role="alert"><strong>暂不能发布</strong><ul><li v-for="item in readiness.errors" :key="item">{{ item }}</li></ul></div>
       <div v-if="readiness.warnings?.length" class="notice"><strong>提示</strong><ul><li v-for="item in readiness.warnings" :key="item">{{ item }}</li></ul></div>
       <p v-if="readiness.ready" class="muted">确认后将发布考试，试卷与考试规则随即锁定。</p>
-      <div class="actions"><button class="secondary" :disabled="busy" @click="emit('close')">取消</button><button class="primary" :disabled="!readiness.ready || busy" @click="publish">{{ busy ? '发布中…' : '确认发布' }}</button></div>
     </template>
     <p v-if="error" class="error-message" role="alert">{{ error }}</p>
+    <template #footer><button class="secondary" :disabled="busy" @click="emit('close')">取消</button><button class="primary" :disabled="!readiness?.ready || busy" @click="publish">{{ busy ? '发布中…' : '确认发布' }}</button></template>
   </TeacherModal>
 </template>

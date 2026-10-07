@@ -12,7 +12,7 @@ async function load() {
 }
 onMounted(load)
 watch(() => [props.examId, props.refreshKey], load)
-const statusNames = { ABSENT: '缺考', NOT_ENTERED: '未入场', IN_PROGRESS: '答题中', PENDING_REVIEW: '待阅', AUTO_GRADED: '待确认', REVIEWED: '已阅' }
+const statusNames = { ABSENT: '缺考', NOT_ENTERED: '未入场', IN_PROGRESS: '答题中', PENDING_REVIEW: '待阅', AUTO_GRADED: '已自动评分', REVIEWED: '已阅' }
 const score = value => value == null ? '—' : value
 const percent = value => value == null ? '—' : `${value}%`
 </script>
@@ -28,9 +28,9 @@ const percent = value => value == null ? '—' : `${value}%`
         <div class="results-stat-grid">
           <div><span>应考人数</span><strong>{{ data.summary.candidateCount }}</strong></div>
           <div><span>参考人数</span><strong>{{ data.summary.participantCount }}</strong></div>
+          <div><span>平均分</span><strong>{{ score(data.summary.averageScore) }}</strong></div>
           <div><span>最高分</span><strong>{{ score(data.summary.highestScore) }}</strong></div>
           <div><span>最低分</span><strong>{{ score(data.summary.lowestScore) }}</strong></div>
-          <div><span>平均分</span><strong>{{ score(data.summary.averageScore) }}</strong></div>
           <div><span>及格人数</span><strong>{{ score(data.summary.passingCount) }}</strong></div>
           <div><span>及格率</span><strong>{{ percent(data.summary.passingRate) }}</strong></div>
         </div>

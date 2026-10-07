@@ -36,8 +36,8 @@ async function save() {
 <template>
   <form class="editor-form" @submit.prevent="save">
     <p class="muted">将复制当前试卷和评分点，创建同课程的补考草稿。可在草稿中继续调整题目。</p>
-    <label>补考学生</label><p v-if="loading" class="muted">正在加载原考试名单…</p>
-    <div v-else class="makeup-candidate-list"><label v-for="student in candidates" :key="student.studentId"><input v-model="chosen" type="checkbox" :value="student.studentId" /> {{ student.studentName }}（{{ student.username }}） · {{ student.candidateStatus === 'ABSENT' ? '缺考' : student.candidateStatus === 'REVIEWED' ? '已阅' : '原考试考生' }}</label></div>
+    <fieldset class="makeup-candidate-fieldset"><legend>选择补考学生</legend><p v-if="loading" class="muted">正在加载原考试名单…</p>
+    <div v-else class="makeup-candidate-list"><label v-for="student in candidates" :key="student.studentId"><input v-model="chosen" type="checkbox" :value="student.studentId" /> {{ student.studentName }}（{{ student.username }}） · {{ student.candidateStatus === 'ABSENT' ? '缺考' : student.candidateStatus === 'REVIEWED' ? '已阅' : '原考试考生' }}</label></div></fieldset>
     <label>补考名称<input v-model="form.title" required maxlength="160" /></label>
     <label>考试说明<textarea v-model="form.description" rows="2" maxlength="10000" /></label>
     <div class="form-grid">

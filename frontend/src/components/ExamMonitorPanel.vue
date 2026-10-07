@@ -131,7 +131,7 @@ onBeforeUnmount(() => {
           ['应考人数', snapshot.summary.candidateCount], ['已进入', snapshot.summary.enteredCount],
           ['考试中', snapshot.summary.inProgressCount], ['已交卷', snapshot.summary.submittedCount],
           ['未进入', snapshot.summary.notEnteredCount], ['有行为记录', snapshot.summary.eventStudentCount],
-        ]" :key="item[0]" class="surface"><span>{{ item[0] }}</span><strong>{{ item[1] }}</strong></div>
+        ]" :key="item[0]"><span>{{ item[0] }}</span><strong>{{ item[1] }}</strong></div>
       </div>
       <div class="exam-monitor-controls surface">
         <label>姓名 / 学号<input v-model="keyword" type="search" placeholder="搜索学生姓名或学号" maxlength="100" /></label>

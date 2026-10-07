@@ -1,10 +1,10 @@
 <script setup>
 import{computed,onMounted,reactive,ref}from'vue';import{useRoute,useRouter}from'vue-router';import{teacherApi,formatTime}from'../../api/teacher';import{resolveFinalComment}from'../../utils/gradingPaperState'
+import{submissionStatus,gradingStatus,statusLabel,statusTone}from'../../utils/statusDisplay'
 const route=useRoute(),router=useRouter(),paper=ref(),workspace=ref(),scores=reactive({}),comments=reactive({}),base=reactive({scores:{},comments:{},finalComment:''}),finalComment=ref(''),activeAnswerId=ref(),error=ref(''),notice=ref(''),busy=ref(false),savingNext=ref(false),returnTo=computed(()=>{if(route.query.from==='grading-tasks'){const {from,...query}=route.query;return {path:'/teacher/grading-tasks',query}}const id=route.params.examId||(paper.value&&paper.value.examId);return id?'/teacher/exams/'+id+'?tab=grading':''})
 function resetMap(m){for(const k of Object.keys(m))delete m[k]}
 function hydrate(p,{preserveFinalComment=false}={}){paper.value=p;const comment=resolveFinalComment(finalComment.value,p.teacherComment,preserveFinalComment);finalComment.value=comment.text;resetMap(scores);resetMap(comments);resetMap(base.scores);resetMap(base.comments);p.answers.forEach(a=>{scores[a.answerId]=a.teacherScore??a.autoScore??0;comments[a.answerId]=a.teacherComment||'';base.scores[a.answerId]=scores[a.answerId];base.comments[a.answerId]=comments[a.answerId]});if(!p.answers.some(a=>a.answerId===activeAnswerId.value))activeAnswerId.value=(p.answers.find(a=>a.questionType==='SHORT_ANSWER')||p.answers[0])?.answerId;base.finalComment=comment.saved}
 const examReleased=computed(()=>!!(workspace.value&&workspace.value.resultsReleasedAt)||!!(paper.value&&paper.value.scorePublished))
-const paperStatusNames={IN_PROGRESS:'答题中',SUBMITTED:'已交卷',AUTO_SUBMITTED:'已自动交卷',GRADED:'已评分'},gradingStatusNames={PENDING:'待阅',REVIEWED:'已阅',PUBLISHED:'已发布',AUTO_GRADED:'已自动评分'}
 const currentAnswer=computed(()=>paper.value?.answers.find(a=>a.answerId===activeAnswerId.value)||paper.value?.answers[0])
 const currentIndex=computed(()=>paper.value?.answers.findIndex(a=>a.answerId===currentAnswer.value?.answerId)??-1)
 function selectAnswer(answer){activeAnswerId.value=answer.answerId}
@@ -44,7 +44,7 @@ async function saveAndNext(){
     <header v-if="paper" class="grading-page-header">
       <div class="grading-title-row">
         <h1>{{paper.examTitle}}</h1>
-        <span :class="['badge',paper.scorePublished?'RESULTS_RELEASED':paper.status]">{{paper.scorePublished?'成绩已发布':paperStatusNames[paper.status]||'状态待确认'}}</span>
+        <span :class="['badge',paper.scorePublished?'RESULTS_RELEASED':paper.status]">{{paper.scorePublished?'成绩已发布':statusLabel(submissionStatus,paper.status)}}</span>
       </div>
       <dl class="grading-meta">
         <div><dt>学生</dt><dd>{{paper.studentName}}</dd></div>
@@ -75,7 +75,7 @@ async function saveAndNext(){
               <strong>第 {{index+1}} 题</strong>
               <span>{{a.questionType==='SINGLE_CHOICE'?'单选题':'简答题'}}</span>
               <span>满分 {{a.maxScore}}</span>
-              <span :class="['badge',a.gradingStatus]">{{gradingStatusNames[a.gradingStatus]||'状态待确认'}}</span>
+              <span :class="['badge',a.gradingStatus]" :data-tone="statusTone(gradingStatus,a.gradingStatus)">{{statusLabel(gradingStatus,a.gradingStatus)}}</span>
             </div>
             <button class="grading-select-button" type="button" @click="selectAnswer(a)">{{a.answerId===currentAnswer?.answerId?'当前题':'查看评分'}}</button>
           </div>
@@ -124,8 +124,8 @@ async function saveAndNext(){
         <div class="grading-sticky-panel">
           <section v-if="currentAnswer" class="grading-action-panel">
             <div class="grading-action-head">
-              <div><span>当前题目</span><h2>第 {{currentIndex+1}} 题</h2></div>
-              <span :class="['badge',currentAnswer.gradingStatus]">{{gradingStatusNames[currentAnswer.gradingStatus]||'状态待确认'}}</span>
+              <div><span>教师评分与复核</span><h2>第 {{currentIndex+1}} 题</h2></div>
+              <span :class="['badge',currentAnswer.gradingStatus]" :data-tone="statusTone(gradingStatus,currentAnswer.gradingStatus)">{{statusLabel(gradingStatus,currentAnswer.gradingStatus)}}</span>
             </div>
             <p class="grading-score-limit">{{currentAnswer.questionType==='SINGLE_CHOICE'?'客观题自动评分':'教师人工评分'}} · 满分 {{currentAnswer.maxScore}}</p>
             <template v-if="currentAnswer.questionType==='SHORT_ANSWER'">
@@ -142,7 +142,7 @@ async function saveAndNext(){
             <h2>整份答卷</h2>
             <label class="grading-field">最终评语<textarea v-model="finalComment" rows="4" placeholder="学生发布后可见的教师最终评语" :disabled="paper.scorePublished"></textarea></label>
             <button class="secondary grading-full-button" :disabled="paper.scorePublished" @click="saveComment">保存最终评语</button>
-            <button v-if="!examReleased" class="primary grading-full-button" :disabled="savingNext" @click="saveAndNext">{{savingNext?'保存并进入下一份…':'保存并下一份'}}</button>
+            <button v-if="!examReleased" class="secondary grading-full-button" :disabled="savingNext" @click="saveAndNext">{{savingNext?'保存并进入下一份…':'保存并下一份'}}</button>
             <span v-if="paper.scorePublished" class="badge RESULTS_RELEASED">成绩已发布，当前答卷只读</span>
             <p class="grading-final-hint">本场考试全部有效答卷完成阅卷后，将统一发布成绩。</p>
           </section>

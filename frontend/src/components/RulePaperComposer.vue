@@ -139,6 +139,7 @@ onMounted(() => { loadBanks(); for (const rule of rules.value) if (rule.bankId) 
 
 <template>
   <div class="rule-paper-composer editor-form">
+    <p class="composer-process" aria-label="组卷步骤"><span :class="{ current: state.stage === 'CONFIG' }">1 设置规则</span><span :class="{ current: state.diagnoseResult?.feasible }">2 检查候选</span><span :class="{ current: state.stage === 'PREVIEW' }">3 核对预览</span><span>4 确认加入</span></p>
     <p v-if="error" class="error-message" role="alert">{{ error }}</p>
     <p v-if="notice" class="success-message" role="status">{{ notice }}</p>
 
@@ -214,15 +215,18 @@ onMounted(() => { loadBanks(); for (const rule of rules.value) if (rule.bankId) 
 .rule-paper-composer p { margin: 0; }
 .rule-edit-fields { display: grid; gap: 14px; padding: 0; border: 0; min-width: 0; }
 .rule-edit-fields > button { justify-self: start; }
-.rule-block { display: grid; gap: 13px; padding: 14px; border: 1px solid #d5deeb; border-radius: 5px; background: #fff; }
+.rule-block { display: grid; gap: 13px; padding: 16px; border: 1px solid var(--border); border-radius: var(--radius-card); background: var(--surface); }
 .rule-block .section-head { margin: 0; }
 .rule-block h3, .rule-diagnosis h3, .rule-paper-composer h4 { margin: 0; }
 .rule-numbers { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
-.rule-summary { display: flex; flex-wrap: wrap; gap: 8px 18px; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 4px; background: #f7f8fa; }
-.rule-diagnosis { display: grid; gap: 10px; padding: 12px; border: 1px solid #d5deeb; border-radius: 4px; }
-.rule-diagnosis-row { display: flex; flex-wrap: wrap; gap: 8px 18px; padding: 8px 0; border-top: 1px solid #e5e7eb; }
-.rule-shortage { color: #a53535; font-weight: 700; }
-.rule-preview-question { padding: 12px; border: 1px solid #e5e7eb; border-radius: 4px; }
+.composer-process { display: flex; flex-wrap: wrap; gap: 0; border-bottom: 1px solid var(--border); color: var(--text-secondary); font-size: 12px; }
+.composer-process span { padding: 0 16px 10px 0; margin-right: 16px; border-bottom: 2px solid transparent; }
+.composer-process .current { color: var(--primary); border-color: var(--primary); font-weight: 600; }
+.rule-summary { display: flex; flex-wrap: wrap; gap: 8px 18px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--surface-muted); }
+.rule-diagnosis { display: grid; gap: 10px; padding: 14px; border: 1px solid var(--border); border-radius: var(--radius-control); }
+.rule-diagnosis-row { display: flex; flex-wrap: wrap; gap: 8px 18px; padding: 8px 0; border-top: 1px solid var(--border-subtle); }
+.rule-shortage { color: var(--danger); font-weight: 600; }
+.rule-preview-question { padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-control); }
 .rule-preview-question > * + * { margin-top: 8px; }
 .rule-preview-question .actions { flex-wrap: wrap; }
 .rule-preview-actions { justify-content: flex-end; flex-wrap: wrap; }

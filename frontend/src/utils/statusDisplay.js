@@ -27,7 +27,7 @@ export const submissionStatus = {
 
 export const gradingStatus = {
   PENDING: { label: '待阅', tone: 'warning' },
-  AUTO_GRADED: { label: '已自动评分，待确认', tone: 'warning' },
+  AUTO_GRADED: { label: '已自动评分', tone: 'success' },
   REVIEWED: { label: '已复核', tone: 'success' },
   PUBLISHED: { label: '成绩已发布', tone: 'success' },
 }
@@ -36,7 +36,7 @@ export const candidateStatus = {
   NOT_ENTERED: { label: '未进入', tone: 'neutral' },
   IN_PROGRESS: { label: '答题中', tone: 'info' },
   PENDING_REVIEW: { label: '待阅', tone: 'warning' },
-  AUTO_GRADED: { label: '已自动评分，待确认', tone: 'warning' },
+  AUTO_GRADED: { label: '已自动评分', tone: 'success' },
   REVIEWED: { label: '已复核', tone: 'success' },
   ABSENT: { label: '缺考', tone: 'neutral' },
 }

@@ -57,7 +57,7 @@ onMounted(async () => {
     <template v-else-if="summary">
       <p v-if="!summary.sampleCount" class="empty-state">暂无可分析样本</p>
       <section class="evaluation-metrics" aria-label="总体指标">
-        <div v-for="item in [['样本数', summary.sampleCount || '—'], ['AI平均分', score(summary.aiAverageScore)], ['教师平均分', score(summary.teacherAverageScore)], ['MAE', score(summary.mae)], ['Bias', score(summary.bias)]]" :key="item[0]" class="surface evaluation-metric"><span>{{ item[0] }}</span><strong>{{ item[1] }}</strong></div>
+        <div v-for="item in [['样本数', summary.sampleCount ?? '—'], ['MAE', score(summary.mae)], ['Bias', score(summary.bias)], ['AI平均分', score(summary.aiAverageScore)], ['教师平均分', score(summary.teacherAverageScore)]]" :key="item[0]" class="evaluation-metric"><span>{{ item[0] }}</span><strong>{{ item[1] }}</strong></div>
       </section>
       <template v-if="summary.sampleCount">
         <p class="muted evaluation-note">MAE 为平均绝对分差；Bias 为 AI 分减教师分的平均值，正值表示 AI 整体偏高，负值表示整体偏低。</p>
@@ -70,21 +70,23 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.ai-evaluation-page { display: grid; gap: 20px; }
-.evaluation-filter { padding: 18px; }
+.ai-evaluation-page { display: grid; gap: 16px; }
+.evaluation-filter { padding: 16px; }
 .evaluation-filter label { display: flex; align-items: center; gap: 12px; }
 .evaluation-filter select { min-width: 260px; max-width: 100%; }
-.evaluation-metrics { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
-.evaluation-metric { padding: 18px; display: grid; gap: 8px; }
-.evaluation-metric strong { font-size: 24px; }
-.evaluation-note { margin: -8px 0 0; }
-.evaluation-distribution, .evaluation-samples { padding: 20px; }
+.evaluation-metrics { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border: 1px solid var(--border); border-radius: var(--radius-card); background: var(--surface); }
+.evaluation-metric { padding: 12px 16px; display: grid; gap: 2px; }
+.evaluation-metric + .evaluation-metric { border-left: 1px solid var(--border); }
+.evaluation-metric span { color: var(--text-secondary); font-size: 12px; }
+.evaluation-metric strong { font-size: 19px; font-weight: 600; }
+.evaluation-note { margin: -4px 0 0; font-size: 12px; }
+.evaluation-distribution, .evaluation-samples { padding: 16px; }
 .distribution-row { display: grid; grid-template-columns: 165px 1fr 130px; gap: 12px; align-items: center; margin: 14px 0; }
-.distribution-track { height: 10px; border-radius: 10px; background: #e7edf3; overflow: hidden; }
-.distribution-track div { height: 100%; background: #5682bb; }
+.distribution-track { height: 8px; border-radius: var(--radius-control); background: var(--border-subtle); overflow: hidden; }
+.distribution-track div { height: 100%; background: var(--primary); }
 .evaluation-questions h2, .evaluation-distribution h2 { margin: 0 0 8px; }
 .evaluation-sample-header { display: flex; justify-content: space-between; gap: 16px; }
-.evaluation-sample { border-top: 1px solid #e7edf3; padding: 16px 0; }
+.evaluation-sample { border-top: 1px solid var(--border-subtle); padding: 16px 0; }
 .evaluation-sample p { white-space: pre-wrap; overflow-wrap: anywhere; }
-@media (max-width: 800px) { .evaluation-metrics { grid-template-columns: repeat(2, 1fr); } .distribution-row { grid-template-columns: 1fr; } }
+@media (max-width: 800px) { .evaluation-metrics { grid-template-columns: repeat(2, 1fr); } .evaluation-metric:nth-child(odd) { border-left: 0; } .evaluation-metric:nth-child(n+3) { border-top: 1px solid var(--border); } .distribution-row { grid-template-columns: 1fr; } }
 </style>

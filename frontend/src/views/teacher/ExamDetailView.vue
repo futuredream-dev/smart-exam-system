@@ -28,7 +28,7 @@ const makeupOpen = ref(false), analysisRefreshKey = ref(0)
 const draft = computed(() => exam.value?.status === 'DRAFT' && !exam.value?.archivedAt)
 const canCreateMakeup = computed(() => exam.value && !exam.value.archivedAt && !draft.value && new Date(exam.value.endTime).getTime() <= Date.now())
 const tabs = computed(() => {
-  const items = [['overview', '考试概览'], ['paper', '试卷'], ['candidates', '答卷与阅卷'], ['grading', '成绩']]
+  const items = [['overview', '概览'], ['paper', '试卷'], ['candidates', '答卷与阅卷'], ['grading', '成绩']]
   if (exam.value && !draft.value) items.push(['monitor', '考务'])
   return items
 })
@@ -94,20 +94,20 @@ onMounted(() => { consumeNotice(); load() })
     <p v-if="notice" class="success-message" role="status">{{ notice }}</p>
     <p v-if="loading" class="empty-state">正在加载考试…</p>
     <template v-if="!loading && exam && workspace">
-      <RouterLink class="exam-back-link" to="/teacher/exams">← 返回考试管理</RouterLink>
+      <div class="exam-detail-breadcrumb"><RouterLink to="/teacher/exams">考试管理</RouterLink><span>/</span><span>考试详情</span></div>
       <header class="exam-center-detail-head">
-        <div><div class="actions"><h1>{{ exam.title }}</h1><span v-if="exam.examKind === 'MAKEUP'" class="badge">补考</span><span v-if="exam.archivedAt" class="badge">已归档</span><span :class="['badge', stage]">{{ displayStageNames[stage] || stage }}</span></div>
-          <p class="muted">{{ exam.courseName }} · {{ formatTime(exam.startTime) }} 至 {{ formatTime(exam.endTime) }}</p></div>
+        <div class="exam-detail-identity"><div class="exam-detail-title-line"><h1>{{ exam.title }}</h1><span :class="['badge', stage]">{{ displayStageNames[stage] || stage }}</span><span v-if="exam.examKind === 'MAKEUP'" class="badge">补考</span><span v-if="exam.archivedAt" class="badge">已归档</span></div>
+          <p class="exam-detail-meta"><span>{{ exam.courseName }}</span><span>{{ formatTime(exam.startTime) }} 至 {{ formatTime(exam.endTime) }}</span></p></div>
         <div class="actions"><button v-if="canCreateMakeup" class="secondary" @click="makeupOpen = true">创建补考</button><button class="primary" @click="primary">{{ actionNames[exam.nextAction] || '查看考试' }}</button></div>
       </header>
       <section class="surface exam-center-lifecycle" aria-label="考试进度"><div v-for="(item, index) in lifecycle" :key="item.label" :class="['exam-center-step', item.state]"><span class="step-index">{{ index + 1 }}</span><span>{{ item.label }}</span><small>{{ item.state === 'done' ? '已完成' : item.state === 'current' ? '当前步骤' : '未开始' }}</small></div></section>
       <section class="exam-center-metrics" aria-label="考试摘要">
-        <div class="surface"><span>试卷</span><strong>{{ exam.questionCount }} 题 / {{ exam.totalScore }} 分</strong></div>
-        <div class="surface"><span>参考情况</span><strong>{{ exam.submittedCount }} / {{ exam.eligibleStudentCount }} 已交卷</strong></div>
-        <div class="surface"><span>阅卷</span><strong>{{ exam.gradedCount }} / {{ exam.submittedCount }} 已完成</strong></div>
-        <div class="surface"><span>成绩</span><strong>{{ stage === 'COMPLETED' ? '已发布' : stage === 'RESULT_PARTIAL' ? '成绩部分发布' : '未发布' }}</strong></div>
+        <div><span>试卷</span><strong>{{ exam.questionCount }} 题 / {{ exam.totalScore }} 分</strong></div>
+        <div><span>已交 / 应考</span><strong>{{ exam.submittedCount }} / {{ exam.eligibleStudentCount }}</strong></div>
+        <div><span>已阅 / 已交</span><strong>{{ exam.gradedCount }} / {{ exam.submittedCount }}</strong></div>
+        <div><span>成绩</span><strong>{{ stage === 'COMPLETED' ? '成绩已发布' : stage === 'RESULT_PARTIAL' ? '成绩部分发布' : '成绩未发布' }}</strong></div>
       </section>
-      <nav class="workspace-tabs" aria-label="考试详情"><button v-for="item in tabs" :key="item[0]" :class="{ active: active === item[0] }" @click="tab(item[0])">{{ item[1] }}</button></nav>
+      <nav class="workspace-tabs" aria-label="考试详情"><button v-for="item in tabs" :key="item[0]" :aria-current="active === item[0] ? 'page' : undefined" :class="{ active: active === item[0] }" @click="tab(item[0])">{{ item[1] }}</button></nav>
 
       <section v-if="active === 'overview'" class="surface exam-center-overview">
         <div><h2>基本信息</h2><dl><dt>考试名称</dt><dd>{{ exam.title }}</dd><dt>所属课程</dt><dd>{{ exam.courseName }}</dd><dt>考试说明</dt><dd class="preserve">{{ exam.description || '暂无考试说明' }}</dd><dt>开始时间</dt><dd>{{ formatTime(exam.startTime) }}</dd><dt>结束时间</dt><dd>{{ formatTime(exam.endTime) }}</dd></dl></div>

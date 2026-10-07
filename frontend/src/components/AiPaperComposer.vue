@@ -66,6 +66,7 @@ function switchToRule() { emit('switch-to-rule', { requirement: requirement.valu
 
 <template>
   <div class="ai-paper-composer editor-form">
+    <p class="composer-process" aria-label="AI 辅助组卷步骤"><span :class="{ current: !interpretation }">1 教师提出要求</span><span :class="{ current: interpretation && stage !== 'RULES' }">2 核对 AI 理解</span><span :class="{ current: stage === 'RULES' }">3 教师确认规则与试卷</span></p>
     <p v-if="error" class="error-message" role="alert">{{ error }}。可切换到规则智能组卷继续。</p>
     <section class="rule-block">
       <h3>组卷要求</h3>
@@ -109,7 +110,10 @@ function switchToRule() { emit('switch-to-rule', { requirement: requirement.valu
 <style scoped>
 .ai-paper-composer { display: grid; gap: 16px; }
 .ai-paper-composer textarea { width: 100%; min-height: 110px; resize: vertical; }
-.ai-topic-row { display: grid; grid-template-columns: minmax(100px, 1fr) auto minmax(220px, 2fr); gap: 12px; align-items: center; padding: 8px 0; border-top: 1px solid #e5e7eb; }
+.ai-topic-row { display: grid; grid-template-columns: minmax(100px, 1fr) auto minmax(220px, 2fr); gap: 12px; align-items: center; padding: 8px 0; border-top: 1px solid var(--border-subtle); }
+.composer-process { display: flex; flex-wrap: wrap; border-bottom: 1px solid var(--border); color: var(--text-secondary); font-size: 12px; }
+.composer-process span { padding: 0 16px 10px 0; margin-right: 16px; border-bottom: 2px solid transparent; }
+.composer-process .current { color: var(--primary); border-color: var(--primary); font-weight: 600; }
 .ai-topic-row label { margin: 0; }
 .ai-rule-section { display: grid; gap: 10px; }
 @media (max-width: 760px) { .ai-topic-row { grid-template-columns: 1fr; } }

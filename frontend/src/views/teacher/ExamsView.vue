@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { teacherApi, formatTime } from '../../api/teacher'
 import { actionNames, actionRoute, displayStageNames, stageTabs } from '../../utils/examCenter'
+import { examDisplayStage, statusTone } from '../../utils/statusDisplay'
 import ExamForm from '../../components/ExamForm.vue'
 import ExamPublishReadiness from '../../components/ExamPublishReadiness.vue'
 import TeacherModal from '../../components/TeacherModal.vue'
@@ -39,9 +40,9 @@ function primary(row) {
   else router.push(actionRoute(row.examId, row.nextAction))
 }
 function scoreLabel(row) {
-  if (row.displayStage === 'COMPLETED') return '已发布'
+  if (row.displayStage === 'COMPLETED') return '成绩已发布'
   if (row.displayStage === 'RESULT_PARTIAL') return '成绩部分发布'
-  return '未发布'
+  return '成绩未发布'
 }
 async function load() {
   const id = ++requestId
@@ -81,24 +82,26 @@ watch(() => route.fullPath, () => { draft.keyword = appliedKeyword.value; draft.
     <header class="page-heading"><div><h1>考试管理</h1><p class="muted">管理课程考试、试卷配置、考试进度和成绩发布</p></div><button class="primary" @click="creating = true">创建考试</button></header>
     <p v-if="notice" class="success-message" role="status">{{ notice }}</p>
     <p v-if="error" class="error-message" role="alert">{{ error }}</p>
-    <nav class="exam-center-tabs" aria-label="考试状态筛选"><button v-for="item in stageTabs" :key="item.key" :class="{ active: tabKey === item.key }" @click="selectTab(item.key)">{{ item.label }}</button></nav>
+    <div class="exam-stage-label">按考试阶段筛选</div>
+    <nav class="exam-center-tabs" aria-label="考试阶段筛选"><button v-for="item in stageTabs" :key="item.key" :class="{ active: tabKey === item.key }" @click="selectTab(item.key)">{{ item.label }}</button></nav>
     <form class="surface exam-center-filters" @submit.prevent="search">
       <label>考试名称<input v-model="draft.keyword" placeholder="输入考试名称" maxlength="200" /></label>
       <label>所属课程<select v-model="draft.courseId"><option value="">全部课程</option><option v-for="course in courses" :key="course.id" :value="String(course.id)">{{ course.courseName }}</option></select></label>
-      <div class="actions"><button class="primary" type="submit">查询</button><button class="secondary" type="button" @click="reset">重置</button></div>
+      <div class="actions"><button class="secondary" type="submit">查询</button><button class="ghost" type="button" @click="reset">重置</button></div>
     </form>
     <section class="surface exam-center-results">
       <div class="section-head"><h2>考试列表</h2><span class="muted">共 {{ total }} 场</span></div>
       <p v-if="loading" class="empty-state">正在加载考试…</p>
       <div v-else-if="!rows.length" class="empty-state"><template v-if="!tabKey && !appliedKeyword && !appliedCourseId">暂无考试。<button class="primary" @click="creating = true">创建考试</button></template><template v-else>没有符合当前条件的考试。</template></div>
-      <div v-else class="table-scroll"><table><thead><tr><th>考试名称</th><th>所属课程</th><th>考试时间</th><th>试卷</th><th>参考情况</th><th>阅卷</th><th>成绩</th><th>当前状态</th><th class="table-action">操作</th></tr></thead>
+      <div v-else class="table-scroll"><table><thead><tr><th>考试 / 课程</th><th>考试时间</th><th>试卷</th><th>参考 / 阅卷</th><th>成绩</th><th>当前阶段</th><th class="table-action">操作</th></tr></thead>
         <tbody><tr v-for="row in rows" :key="row.examId">
-          <td><RouterLink :to="`/teacher/exams/${row.examId}`"><strong>{{ row.title }}</strong></RouterLink> <span v-if="row.examKind === 'MAKEUP'" class="badge">补考</span> <span v-if="row.archivedAt" class="badge">已归档</span></td>
-          <td>{{ row.courseName }}</td><td>{{ formatTime(row.startTime) }}<small>至 {{ formatTime(row.endTime) }}</small></td>
-          <td>{{ row.questionCount }} 题 / {{ row.totalScore }} 分</td><td>{{ row.submittedCount }} / {{ row.eligibleStudentCount }} 已交卷</td>
-          <td>{{ ['DRAFT', 'SCHEDULED', 'RUNNING'].includes(row.displayStage) ? '—' : `${row.gradedCount} / ${row.submittedCount}` }}</td>
-          <td>{{ scoreLabel(row) }}</td><td><span :class="['badge', row.displayStage]">{{ displayStageNames[row.displayStage] || row.displayStage }}</span></td>
-          <td class="table-action"><div class="actions"><button class="primary" @click="primary(row)">{{ actionNames[row.nextAction] || '查看考试' }}</button><button class="secondary" @click="openCopy(row)">复制</button><button v-if="row.archivedAt || row.displayStage === 'DRAFT' || row.displayStage === 'COMPLETED'" class="ghost" :disabled="actionBusy" @click="changeArchive(row)">{{ row.archivedAt ? '恢复' : '归档' }}</button></div></td>
+          <td class="exam-center-title-cell"><RouterLink :to="`/teacher/exams/${row.examId}`"><strong>{{ row.title }}</strong></RouterLink><small>{{ row.courseName }}<span v-if="row.examKind === 'MAKEUP'"> · 补考</span><span v-if="row.archivedAt"> · 已归档</span></small></td>
+          <td>{{ formatTime(row.startTime) }}<small>至 {{ formatTime(row.endTime) }}</small></td>
+          <td>{{ row.questionCount }} 题<small>{{ row.totalScore }} 分</small></td>
+          <td>{{ row.submittedCount }} / {{ row.eligibleStudentCount }} 已交<small>{{ ['DRAFT', 'SCHEDULED', 'RUNNING'].includes(row.displayStage) ? '阅卷未开始' : `已阅 ${row.gradedCount} / ${row.submittedCount}` }}</small></td>
+          <td class="exam-center-score-cell">{{ scoreLabel(row) }}</td>
+          <td><span :class="['badge', row.displayStage]" :data-tone="statusTone(examDisplayStage, row.displayStage)">{{ displayStageNames[row.displayStage] || row.displayStage }}</span></td>
+          <td class="table-action"><div class="exam-row-actions"><button class="ghost" @click="primary(row)">{{ actionNames[row.nextAction] || '查看考试' }}</button><details><summary>更多</summary><div><button type="button" class="ghost" @click="openCopy(row)">复制考试</button><button v-if="row.archivedAt || row.displayStage === 'DRAFT' || row.displayStage === 'COMPLETED'" type="button" class="ghost" :disabled="actionBusy" @click="changeArchive(row)">{{ row.archivedAt ? '恢复考试' : '归档考试' }}</button></div></details></div></td>
         </tr></tbody></table></div>
       <div v-if="total > pageSize" class="exam-center-pagination"><span>第 {{ currentPage }} / {{ pageCount }} 页</span><button class="secondary" :disabled="currentPage <= 1" @click="changePage(currentPage - 1)">上一页</button><button class="secondary" :disabled="currentPage >= pageCount" @click="changePage(currentPage + 1)">下一页</button></div>
     </section>
