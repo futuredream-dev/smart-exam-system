@@ -19,6 +19,7 @@ frontend/.env.local
 backend/src/main/resources/application-local.yml
 config/local.env
 .tok_teacher.txt
+/docs/phase3/Phase3-WorkBuddy最终验收报告.md
 
 # IDE / OS
 .idea/
