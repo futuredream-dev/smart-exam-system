@@ -1,9 +1,10 @@
 <script setup>
-import{computed,onMounted,reactive,ref}from'vue';import{useRoute,useRouter}from'vue-router';import{teacherApi,formatTime}from'../../api/teacher';import{resolveFinalComment}from'../../utils/gradingPaperState'
+import{computed,onMounted,reactive,ref}from'vue';import{useRoute,useRouter}from'vue-router';import{teacherApi,formatTime}from'../../api/teacher';import{mergeReviewDraft}from'../../utils/gradingPaperState'
 import{submissionStatus,gradingStatus,statusLabel,statusTone}from'../../utils/statusDisplay'
-const route=useRoute(),router=useRouter(),paper=ref(),workspace=ref(),scores=reactive({}),comments=reactive({}),base=reactive({scores:{},comments:{},finalComment:''}),finalComment=ref(''),activeAnswerId=ref(),error=ref(''),notice=ref(''),busy=ref(false),savingNext=ref(false),returnTo=computed(()=>{if(route.query.from==='grading-tasks'){const {from,...query}=route.query;return {path:'/teacher/grading-tasks',query}}const id=route.params.examId||(paper.value&&paper.value.examId);return id?'/teacher/exams/'+id+'?tab=grading':''})
+const route=useRoute(),router=useRouter(),paper=ref(),workspace=ref(),scores=reactive({}),comments=reactive({}),base=reactive({scores:{},comments:{},finalComment:''}),finalComment=ref(''),activeAnswerId=ref(),error=ref(''),notice=ref(''),busy=ref(false),saving=ref(false),savingNext=ref(false),returnTo=computed(()=>{if(route.query.from==='grading-tasks'){const {from,...query}=route.query;return {path:'/teacher/grading-tasks',query}}const id=route.params.examId||(paper.value&&paper.value.examId);return id?'/teacher/exams/'+id+'?tab=grading':''})
 function resetMap(m){for(const k of Object.keys(m))delete m[k]}
-function hydrate(p,{preserveFinalComment=false}={}){paper.value=p;const comment=resolveFinalComment(finalComment.value,p.teacherComment,preserveFinalComment);finalComment.value=comment.text;resetMap(scores);resetMap(comments);resetMap(base.scores);resetMap(base.comments);p.answers.forEach(a=>{scores[a.answerId]=a.teacherScore??a.autoScore??0;comments[a.answerId]=a.teacherComment||'';base.scores[a.answerId]=scores[a.answerId];base.comments[a.answerId]=comments[a.answerId]});if(!p.answers.some(a=>a.answerId===activeAnswerId.value))activeAnswerId.value=(p.answers.find(a=>a.questionType==='SHORT_ANSWER')||p.answers[0])?.answerId;base.finalComment=comment.saved}
+function draftState(){return{paperId:paper.value?.id,scores:{...scores},comments:{...comments},finalComment:finalComment.value,baseline:{scores:{...base.scores},comments:{...base.comments},finalComment:base.finalComment}}}
+function hydrate(p,savedFields={}){const merged=mergeReviewDraft(draftState(),p,savedFields);paper.value=p;finalComment.value=merged.finalComment;for(const [target,source]of[[scores,merged.scores],[comments,merged.comments],[base.scores,merged.baseline.scores],[base.comments,merged.baseline.comments]]){resetMap(target);Object.assign(target,source)}base.finalComment=merged.baseline.finalComment;if(!p.answers.some(a=>a.answerId===activeAnswerId.value))activeAnswerId.value=(p.answers.find(a=>a.questionType==='SHORT_ANSWER')||p.answers[0])?.answerId}
 const examReleased=computed(()=>!!(workspace.value&&workspace.value.resultsReleasedAt)||!!(paper.value&&paper.value.scorePublished))
 const currentAnswer=computed(()=>paper.value?.answers.find(a=>a.answerId===activeAnswerId.value)||paper.value?.answers[0])
 const currentIndex=computed(()=>paper.value?.answers.findIndex(a=>a.answerId===currentAnswer.value?.answerId)??-1)
@@ -11,18 +12,18 @@ function selectAnswer(answer){activeAnswerId.value=answer.answerId}
 async function loadContext(){if(!paper.value)return;try{workspace.value=(await teacherApi.examWorkspace(paper.value.examId)).data}catch(e){workspace.value=null}}
 async function loadPaper(id){error.value='';notice.value='';paper.value=undefined;workspace.value=null;try{hydrate((await teacherApi.gradingPaper(id)).data);loadContext();const tip=sessionStorage.getItem('gradingNotice');if(tip){sessionStorage.removeItem('gradingNotice');notice.value=tip}window.scrollTo(0,0)}catch(e){error.value=e.message;sessionStorage.removeItem('gradingNotice')}}
 onMounted(()=>loadPaper(route.params.submissionId))
-async function review(a){error.value='';try{hydrate((await teacherApi.reviewAnswer(a.answerId,{teacherScore:scores[a.answerId],teacherComment:comments[a.answerId]})).data,{preserveFinalComment:true});notice.value='评分已保存并重新汇总总分'}catch(e){error.value=e.message}}
-async function aiGrade(a){busy.value=true;try{hydrate((await teacherApi.aiGrade(a.answerId)).data,{preserveFinalComment:true})}catch(e){error.value=e.message}finally{busy.value=false}}
-async function saveComment(){try{hydrate((await teacherApi.saveFinalComment(paper.value.id,finalComment.value)).data);notice.value='最终评语已保存'}catch(e){error.value=e.message}}
+async function review(a){if(saving.value||busy.value||savingNext.value||examReleased.value)return;error.value='';notice.value='';saving.value=true;const submitted=draftState();try{hydrate((await teacherApi.reviewAnswer(a.answerId,{teacherScore:submitted.scores[a.answerId],teacherComment:submitted.comments[a.answerId]})).data,{answerIds:[a.answerId],submitted});notice.value='评分已保存并重新汇总总分'}catch(e){error.value=e.message}finally{saving.value=false}}
+async function aiGrade(a){if(busy.value||saving.value||savingNext.value||examReleased.value)return;error.value='';notice.value='';busy.value=true;try{hydrate((await teacherApi.aiGrade(a.answerId)).data)}catch(e){error.value=e.message}finally{busy.value=false}}
+async function saveComment(){if(saving.value||busy.value||savingNext.value||examReleased.value)return;error.value='';notice.value='';saving.value=true;const submitted=draftState();try{hydrate((await teacherApi.saveFinalComment(paper.value.id,submitted.finalComment)).data,{finalComment:true,submitted});notice.value='最终评语已保存'}catch(e){error.value=e.message}finally{saving.value=false}}
 function dirtyEdits(){return(paper.value?paper.value.answers:[]).filter(a=>a.questionType==='SHORT_ANSWER'&&(scores[a.answerId]!==base.scores[a.answerId]||comments[a.answerId]!==base.comments[a.answerId])).map(a=>({answerId:a.answerId,score:scores[a.answerId],comment:comments[a.answerId]}))}
 async function saveAndNext(){
-  if(savingNext.value||busy.value||!paper.value||examReleased.value)return
+  if(savingNext.value||saving.value||busy.value||!paper.value||examReleased.value)return
   savingNext.value=true;error.value='';notice.value=''
   try{
     const edits=dirtyEdits(),wantComment=finalComment.value!==base.finalComment
     let latest=paper.value,savedAny=false
-    for(const e of edits){latest=(await teacherApi.reviewAnswer(e.answerId,{teacherScore:e.score,teacherComment:e.comment})).data;base.scores[e.answerId]=e.score;base.comments[e.answerId]=e.comment;savedAny=true}
-    if(wantComment){latest=(await teacherApi.saveFinalComment(paper.value.id,finalComment.value)).data;base.finalComment=finalComment.value;savedAny=true}
+    for(const e of edits){latest=(await teacherApi.reviewAnswer(e.answerId,{teacherScore:e.score,teacherComment:e.comment})).data;hydrate(latest,{answerIds:[e.answerId],submitted:{scores:{[e.answerId]:e.score},comments:{[e.answerId]:e.comment}}});savedAny=true}
+    if(wantComment){const submitted=draftState();latest=(await teacherApi.saveFinalComment(paper.value.id,submitted.finalComment)).data;hydrate(latest,{finalComment:true,submitted});savedAny=true}
     const pendingNos=(latest.answers||[]).map((a,i)=>a.questionType==='SHORT_ANSWER'&&a.gradingStatus!=='REVIEWED'?i+1:0).filter(Boolean)
     if(pendingNos.length){hydrate(latest);error.value='当前答卷尚未完成阅卷：第 '+pendingNos.join('、')+' 题简答题还未完成人工评分，无法进入下一份。';return}
     let list
@@ -103,7 +104,7 @@ async function saveAndNext(){
           <section v-if="a.questionType==='SHORT_ANSWER'" class="grading-ai-assist">
             <div class="grading-ai-head">
               <div><h3>AI辅助建议</h3><span>仅供参考，最终评分由教师确认</span></div>
-              <button class="grading-ai-button" :disabled="busy||paper.scorePublished" @click="aiGrade(a)">{{a.aiSuggestion?'重新生成':'生成AI建议'}}</button>
+              <button class="grading-ai-button" :disabled="busy||saving||savingNext||examReleased" @click="aiGrade(a)">{{a.aiSuggestion?'重新生成':'生成AI建议'}}</button>
             </div>
             <p v-if="!a.aiSuggestion" class="muted">尚未生成 AI 建议。</p>
             <template v-else>
@@ -130,19 +131,20 @@ async function saveAndNext(){
             <p class="grading-score-limit">{{currentAnswer.questionType==='SINGLE_CHOICE'?'客观题自动评分':'教师人工评分'}} · 满分 {{currentAnswer.maxScore}}</p>
             <template v-if="currentAnswer.questionType==='SHORT_ANSWER'">
               <label class="grading-field grading-score-field">教师最终评分
-                <span class="grading-number-input"><input v-model.number="scores[currentAnswer.answerId]" type="number" min="0" :max="currentAnswer.maxScore" step="0.01" :disabled="paper.scorePublished"><em>/ {{currentAnswer.maxScore}}</em></span>
+                <span class="grading-number-input"><input v-model.number="scores[currentAnswer.answerId]" type="number" min="0" :max="currentAnswer.maxScore" step="0.01" :disabled="examReleased||savingNext"><em>/ {{currentAnswer.maxScore}}</em></span>
               </label>
-              <label class="grading-field">本题评语<textarea v-model="comments[currentAnswer.answerId]" rows="4" :disabled="paper.scorePublished"></textarea></label>
-              <button class="primary grading-save-button" :disabled="paper.scorePublished" @click="review(currentAnswer)">保存本题复核</button>
+              <label class="grading-field">本题评语<textarea v-model="comments[currentAnswer.answerId]" rows="4" :disabled="examReleased||savingNext"></textarea></label>
+              <button class="primary grading-save-button" :disabled="saving||busy||savingNext||examReleased" @click="review(currentAnswer)">保存本题复核</button>
             </template>
             <div v-else class="grading-objective-score"><span>系统自动得分</span><strong>{{currentAnswer.autoScore??0}} / {{currentAnswer.maxScore}}</strong><small>客观题由系统自动评分，无需人工复核。</small></div>
           </section>
 
           <section class="grading-final-panel">
             <h2>整份答卷</h2>
-            <label class="grading-field">最终评语<textarea v-model="finalComment" rows="4" placeholder="学生发布后可见的教师最终评语" :disabled="paper.scorePublished"></textarea></label>
-            <button class="secondary grading-full-button" :disabled="paper.scorePublished" @click="saveComment">保存最终评语</button>
-            <button v-if="!examReleased" class="secondary grading-full-button" :disabled="savingNext" @click="saveAndNext">{{savingNext?'保存并进入下一份…':'保存并下一份'}}</button>
+            <p role="status">{{saving||savingNext?'正在保存…':busy?'正在生成AI建议…':dirtyEdits().length||finalComment!==base.finalComment?'有未保存内容（'+dirtyEdits().length+'题）':'当前内容已保存；待复核题仍需确认评分'}}</p>
+            <label class="grading-field">最终评语<textarea v-model="finalComment" rows="4" placeholder="学生发布后可见的教师最终评语" :disabled="examReleased||savingNext"></textarea></label>
+            <button class="secondary grading-full-button" :disabled="saving||busy||savingNext||examReleased" @click="saveComment">保存最终评语</button>
+            <button v-if="!examReleased" class="secondary grading-full-button" :disabled="savingNext||saving||busy" @click="saveAndNext">{{savingNext?'保存并进入下一份…':'保存并下一份'}}</button>
             <span v-if="paper.scorePublished" class="badge RESULTS_RELEASED">成绩已发布，当前答卷只读</span>
             <p class="grading-final-hint">本场考试全部有效答卷完成阅卷后，将统一发布成绩。</p>
           </section>
