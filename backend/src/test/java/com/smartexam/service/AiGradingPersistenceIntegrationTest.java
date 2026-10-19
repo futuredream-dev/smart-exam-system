@@ -4,6 +4,7 @@ import com.smartexam.entity.AiGradingResults;
 import com.smartexam.entity.Answers;
 import com.smartexam.entity.Questions;
 import com.smartexam.service.ai.AiGradingProvider;
+import com.smartexam.support.OptimizationTestFixtures;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,26 +25,17 @@ class AiGradingPersistenceIntegrationTest {
     @Autowired AiGradingResultsService results;
     @Autowired AnswersService answers;
     @Autowired QuestionsService questions;
+    @Autowired OptimizationTestFixtures fixtures;
     @MockitoBean AiGradingProvider provider;
 
     @Test
     void successfulRegradeClearsPersistedErrorFromPreviousAttempt() {
-        Questions question = new Questions();
-        question.setExamId(465L);
-        question.setQuestionType("SHORT_ANSWER");
-        question.setContent("测试题");
-        question.setScore(new BigDecimal("10"));
-        question.setReferenceAnswer("参考答案");
-        question.setSortOrder(99);
-        questions.save(question);
-
-        Answers answer = new Answers();
-        answer.setSubmissionId(232L);
-        answer.setQuestionId(question.getId());
-        answer.setAnswerContent("学生答案");
+        var fixture = fixtures.createSubmittedShortAnswer();
+        Questions question = questions.getById(fixture.questionId());
+        Answers answer = answers.getById(fixture.answerId());
         answer.setTeacherScore(new BigDecimal("6"));
         answer.setGradingStatus("REVIEWED");
-        answers.save(answer);
+        answers.updateById(answer);
 
         AiGradingResults existing = new AiGradingResults();
         existing.setAnswerId(answer.getId());
@@ -70,22 +62,19 @@ class AiGradingPersistenceIntegrationTest {
 
     @Test
     void aboveMaximumSuggestionIsClampedBeforePersistingAndStaysSuccessful() {
-        Questions question = new Questions();
-        question.setExamId(465L);
-        question.setQuestionType("SHORT_ANSWER");
+        var fixture = fixtures.createSubmittedShortAnswer();
+        Questions question = questions.getById(fixture.questionId());
         question.setContent("越界保护测试题");
         question.setScore(new BigDecimal("20"));
         question.setReferenceAnswer("参考答案");
         question.setSortOrder(99);
-        questions.save(question);
+        questions.updateById(question);
 
-        Answers answer = new Answers();
-        answer.setSubmissionId(232L);
-        answer.setQuestionId(question.getId());
+        Answers answer = answers.getById(fixture.answerId());
         answer.setAnswerContent("学生答案");
         answer.setTeacherScore(null);
         answer.setGradingStatus("PENDING");
-        answers.save(answer);
+        answers.updateById(answer);
 
         when(provider.configured()).thenReturn(true);
         when(provider.grade(any())).thenReturn(new AiGradingProvider.GradeResult(

@@ -1,0 +1,1889 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-10-19T12:50:45.9587602+08:00",
+  "workspace": "D:\\智能考试管理系统",
+  "branch": "main",
+  "head": "59d1389f31b4931a533390aa684db94dba488e2e",
+  "gitStatus": [
+    "?? docs/phase3/Java主展示题库-FinalB扩充.xlsx",
+    "?? docs/phase3/Java主展示题库-首批迁入.xlsx",
+    "?? docs/phase3/Java主题库-FinalB来源清单.csv"
+  ],
+  "trackedFiles": [
+    {
+      "path": ".gitattributes",
+      "sha256": "C7C5271AD4C26A2420CE44D62702BB5D9DECDB6DAE27E3480781CDF8834DAE6D",
+      "length": 39
+    },
+    {
+      "path": ".gitignore",
+      "sha256": "710CE1EB60839EDC45C7D1462DB813C8A0A559FE8D30D000ED6DD32DB0627442",
+      "length": 1130
+    },
+    {
+      "path": ".vscode/launch.json",
+      "sha256": "558C82F3758BCF4F474615B788B60CBE0D58E56CEB331A379F9374DBCF34EDE5",
+      "length": 1690
+    },
+    {
+      "path": ".vscode/tasks.json",
+      "sha256": "86C5AF31AE5E004C59F51E8D6C5874C94DBA33F655228C0D0D192DF14EA106D3",
+      "length": 3937
+    },
+    {
+      "path": "README.md",
+      "sha256": "D7788D105529744A7A7E14696E8DE2C59A3B81F243FAC4A53DF7563BC9E2527A",
+      "length": 18867
+    },
+    {
+      "path": "backend/.dockerignore",
+      "sha256": "6C917992AD47D0D9B003F02CD25338D0F3E968D25CE0493DAF2949D07F26F286",
+      "length": 165
+    },
+    {
+      "path": "backend/Dockerfile",
+      "sha256": "52A32F90C00E7FFD07572E80A4DB848BC7C90F2A72C9D245629E6CE84084ADDC",
+      "length": 594
+    },
+    {
+      "path": "backend/docker-entrypoint.sh",
+      "sha256": "658642360378A85E401D3E5BE010C7863DD6AD787C09628F4D4EFE57580600DD",
+      "length": 554
+    },
+    {
+      "path": "backend/pom.xml",
+      "sha256": "40C9EF2EBA6FD5C0BA226462281A81721F58A24DB411DD1E217F6516A474DD73",
+      "length": 3865
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/SmartExamApplication.java",
+      "sha256": "56F1C2F249A2F92B1875DA83975D4848BF2AC6CF613664DB65341FD9AC294F1B",
+      "length": 422
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/common/ApiResponse.java",
+      "sha256": "4699CA71242FAEA56F5D0798C4CBB82B0741A7FA69A0B818323218692DBB6B31",
+      "length": 1346
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/common/ErrorCode.java",
+      "sha256": "E85DC10086E9C0C921BAB7F878F61088F68D5474A7A07C8D7809A44AEC197B1B",
+      "length": 738
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/common/PageResponse.java",
+      "sha256": "C972CE1E1D9F2F2520208FFA9515BD22793297A1D1EBD3A4354D6FF0BB407AE7",
+      "length": 210
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/config/AiAssemblyConfiguration.java",
+      "sha256": "205FD392DB03F8DB3ADA2F033EB80753BD5F8F9AA6105D7500FDE3BD973F647B",
+      "length": 1749
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/config/AiGradingConfiguration.java",
+      "sha256": "3D385A9141C6216BEF721D8D9C96E462A73DF81A67A2556CB294F25DEA30057A",
+      "length": 1535
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/config/InitialAdminInitializer.java",
+      "sha256": "D4D5D53E6F7C5B5402D1F61C2EAB1BC90EC11E8BC4E15FC551B62B0F28EFBB85",
+      "length": 1809
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/config/SecurityConfig.java",
+      "sha256": "56D5F46B8A18064AB9B64E50BADFDC6D1DA0A657CC2507499AD658101D93AFDC",
+      "length": 3105
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/config/WebConfig.java",
+      "sha256": "1EA1A748180107DDBACD4504C1A54C7F544CB2D5651FB3391895E104198F089A",
+      "length": 1182
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/controller/AdminPlatformController.java",
+      "sha256": "4718D75228A2FD5AE7BDD5132FC086C150E5E4338E95DBFCE83CC44208A4C9F0",
+      "length": 2655
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/controller/AdminTeacherController.java",
+      "sha256": "8D2BC8F446DE9CCC41E304F161DC3676FDB8D4E27E4D826A052B84E742FC496A",
+      "length": 1381
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/controller/AiAssemblyController.java",
+      "sha256": "3B99327E593BE94D41918EFBEC3DA84FECCA64F457A80A01C8005F2792D336A2",
+      "length": 1943
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/controller/AuthController.java",
+      "sha256": "1A3629729CFD090DA901ADD627FA95EC860F1A2D39197A047682E937B2973074",
+      "length": 2643
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/controller/QuestionBankController.java",
+      "sha256": "B19F04D65920407B5D8684F70CEAA42F3BA78EC826DE6466D26E3ABABD7B96B8",
+      "length": 13970
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/controller/RoleTestController.java",
+      "sha256": "4BC6D46667E349AE1BF3AF7DCB65659867A58CD1564E29695550C17B4C452376",
+      "length": 422
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/controller/RuleAssemblyController.java",
+      "sha256": "9D9D0A7E6EF8088EF5CDAA4DCE2C0160631B242CBAFD1A2536EAEAA655BBECE2",
+      "length": 1814
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/controller/StudentExamController.java",
+      "sha256": "7F39D18C7DDBB2A36F17FF9AE51435F2F5D86C044C4EF82C9FDDB69A3651D0E9",
+      "length": 2402
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/controller/TeacherAiEvaluationController.java",
+      "sha256": "A4E5813A5D127466F69DF5053F46832EC3F5E958E660811CEF3D9AF0C7C90EE9",
+      "length": 1255
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/controller/TeacherGradingController.java",
+      "sha256": "9E506C3DB92AA2B80794EB69E99143091F299D2DEDD43E353A22CA7B078F3BF6",
+      "length": 2815
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/controller/TeacherGradingCourseController.java",
+      "sha256": "E36F6FB0EC0E674E18C5EBBAABDEB53C9AEF928CF552BCC3D19BC2E2D1064052",
+      "length": 888
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/controller/TeacherGradingTaskController.java",
+      "sha256": "193B145BC2057798B1C65ECCFB31799C4F1F904FBD1789D9CA695C6F7DFE0F97",
+      "length": 1183
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/controller/TeacherManagementController.java",
+      "sha256": "8E6FE2CF78F38765E3B57FD8D3826C81F950AA1ABF0E4DD6542394C11E7DFED8",
+      "length": 13211
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/controller/package-info.java",
+      "sha256": "642A868FC4718803DAEE20672814381C2D85D269264B19330385CA613E0D676C",
+      "length": 68
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/dto/AdminTeacherRequests.java",
+      "sha256": "A5CD4132F787C7D2133CB42B55B98C6FE5E4D0565A9BC93E081E6ADFF95F9945",
+      "length": 527
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/dto/AiAssemblyRequests.java",
+      "sha256": "03D3CA1CA40A9B2BD314E82DDD6A5FB7E9070F5E336952CB0189BD7B368BDF94",
+      "length": 690
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/dto/ChangePasswordRequest.java",
+      "sha256": "18CA496005E6D26E64321D73860968C87F312B5280544061ABB37EC808BE44F8",
+      "length": 275
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/dto/GradingTaskQuery.java",
+      "sha256": "96A1DB4C3D2D1DC0806E4301497069D17A7B9B3DDFF2904EBDD470C8895D0DEC",
+      "length": 993
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/dto/LoginRequest.java",
+      "sha256": "0216C0C52F6ECC1DACE41D6056958258631F7B45FEB0C230F913D88B48FB597D",
+      "length": 226
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/dto/MvpRequests.java",
+      "sha256": "332D7A6708D72A15403A37A270B70EC8D9941DFBE36D142374E6EEA6BEA0CB6A",
+      "length": 514
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/dto/QuestionBankRequests.java",
+      "sha256": "A3ACF3C4DE476E055D535016717ABD1E834F9660DD35F0C8288AF206CF827F1C",
+      "length": 2352
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/dto/RuleAssemblyRequests.java",
+      "sha256": "1DA300EE2E17291974EC6AB1D36D4338929569BF44CC7A2E1850723F740C33C8",
+      "length": 1590
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/dto/StudentRegistrationRequest.java",
+      "sha256": "73006E6EDDA16E9B6F6FECD2728D245B9DA79202EA0B1941823B8790C6517D73",
+      "length": 595
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/dto/TeacherRequests.java",
+      "sha256": "F7D4914D1CED87D77CD032728CBB8CE278F8D36B13DA9DC5BD51C5DF5963C5EA",
+      "length": 2330
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/dto/UserQueryRequest.java",
+      "sha256": "579259C87F9B4BA1F9BB86D7B9A1AC310DE1B1EC1780EBF3A0350B31E8774386",
+      "length": 140
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/dto/package-info.java",
+      "sha256": "48C44970B21B73992DB5CD4FA36F5AF80730C11AB3A8E8E4B20A0D27D3635D15",
+      "length": 77
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/entity/AiGradingResults.java",
+      "sha256": "372E5C59778B193D2F0F6E12A1FCC397CC446C1E82D3A86C8F212D9E05743297",
+      "length": 844
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/entity/Answers.java",
+      "sha256": "72039CC05AD33CDAB8472945C3FA24617933FC8ED72183130EDC37FB167E980E",
+      "length": 786
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/entity/CourseStudents.java",
+      "sha256": "3D03286BAEB58161157898716C7127B5FF61B243B37D7DC8CD696710E9AAF0F0",
+      "length": 425
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/entity/Courses.java",
+      "sha256": "955E4E640E641367930B99834B416AC1250ED85B97B9BAF3820E2E924E4B11DF",
+      "length": 481
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/entity/ExamBehaviorEvent.java",
+      "sha256": "B2D9C78E857090CEE31B36F84C997512DEF12AAB034318BA98AC8539330D510D",
+      "length": 756
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/entity/ExamCandidate.java",
+      "sha256": "93E25BEC5E73BAA8A69A4A5C988121CEAF4FD951BD141E4E7CA6B56E724E07DA",
+      "length": 617
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/entity/Exams.java",
+      "sha256": "E3ACC53B47557A059A0AEB85AB09AC2E3232EAD845EDE0DFB709694941CD2799",
+      "length": 1072
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/entity/QuestionBank.java",
+      "sha256": "2BC09C5172EF0D666FFEA64F19AE2A7264ABCEC5048D0F1C8C7800C7A37429DD",
+      "length": 615
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/entity/QuestionBankChapter.java",
+      "sha256": "FB4E43218749153BC74E53548C7C4F2336F63EC65AC529CC84FD850EFDAE4539",
+      "length": 595
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/entity/QuestionBankItem.java",
+      "sha256": "3E2372FAB2A667C53943A7CED58DBA5ACE0F05B60D83D5CBA4AED2B163F5C663",
+      "length": 964
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/entity/QuestionBankItemKnowledgePoint.java",
+      "sha256": "EC840BB4B74D99E886948C06FA3015444D3F3B5F0EE2F5A5A631B36BA938719F",
+      "length": 319
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/entity/QuestionBankItemTag.java",
+      "sha256": "1B37070C37F7655A37604C4D515EE4FBAFBB0A4AA835360C5B77376D94B00465",
+      "length": 273
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/entity/QuestionBankKnowledgePoint.java",
+      "sha256": "42BABCAEA1484A7198797955737F4408941AD12671C5B6AF01AC8A3B274B8A2A",
+      "length": 533
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/entity/QuestionBankScoringPoint.java",
+      "sha256": "081E857E03F65127A5AFA3CFF721E10B61BEAC092F67382D742635F104DC2A4E",
+      "length": 616
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/entity/QuestionBankTag.java",
+      "sha256": "01864C97A91FD57415D09615F02E625F14D9ED32C24DFFF5A0265D5C143BC1B8",
+      "length": 451
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/entity/Questions.java",
+      "sha256": "5E61406287CBB0294DFDE93D56F7D10481C4F15288C17F3775D4342B189DF94F",
+      "length": 773
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/entity/ScoringPoints.java",
+      "sha256": "E2B12FE804BDDC95A189E09DE94595A76BED8F9FD1C7D0D51295295D234AF021",
+      "length": 462
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/entity/Submissions.java",
+      "sha256": "85B34CC5D44842AF784ED2394461D4A0C25DFB7F6C7DDE8A88625AA5ADE08402",
+      "length": 948
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/entity/Users.java",
+      "sha256": "CC60C7B0CE8596F57FD6B7DC089022A2271565EDFC9B0017E40AC7D64858E2F2",
+      "length": 619
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/entity/package-info.java",
+      "sha256": "DBD4A6DE1D6EA706465E66C828D7DF27ACEE5D63D57EF81711DCFE9E6A354A42",
+      "length": 69
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/enums/ExamBehaviorEventType.java",
+      "sha256": "E055A64180CF689D2A80C40A383159C1E61E4A77866CC3A364CB1BC575C339B5",
+      "length": 113
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/enums/ExamStatus.java",
+      "sha256": "2DA2A4839C18EA61CCF9BF36445542467FAAE8979581228D137BEA4E273E5103",
+      "length": 94
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/enums/GradingStatus.java",
+      "sha256": "B622528E644FBAD7CEB3D03C0C05EF19169E860963C97764FF8E45D369BF90B3",
+      "length": 103
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/enums/QuestionBankItemStatus.java",
+      "sha256": "1497B46E737CE6F65B708734A7DD085FDC23F8A2EDB923AE9466EBCE72258D79",
+      "length": 95
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/enums/QuestionBankScope.java",
+      "sha256": "F897831F84F94EC95BFC349528FFBDB50AC633FA69B7CC8746A491469731877B",
+      "length": 85
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/enums/QuestionBankStatus.java",
+      "sha256": "45118F68080CF25E8EE0D9084A1063763AD1DE88D74A89C821823FF7C1162502",
+      "length": 85
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/enums/QuestionType.java",
+      "sha256": "25F7F98994AAA3D2BE75740B1E5396DDC1CEFD088B830E37C98CD8616E6DC3F9",
+      "length": 88
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/enums/SubmissionStatus.java",
+      "sha256": "B6920D931ADF889DC57EEB077F9B0D47EE2CA86E5B0927B9928D3E3987100E8F",
+      "length": 111
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/enums/UserRole.java",
+      "sha256": "9B0A912DB511803583D0764DB9A8CC7FE190388131BDD28AD30AAF11E06DC6FC",
+      "length": 80
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/exception/BusinessException.java",
+      "sha256": "0C93ED2BFB5FB3EFB00F13C6A4091AC4005DF9B2E87DBB92E527271A5BA54B88",
+      "length": 741
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/exception/GlobalExceptionHandler.java",
+      "sha256": "5B75D867F36DAE439E7FA9317F33DD1ABDD0149FA0FE45D57703A3C64D4763DD",
+      "length": 4667
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/mapper/AdminPlatformRepository.java",
+      "sha256": "C4DBE3147C4E09D52478727D5F9E9967B88C73602078303CF9AC5866CA6EAF8B",
+      "length": 6078
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/mapper/AiGradingResultsMapper.java",
+      "sha256": "8A361DBC531EEE98F236797235035C0E581520C10B179FF289A1FE9B27BE9C1C",
+      "length": 446
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/mapper/AnswersMapper.java",
+      "sha256": "1FE6787B072A2D55780927B7F2CCE9D052914C6F94F7FC5D068E3232C4D8921E",
+      "length": 888
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/mapper/CourseStudentsMapper.java",
+      "sha256": "59F7B7F52E47673240A48C2A32B4C170CCE7B2829CC92B7945A8DAB9880FC8CF",
+      "length": 655
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/mapper/CoursesMapper.java",
+      "sha256": "C2A6443BDD7E1CF0CD939F9D05C6106A9F1A65DE661AFAC2A6DB0D2C96AD4754",
+      "length": 436
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/mapper/ExamBehaviorEventMapper.java",
+      "sha256": "31344F4B07C369B84DD9F09D373988D0DF9C83B3E219B47A56E80171189578A6",
+      "length": 601
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/mapper/ExamCandidatesMapper.java",
+      "sha256": "5113DC90EBD990F50220AAD596DB4EAA1ABCF8AB3E9A2BF77C9BC2E4830C0FAA",
+      "length": 759
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/mapper/ExamMonitorMapper.java",
+      "sha256": "66653B3DC9854BB542AE2E67DDD97F137626B040CE2E65444E63FF6DD5A4A2D2",
+      "length": 2787
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/mapper/ExamsMapper.java",
+      "sha256": "C668FEF1E422A7D0369738D15B5EABF9BDA6C6A69CF463AEBB2826CA399E5593",
+      "length": 746
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/mapper/GradingCourseSummaryMapper.java",
+      "sha256": "00CE2710E78E716AC33B53CC727C5091F034570AD4E938F6F76FECDBA64E23DB",
+      "length": 338
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/mapper/GradingTaskMapper.java",
+      "sha256": "030CFEFE9696904B75E1E87280219D967BE7E3FA7C161C68725BBE46F745B022",
+      "length": 735
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/mapper/QuestionBankChapterMapper.java",
+      "sha256": "0400B8B83246645A9E086ECCBDDB2E853F234A27CD084DF29635248942629BD6",
+      "length": 274
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/mapper/QuestionBankItemKnowledgePointMapper.java",
+      "sha256": "E7621AB27B5B739DE5F436908DA905DBC3334370C7E9AB6FEB9FE0C1D64C97DB",
+      "length": 307
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/mapper/QuestionBankItemMapper.java",
+      "sha256": "48F2F33332F91F451933B791C633AEC0861DBA1094E44020757762F0932D051C",
+      "length": 271
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/mapper/QuestionBankItemTagMapper.java",
+      "sha256": "B469B85030F1839F9A20A9DABC25EA01B24AD80373191F637A254721E5C004B2",
+      "length": 274
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/mapper/QuestionBankKnowledgePointMapper.java",
+      "sha256": "AE9E745826BA78A5EBA07B0B537380C070126D6346E1A622DF66260CE799A884",
+      "length": 295
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/mapper/QuestionBankMapper.java",
+      "sha256": "EFCE1F8ED20DA2F4242DECEB791EE0D95B1F0549E2371FF069053F7DBBFFF98C",
+      "length": 259
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/mapper/QuestionBankScoringPointMapper.java",
+      "sha256": "7AD58F1198C834D31718AF4B5DE28F4FE2F11EAB27A14B103D5CBC07778CEF49",
+      "length": 295
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/mapper/QuestionBankTagMapper.java",
+      "sha256": "1789C15C5A44CC9F9D242D0FD69140B1392D43783E123F7DDB1EE2E87A07E5FE",
+      "length": 262
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/mapper/QuestionsMapper.java",
+      "sha256": "E1EC61FDC18ED25FFCFD435ED500D6629A405FD695D1EB31BE2B11365A2E6DB9",
+      "length": 446
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/mapper/ScoringPointsMapper.java",
+      "sha256": "2E680F84F47D518D712B6B70273DB92BBD1986CDBF4841C81B82D88AC2C70BAE",
+      "length": 483
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/mapper/SubmissionsMapper.java",
+      "sha256": "82C61185967916A685E97B343282352AC050BE0E9EE0F13564FA03101452CC22",
+      "length": 1104
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/mapper/UsersMapper.java",
+      "sha256": "A0BFDECEC1625B7B95336480CE52321DAD2B7834384F3000B0A3CBEE837F9D50",
+      "length": 390
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/mapper/package-info.java",
+      "sha256": "45A5E80DFB1625AEBD6E614844BA11A35A72ECA8B813E257237B167D3FA77F04",
+      "length": 74
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/security/ApiAccessDeniedHandler.java",
+      "sha256": "052CBB99F18E9B02C02027604B60368167C8C81ECBE85092CD23BD6CC348507C",
+      "length": 1525
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/security/ApiAuthenticationEntryPoint.java",
+      "sha256": "0354047013AD91E14B646700D65B566771F98568573923F98E8E482D8F13D548",
+      "length": 1480
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/security/DatabaseUserDetailsService.java",
+      "sha256": "6F8D6D1B279FFF57AEFA09B480BD8DFD7677B5CF13ACB065879493E7C35BE499",
+      "length": 1363
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/security/JwtAuthenticationFilter.java",
+      "sha256": "42FA40BB1B48E96765AFF1A1F841CD6C9F92102D1B8AB80FAD7994615DC2B1D5",
+      "length": 1939
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/security/JwtService.java",
+      "sha256": "F0F1A9CA32F6C328C1B28952F0F1F59B9A875748A941E49F877C92A854A4153C",
+      "length": 1243
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/security/MustChangePasswordFilter.java",
+      "sha256": "9ED75A6A39CF66ABD5426B50437FB0839724923AC3920BA0A824BCA19DFF5B8B",
+      "length": 2341
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/AccountLifecycleService.java",
+      "sha256": "1B298175041CD22B809F9AF177BA7478E7D3D32C5B17A45FB225E905F37364C0",
+      "length": 2898
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/AdminPlatformService.java",
+      "sha256": "ACF90F980EB399C6165D9B3B7C64CA2B14D474817C2FAC29674DDB2374000B5B",
+      "length": 4918
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/AdminTeacherService.java",
+      "sha256": "5422951323A3F79EC63A25D2ADAC33C5FB58FAB6D1FD9CA42F9604886B742927",
+      "length": 3669
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/AiAssemblyIntentParser.java",
+      "sha256": "5C2BE0725DA6A5F36B5BA4A905D0D16472D5F64E527E4CB10FE289D764B2710F",
+      "length": 7599
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/AiAssemblyLocalCandidateScorer.java",
+      "sha256": "C6584FDD07939BF1B5E0B1602A0C0E4D6DE9F3DEC5417B3A25E9905E9F0C7C77",
+      "length": 5105
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/AiAssemblyMetadataResolver.java",
+      "sha256": "B71B647EBAE1EF38AE5EB178048F8BAF5BB9BC61FACE6220A0F1D0032DC0726C",
+      "length": 3261
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/AiAssemblyRankingParser.java",
+      "sha256": "B10767018FB10C07AAE7BDC9576726EDA6358BA69ECE05E56906E4AAF9A17DBF",
+      "length": 2303
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/AiAssemblyRecommendationService.java",
+      "sha256": "B37AE54C7F0A9F52787AAD79CF24F398D87785965311E3319A85A650140F0C65",
+      "length": 2834
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/AiAssemblyService.java",
+      "sha256": "FF0FB368DFCD41A5BF46287441AAEE1FFD7F39CB15FA42E7549AD562C89A25E7",
+      "length": 4064
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/AiAssemblyTopicKeywords.java",
+      "sha256": "4993D914C4EE52FFD428668C8EC3EA580364C65967C2BB0B9CB2D3FF510FB384",
+      "length": 1502
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/AiEvaluationService.java",
+      "sha256": "B314A920AE1629C548E052346CFBCFB15900BBD0A14D6F3B51C3677D78C6282E",
+      "length": 7791
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/AiGradingResultsService.java",
+      "sha256": "69F20ABA6ED78E44DC04FD2C2BBE9BDE57A293B4A227DF559C6C722A5B6563EC",
+      "length": 463
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/AiGradingService.java",
+      "sha256": "6F8B6029A5E7820859FD5A321C9EAE5841D463C610F29FC9B154F1C7D2F0E7C1",
+      "length": 4305
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/AnswersService.java",
+      "sha256": "90736CCAD9EBF60888434C6A0DFDE5840DFB8798C0210356B4B9AE331BF12858",
+      "length": 726
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/CourseStudentsService.java",
+      "sha256": "FC118DDE6F80F5F48FBCEB63C3C8CBF8917DD428DFC9E8DB41955681DB123CA8",
+      "length": 605
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/CoursesService.java",
+      "sha256": "72F05ADD9A8B814EE625E9AD245122A494E87E1A47EDF233EB081CDA39DD7593",
+      "length": 442
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/ExamBehaviorEventService.java",
+      "sha256": "70890336B4D6BD83AF5B63ECDEF34B6912FD739006EF39B00028FE3B5630E95C",
+      "length": 1248
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/ExamCenterService.java",
+      "sha256": "E23D4AF9A7FC690FF29D21C2DCA3A604FFF5856DDC96F380CE465209A91D3B11",
+      "length": 10107
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/ExamMonitorService.java",
+      "sha256": "E7CB0602044D1425C9B191471D7DB32DA968CE40545C664DA91A86C1314172DA",
+      "length": 5137
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/ExamReentryEventRecorder.java",
+      "sha256": "2CB2642F21B49B354768007131BC9518782CA0333B533B2E5FB88B180285048F",
+      "length": 1923
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/ExamsService.java",
+      "sha256": "4C85E8988DC0C7691A540E5FA92BAB2F0499A584A0D00B8CACEA12538E9A18F8",
+      "length": 599
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/GradingCourseSummaryService.java",
+      "sha256": "C13567F1736EC516B5E2AE3B2713C6B32B7AFF3894DD73A036C791AB03FCFD42",
+      "length": 1192
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/GradingTaskService.java",
+      "sha256": "45B9615BF4B8A73E75DADE5D1F7F0DAE538C47CE8C4EB25212D075CBD5203799",
+      "length": 1983
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/QuestionBankExcelImportService.java",
+      "sha256": "B5809C8ACF8C5B8051A7A5531D89C437E0844925898B67E7DE3C7C5C2F5961D1",
+      "length": 24075
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/QuestionBankMetadataService.java",
+      "sha256": "E41A31A87DE76DEFAF0A5539925F87C63C8ACBC7177B96257041298B8D48E392",
+      "length": 13706
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/QuestionBankService.java",
+      "sha256": "6725F78FE5D1FD0F3434E0F37ABCD061D3A925E3857376E2E9580FA14369AF14",
+      "length": 32313
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/QuestionsService.java",
+      "sha256": "19252B83842AF7A7EF05A150BC4155C461C318219471F5CB4273D3EE2CB1F0B5",
+      "length": 442
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/ResultsAnalysisService.java",
+      "sha256": "C4158345196B60051DB019E25713D8B2B0825ACB6278528EA1A664E3D7D50F7B",
+      "length": 6943
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/RuleAssemblyMatcher.java",
+      "sha256": "2D9F61BF0CD41BB0BF5CDBA642D247E0C940A01A860B98077CCDEF5B1E193458",
+      "length": 1828
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/RuleAssemblyService.java",
+      "sha256": "D57DC0AAA1C15758E977E9BE9391BD385304E0517B34577C6B0D01936E58C280",
+      "length": 28667
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/ScoringPointsService.java",
+      "sha256": "35593EE92FB6E45BE5531DAC70FE12596AD3742E36ABA2D5A885DA769867009D",
+      "length": 482
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/StudentBehaviorEventService.java",
+      "sha256": "56894317D5E65836028359C6BA0BDECCB1FEFAE2A8868D3E2AAEF071E2BACEE5",
+      "length": 3388
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/StudentExamService.java",
+      "sha256": "6FDDE8930DFFF53E703F4AD5E8ABAA3E194EC4A884ABEB2BF11AD5B778BC5C94",
+      "length": 12217
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/StudentExcelImportService.java",
+      "sha256": "A34516A8C3DF1F5ADB6D7CE62DF95F2BFCDA3E8CF459E76009D841B5F4CAF69B",
+      "length": 16187
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/StudentRegistrationService.java",
+      "sha256": "008D84AB0DF503112C9634FBE740B30B2435F7E2104F161A96CF8E34DBF9782B",
+      "length": 1807
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/SubmissionsService.java",
+      "sha256": "6ED57A21641023D219B00F8F0575220CD8EECBA43C0E85992BBD03B0A10E8BAD",
+      "length": 896
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/TeacherGradingService.java",
+      "sha256": "6DFBE77CA05404D3B1422C5B65BCBF50368E49375FFD0BC8D2B0ABE0CF415C98",
+      "length": 12229
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/TeacherManagementService.java",
+      "sha256": "62B544D2CC9403EBD66092D1E034BCCFB29CE5F498CFD84F37608FC58215E7C5",
+      "length": 49340
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/TemporaryPasswordGenerator.java",
+      "sha256": "963B20DA9A0785E153B7A55E2047FDCF1C743C714F81781EAB808136C0AA8065",
+      "length": 1194
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/UsersService.java",
+      "sha256": "EC5BB644D85F8BD8C33DD23ABAF6B844FD4BEE49C3BEB426B53D662839510595",
+      "length": 399
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/ai/AiAssemblyProvider.java",
+      "sha256": "731E5F460D426E270FA9070EB364BB968B2508062EED0C753C11F09F25882F10",
+      "length": 162
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/ai/AiGradingException.java",
+      "sha256": "E1536AD04141A3EC57DA554B493A93CD957832F976DCA9754B366787B6F0F418",
+      "length": 258
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/ai/AiGradingProvider.java",
+      "sha256": "7FE52180457B938870D1A7E0F5547A0D1B9BB04107880550E36B6EA0A52BCE6D",
+      "length": 612
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/ai/OpenAiCompatibleAssemblyProvider.java",
+      "sha256": "8E7AA7F65511EA12AFAFB5528D78321D9222E7B40979A4246D81689263B0CC21",
+      "length": 1601
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/ai/OpenAiCompatibleGradingProvider.java",
+      "sha256": "B2F1ED94021F3376EB2236E444BB5033DC89E57E38D833C27755F66D23AF4F23",
+      "length": 4816
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/ai/UnconfiguredAiGradingProvider.java",
+      "sha256": "5BBE06D96EF4FC2C1D3AFC89C70815561AA3D8B64E8C38A209980ADA95A6AC4B",
+      "length": 403
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/service/package-info.java",
+      "sha256": "CDB1926A0E082AA58553F1F490F8B2F846DF614B58167A762A0EA66FA199170C",
+      "length": 68
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/vo/AdminPlatformViews.java",
+      "sha256": "9B483F25A1788E63C940CE83ABC0264676FDDE64B1D9B56F4053928FD57D5482",
+      "length": 1564
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/vo/AdminTeacherViews.java",
+      "sha256": "E40D0F333F5D5E18867FEF97716BF66B7A9E38FF6CD8D23045B3692855A4DE04",
+      "length": 575
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/vo/AiAssemblyViews.java",
+      "sha256": "7C9B9A7C59573EFBDCED0EBF8B06468E4E125471EC1076DED2B62F8E33660C9B",
+      "length": 644
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/vo/AiEvaluationViews.java",
+      "sha256": "53E7AAE12DC03959F6281A7182B77D516D5CF9EC8A3F8D27C723A8D969867122",
+      "length": 1306
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/vo/ExamCenterViews.java",
+      "sha256": "40F949FEBE1269E5859B58ADA396BCEB7D2DBC9C68FA9215AC7BDCDA9ED29830",
+      "length": 1793
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/vo/ExamMonitorViews.java",
+      "sha256": "988E4FBF524466195FDACEC3A3EE9DB2272976AC1DE865FD2599953A36764292",
+      "length": 1112
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/vo/GradingCourseSummaryView.java",
+      "sha256": "BF5187D5653150D403F767B2B97090F4250FFB27226B59B3176B3F00227F49D9",
+      "length": 210
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/vo/GradingTaskSummaryView.java",
+      "sha256": "6A25BE2D2D93C5D46BAD0BBD805FF79148F475C614E0FBE8ADA263813CD8AE7D",
+      "length": 327
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/vo/GradingTaskView.java",
+      "sha256": "317A0A70CF3F51BC0EB38CFEC8F3B8C5549BB1F05257F52044719EDC27A44829",
+      "length": 1093
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/vo/LoginVO.java",
+      "sha256": "FAB1AF0FB4BE8C953F1C4D28DA55B87DB8DF5E202666F0C9AD4A427D2C361F19",
+      "length": 81
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/vo/MvpViews.java",
+      "sha256": "328FF553688B086AE8594932C09BB1DBE5DD2A427E759EEAA40C65F53D952BEA",
+      "length": 2862
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/vo/PasswordResetVO.java",
+      "sha256": "299FF1C6973117555ED03D8327EE0222C20BCE2151347FC3AFBC213BDF50211C",
+      "length": 135
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/vo/QuestionBankImportViews.java",
+      "sha256": "5BD2656A8AA6BE021AD9D8CC7F840248865D97109ED8BB33EE6A7A5C2BE0470C",
+      "length": 832
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/vo/QuestionBankViews.java",
+      "sha256": "7AF456FE8C552F9074C0503233530870DD1DB733C26E4DCE6CC063E53932509C",
+      "length": 1661
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/vo/ResultsAnalysisViews.java",
+      "sha256": "DBCC87AE3611BE561CBFA797D39E59EE311BFC7188A039D46041BC89893DA438",
+      "length": 1190
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/vo/RuleAssemblyViews.java",
+      "sha256": "C1A750143961EF4B0560864C8D15521E7245F729663F17DE1F9013DC093C8AB0",
+      "length": 1197
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/vo/StudentImportViews.java",
+      "sha256": "B8A24C4A6B8C7842BE8055F505E5A94395F425B0B001D1C261A89DF37F05D500",
+      "length": 807
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/vo/TeacherViews.java",
+      "sha256": "5D107547780B92F349B5B9E2414F08E0540410EA3DF56A1E7E9024449FD7559B",
+      "length": 3684
+    },
+    {
+      "path": "backend/src/main/java/com/smartexam/vo/UserVO.java",
+      "sha256": "4B57E6E9D4AC79B15E2485E403EACA649D72A6DBD3E423B3E9508D5AFB1FD309",
+      "length": 366
+    },
+    {
+      "path": "backend/src/main/resources/ai/intent-v1.schema.json",
+      "sha256": "4D1FA9FBD1B3731A70C27311D17F2624F65598EE0BEFFC1396F0DCE2314D16A3",
+      "length": 3658
+    },
+    {
+      "path": "backend/src/main/resources/application.yml",
+      "sha256": "D62AE5F7A361E32C259A50C31ED1590F8BB89B602C3CD2610B0E0154A4C1BA7C",
+      "length": 1696
+    },
+    {
+      "path": "backend/src/main/resources/mapper/GradingCourseSummaryMapper.xml",
+      "sha256": "DDA60905D466454036566A62B5E411216E800522EC3246CD4DB6B398788A64BB",
+      "length": 1880
+    },
+    {
+      "path": "backend/src/main/resources/mapper/GradingTaskMapper.xml",
+      "sha256": "BB4113A89BB18773101C1EAFC42D2B0DF1737C129761459ECAB0E1E482A40E74",
+      "length": 5588
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/admin/AdminPlatformIntegrationTest.java",
+      "sha256": "8B78F2C2D93D67C529A53BE3F1581E6EE60F4A8949156A09C2B8D5E3854A1151",
+      "length": 6340
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/admin/AdminTeacherAccountIntegrationTest.java",
+      "sha256": "DCFF748D21C15453B33F3ED148DDE415A3847FD7F1FB1045FEFD1CA7AAC5C775",
+      "length": 7614
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/admin/InitialAdminInitializerTest.java",
+      "sha256": "0B3EF3A7A9030D695BEEEFECFEFE96ADCCEA46B1561950C532970570AF276DA9",
+      "length": 2918
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/common/ApiResponseTest.java",
+      "sha256": "D96EEF5890837EEC9D7C2F06E99E95F50498505AB894E2F8772EA63390C0B038",
+      "length": 2138
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/mapping/DatabaseMappingIntegrationTest.java",
+      "sha256": "2A69657A1A63A098266A612CDB1B41AE2C7CBC4F1E57F9C6AC0B0CC044ADA866",
+      "length": 5689
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/mvp/ExamCandidateSnapshotIntegrationTest.java",
+      "sha256": "5439D3FCD0A988AF61059507657AFE451C7237229C22226427ACFB6268F44C60",
+      "length": 10876
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/mvp/ExamResultExportIntegrationTest.java",
+      "sha256": "209798A792199B2DF1BB7785285732FEB2F2C2DFEAF658F437EAB4C8BE897311",
+      "length": 11973
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/mvp/ExamResultReleaseIntegrationTest.java",
+      "sha256": "29748ED6561E6FDE97181B1133C7CF42D1409BBC6EA782076D1C6B323B2F958E",
+      "length": 16093
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/mvp/MvpWorkflowIntegrationTest.java",
+      "sha256": "D6901209FD16C39938391B83843A5F09D398457B1FC302710161210E8D802ECC",
+      "length": 21385
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/mvp/StudentLifecycleIntegrationTest.java",
+      "sha256": "3DB3160D4AAF4CC9CA68FB23596C964A14DE4C2D6D51C844E15556919A29C047",
+      "length": 9213
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/mvp/StudentResultDetailIntegrationTest.java",
+      "sha256": "A74196518377E1EA691C8EB64E2F652F679EC69B6FA71A94A0E6497B5005C3F8",
+      "length": 9025
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/operations/HealthEndpointIntegrationTest.java",
+      "sha256": "FC88CA8E51C709B17014DCF1A6DE461A4E244C1268DD89417F3C2412792C97D4",
+      "length": 1113
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/questionbank/ManualBankAssemblyIntegrationTest.java",
+      "sha256": "D9D93F75D30D555AD9B98BEB5955D363A9EE5F62B13F349671371D53A55B00AA",
+      "length": 14297
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/questionbank/PlatformBankIntegrationTest.java",
+      "sha256": "6207B10A74B9D7F2550E596FD9825A2F197F9BCE12F68D734F6A05324DC62610",
+      "length": 21252
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/questionbank/QuestionBankExcelImportIntegrationTest.java",
+      "sha256": "25273E40FBD8EC69FCB9E481B6FA45B1F73DBD8057E6C4FF889DFE29F3CCF170",
+      "length": 13168
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/questionbank/QuestionBankExcelRollbackIntegrationTest.java",
+      "sha256": "ADB7B442146B479374F3EA8D6B486844DE553B7032750D2DED9D1BCBE3370D06",
+      "length": 3817
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/questionbank/QuestionBankIntegrationTest.java",
+      "sha256": "95C2550EE9AC4BB650BBAE23A3522DA48FCDF5931372E0F756C33EC649DE2F6B",
+      "length": 35633
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/questionbank/RandomPreviewIntegrationTest.java",
+      "sha256": "6191335E964C9FEA19997A92F56529130F6B51B77D948598988292E0289BE53E",
+      "length": 20926
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/questionbank/ScoringPointSnapshotIntegrationTest.java",
+      "sha256": "5920F4D33E82AC2FAC3FCDC46DAE18C096E3A2ABA38CECA2A8290A3EFADE0CEE",
+      "length": 22618
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/security/AuthenticationIntegrationTest.java",
+      "sha256": "9AC18AC5CCCD047F59796C9EE2E2F907924E74BFAB5121A3A695642EC2F76DBA",
+      "length": 5978
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/security/PasswordHashTest.java",
+      "sha256": "C0435EB2CBCD4B99ACCF13C7CFC29F0317759DD740F31F55709EA19DCD5D4A23",
+      "length": 530
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/security/StudentAccountLifecycleIntegrationTest.java",
+      "sha256": "A6863013B8D8EF9888745DD451A266BBA5564AE147A0368A13FC5272D10429FF",
+      "length": 8031
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/security/StudentRegistrationIntegrationTest.java",
+      "sha256": "56ECADD46B564A9917AEEF27CFBC4FF8ED2CFCFD0FF505E01EF8F1446C410F28",
+      "length": 7049
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/service/AiAssemblyIntentParserTest.java",
+      "sha256": "68D2652C720AE9646A16C9AE36B3276F3859E0C45DBF935FDF65C0F499F137BA",
+      "length": 2720
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/service/AiAssemblyMetadataResolverTest.java",
+      "sha256": "517904D389DCEBFA765EFD9A3DDB28E02057FA08BB40DEE4111C6F4543214F4E",
+      "length": 3429
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/service/AiAssemblyRankingParserTest.java",
+      "sha256": "43A2A38C58152200555F0AF3E5AC758111325247C57BE506004667F3B8BCD7BC",
+      "length": 2157
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/service/AiAssemblyRecommendationServiceTest.java",
+      "sha256": "B02CDD0C076CACA4253C42AA1F3E5CA95EA21F414591268391C6A2E78192AA5F",
+      "length": 5054
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/service/AiAssemblyServiceTest.java",
+      "sha256": "11DBAF5EE597DD1779D9D0C311A6817862F9181F1A6CDEA27D1CDD70410FDB58",
+      "length": 3003
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/service/AiAssemblyTopicKeywordsTest.java",
+      "sha256": "A893E877783B3A28A3BDE9B525D76E5A034FFA19EB83E7BABF8E81E4B52A4406",
+      "length": 901
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/service/AiGradingPersistenceIntegrationTest.java",
+      "sha256": "8D5DC751889293E6C033B7BA33C02FD2D585B54A8406788DE5D1A64651D4B1E5",
+      "length": 4583
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/service/AiGradingServiceTest.java",
+      "sha256": "762FBE3CEC0ACCC4654D4875482B209370716002916385042FD886A9AA5B8DBE",
+      "length": 10823
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/service/AiOutageFallbackIntegrationTest.java",
+      "sha256": "3BB6E08BD43DB6FB0F4D9F682760E8DDDEC1FBF8E86D6EBE1E8E7D3B7AD2CB6D",
+      "length": 22295
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/service/ExamCenterStageTest.java",
+      "sha256": "CD25D87192076BD1C45E49897AB103D452E49E89CD9651BAFAB8D6C6ACFAAF49",
+      "length": 3702
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/service/QuestionBankExcelImportServiceTest.java",
+      "sha256": "A74416046992812806E7F4C38B80B41E7C35E62EF35B81BF5126CFD43A4D4BC7",
+      "length": 8326
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/service/RuleAssemblyIntegrationTest.java",
+      "sha256": "974D8DA0C2B48B8FA4DF8267D80E4C03F736E162816F812E2880BEA62982FECA",
+      "length": 63860
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/service/RuleAssemblyMatcherTest.java",
+      "sha256": "F9DF4C8AA4D5CCFF846A954002DF8906AFA9DA5548F5E9B42E55FCA066A964DA",
+      "length": 2174
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/service/ai/OpenAiCompatibleGradingProviderTest.java",
+      "sha256": "53F5CAC4DDF988424C4A2FCC78AE4EB9356E923589CBEFB4E5B3143215CA9C87",
+      "length": 4011
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/student/StudentBehaviorEventIntegrationTest.java",
+      "sha256": "59A2A97AF348E6543A139243FD8D531483A3747C045BE29B4935C9B1408BCF54",
+      "length": 10253
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/teacher/AiEvaluationIntegrationTest.java",
+      "sha256": "BC84BF0A22C414F69E8859E16C9B04CC5A12AD18602FE14B1F7EF117BE328990",
+      "length": 11028
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/teacher/AnswerClearingIntegrationTest.java",
+      "sha256": "A5FC7FDD0045F50979CEDC599D74C60771B79AF40AB79922B6869D4A54709DE4",
+      "length": 3882
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/teacher/ExamCenterIntegrationTest.java",
+      "sha256": "4A7D9EAF703E486467BF78A4FEE47AAF3DC94F37BDFB9008BF6DF609360DCEBE",
+      "length": 10779
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/teacher/ExamCopyArchiveIntegrationTest.java",
+      "sha256": "6ABDEAED3BDD963E9CA0E6F5B67A99E1A90FF428A55A9921B0C92A12DD82B42F",
+      "length": 7651
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/teacher/ExamMonitorIntegrationTest.java",
+      "sha256": "BA9A8B86FCB5B92A904E19A0F67AA1EE6B8C5E0D256FB822198E5AD1049BB01C",
+      "length": 12170
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/teacher/ExamWorkspaceIntegrationTest.java",
+      "sha256": "DE0AFB7A57106C15094591492F6BE8B98ABF77A30D7890CEF9853CB517BE0CE1",
+      "length": 12983
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/teacher/GradingCourseSummaryIntegrationTest.java",
+      "sha256": "213F07CADB451C194F4DE092AFFDBD7D672E75970CD4769659E55000F51631A7",
+      "length": 6268
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/teacher/GradingTaskIntegrationTest.java",
+      "sha256": "D10D0AF8E614DE3ECEA58AC1C8757EAC6CE79BE3CED3A24EFBD1CEB26E0876A4",
+      "length": 18701
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/teacher/MissingBankParameterIntegrationTest.java",
+      "sha256": "EC10BC6C7AC53B6EF619810327F19FD6B8178DBAD45B729309540C57AA88C379",
+      "length": 3346
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/teacher/ResultsAndMakeupIntegrationTest.java",
+      "sha256": "154A8DE2944869BDF67A32FB4B40824B03AC84A0661D08E7CC349A98F4555C50",
+      "length": 13489
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/teacher/StudentExcelImportIntegrationTest.java",
+      "sha256": "EF50A037F0ED55104E5FC5DBB80349A71FA166570EFFD8B5BE2E3071CC3DE850",
+      "length": 18119
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/teacher/TeacherDashboardIntegrationTest.java",
+      "sha256": "91D4D48E9F745EE067953E99465D30A9CD670AC35C033F934035BD6F87582AEF",
+      "length": 6296
+    },
+    {
+      "path": "backend/src/test/java/com/smartexam/teacher/TeacherManagementIntegrationTest.java",
+      "sha256": "9F902CA18FB7295BD2CB71C1C865CC27A3377055A21EC942D8FC34F48B8CB6E9",
+      "length": 20961
+    },
+    {
+      "path": "check-env.bat",
+      "sha256": "04029F380A3E1D361672A843BA3FF895254C95345B6810C5305FF56AB3E92B17",
+      "length": 197
+    },
+    {
+      "path": "config/local.env.example",
+      "sha256": "5E320A03561A709754B2873DC7A7FB1DBCFF7D6C23DE58B7666F3F78573ED763",
+      "length": 495
+    },
+    {
+      "path": "docker-compose.yml",
+      "sha256": "9A5F094ED0117D746210442FF193C67514C8093F51C22D595A4810EC245C5BDB",
+      "length": 2290
+    },
+    {
+      "path": "docs/04_部署与运行说明.md",
+      "sha256": "A16E8EC33A42F202047EB0A276EAB85948ABD2511CC193036DA01B2628D82162",
+      "length": 4244
+    },
+    {
+      "path": "docs/05_V1.0最终验收报告.md",
+      "sha256": "DE8F37B4FC265CBA1615724B65F30CBC3178C62B99793F845207ED68ACAB3B98",
+      "length": 8626
+    },
+    {
+      "path": "docs/archive/README.md",
+      "sha256": "069334D0DB97D7D9E5DCA0457040DBC93DD02B6DAB122CC4E7FB5D58DDE6C45E",
+      "length": 669
+    },
+    {
+      "path": "docs/archive/phase-history/01_Codex开发总执行说明_V1.0.md",
+      "sha256": "7E5F30B39F604B6338D7CD75CBD1EAE7A1CB4E9D8B43E62C7E66579F609070B0",
+      "length": 2059
+    },
+    {
+      "path": "docs/archive/phase-history/02_数据库与数据模型设计_V1.0.md",
+      "sha256": "D546E25EA37FA06AB7655AEF1BBAC09E635FEF582839E76D26CC8C18E32D42B5",
+      "length": 2139
+    },
+    {
+      "path": "docs/archive/phase-history/03_API接口设计规范_V1.0.md",
+      "sha256": "57286D15F67D5D913430E4959B6796DEB84C2FD943FACCA28B484B2E8B67BD4A",
+      "length": 2497
+    },
+    {
+      "path": "docs/archive/phase-history/2026-09-28-phase5-ai-assembly-design.md",
+      "sha256": "C26CE92F2501DBCFA84A00495A5EB9A2503ADAAF9663D7D943F7910B3A6F093A",
+      "length": 2337
+    },
+    {
+      "path": "docs/archive/phase-history/2026-09-28-phase5-ai-assembly-plan.md",
+      "sha256": "97A8E7C18A2DA75054F8A4F5F4F4449DB0DE9846B772A6CAF59D92C3BF7B65CD",
+      "length": 4641
+    },
+    {
+      "path": "docs/archive/phase-history/Phase 5 AI辅助智能组卷开发报告.md",
+      "sha256": "9BB89B6291F0B2E4C93A9451793453E1B9222B165904FEE94B12631EA76B91BE",
+      "length": 7553
+    },
+    {
+      "path": "docs/archive/phase-history/V2-Phase1-后端接口人工验收报告.md",
+      "sha256": "F559D3125CF470C83B0A56CAE81567F54082EE71A6CD8ACC35EA534F1CF73025",
+      "length": 9675
+    },
+    {
+      "path": "docs/archive/phase-history/V2-Phase1-教师考试管理中心独立验收报告.md",
+      "sha256": "CD10B9BDEF3080E7913AF8F3A5453FC4F67F31D860D511A6B738399EF4EFAD55",
+      "length": 14174
+    },
+    {
+      "path": "docs/archive/phase-history/V2-Phase2-题库结构增强独立验收报告.md",
+      "sha256": "FD4E5F87B17C60439B669EA4EABD23B39C69FDA89B8C3C933C8A6861D3843F18",
+      "length": 32353
+    },
+    {
+      "path": "docs/images/admin-teachers.jpg",
+      "sha256": "94E1AE73061C7363EB6BAA05933E4B685647CAD5188964BD9BDFFC3F0B96BBB7",
+      "length": 35036
+    },
+    {
+      "path": "docs/images/student-answer.jpg",
+      "sha256": "A1F14ABE9A27151B464E4D7B8045C9CBCB3FC5117DAE4D65D74393E857E3170F",
+      "length": 57702
+    },
+    {
+      "path": "docs/images/student-result.jpg",
+      "sha256": "E4E18A2965356ECD53E98639301FC752EE032E7C415C9342319C492B29240BC4",
+      "length": 51239
+    },
+    {
+      "path": "docs/images/teacher-grading.jpg",
+      "sha256": "61E02CBE146E44D054C34776681CCF272841578052FCEC681B42456231E7891D",
+      "length": 100104
+    },
+    {
+      "path": "docs/images/teacher-paper.jpg",
+      "sha256": "977358A4190A47C6B1B91A05AA693CBC7D5673C732783A8D1667144A1CF62254",
+      "length": 84358
+    },
+    {
+      "path": "docs/images/teacher-results.jpg",
+      "sha256": "44F090043F680A546839CEC9E80477720E2EF8381FD8BB823F0718A773801847",
+      "length": 97188
+    },
+    {
+      "path": "docs/phase3/题库数据来源说明.md",
+      "sha256": "290C1462026EB1606ECC8BBC962537D739D02802E52997E8B1F2FC80F529B256",
+      "length": 1841
+    },
+    {
+      "path": "frontend/.dockerignore",
+      "sha256": "EC4EBC9CAB6C2B8FC526F6B5CDB3ECAAD6368A5D0CCFD23D8F92F2C0F699F65B",
+      "length": 146
+    },
+    {
+      "path": "frontend/Dockerfile",
+      "sha256": "11CC0E4C8FDA2632262AF9DC92B4CB0BF7C8BAB72DA70943E583601666A3BF15",
+      "length": 413
+    },
+    {
+      "path": "frontend/index.html",
+      "sha256": "300498836A9415C1A73E4389214347A0CEB606A96923EF74E5424AF3FB3085DD",
+      "length": 458
+    },
+    {
+      "path": "frontend/nginx.conf",
+      "sha256": "4AFA2206BF41321052C8E127FA454301F81B95842981101DC93CA4FCEC874854",
+      "length": 994
+    },
+    {
+      "path": "frontend/package.json",
+      "sha256": "D9F845BB706C345DE1DCE01CE3A612DC9F5BAA56C2AD4C223F69CEC86F7DFE56",
+      "length": 390
+    },
+    {
+      "path": "frontend/pnpm-lock.yaml",
+      "sha256": "0C55F96414A7DEF1184EDF0A108C5AF9FA1E6FC8F07AA2AB1F954F9D51CCC9A6",
+      "length": 32514
+    },
+    {
+      "path": "frontend/pnpm-workspace.yaml",
+      "sha256": "E5E5244310D158CA27330393ADA3BBFD057D49DB4645CF825F1B9638C6A6EE37",
+      "length": 68
+    },
+    {
+      "path": "frontend/public/favicon.svg",
+      "sha256": "16CA1DCA5F390AF46BF8C4792DED90543EB8C72366277A4A519633FD6CD41E8C",
+      "length": 262
+    },
+    {
+      "path": "frontend/scripts/verify-admin-workspace.mjs",
+      "sha256": "F5E114C4B6937894302F9B1809D369249E9741636BA19D72369A2ACC58F00AB4",
+      "length": 1459
+    },
+    {
+      "path": "frontend/scripts/verify-first-login.mjs",
+      "sha256": "9A7A5E823414230B64249550DF42DDED5B962EA2F8B1678EE2959A9CE3ED1613",
+      "length": 13019
+    },
+    {
+      "path": "frontend/scripts/verify-student-lifecycle.mjs",
+      "sha256": "30C6A5851D1EB7AC54169B8E7795C3503A3C13DF5FA7F6237F35627EC4FE3B94",
+      "length": 3365
+    },
+    {
+      "path": "frontend/scripts/verify-teacher.cjs",
+      "sha256": "D49BD46F4716A8B4102E0BFB482027E9027527DA6F8B78543D1B8C31584687E6",
+      "length": 10944
+    },
+    {
+      "path": "frontend/src/App.vue",
+      "sha256": "EDA2216BD9EFAB41F5E75387659F42BF0C5CA612FCC44041FA5A56057EDAE588",
+      "length": 43
+    },
+    {
+      "path": "frontend/src/api/admin.js",
+      "sha256": "77F40A35E9F89241BF4258EB92D867597692E95EBF7AF259A6D0AE5B9B6B97EE",
+      "length": 884
+    },
+    {
+      "path": "frontend/src/api/auth.js",
+      "sha256": "0E0152800876FE06C5654F3F35E1B55CED7E6388702E3A01A7399DF94500E0A0",
+      "length": 467
+    },
+    {
+      "path": "frontend/src/api/http.js",
+      "sha256": "C6F6BADB81CE6242F4F3F1D474D1AAE92FF78B2E009DE6A8D4FA7C11159377C7",
+      "length": 1443
+    },
+    {
+      "path": "frontend/src/api/student.js",
+      "sha256": "696E52C5940CB9D80FBBDF256706B36F68EF883536428BF27D7D908AF07FC663",
+      "length": 886
+    },
+    {
+      "path": "frontend/src/api/teacher.js",
+      "sha256": "3723602E4ED3EC264FE2316E520AA643F4F7C7DAA32AEE2FD4685F0FFCFE47BA",
+      "length": 9904
+    },
+    {
+      "path": "frontend/src/auth/auth.js",
+      "sha256": "0289DEE85919739A36D5EA5CDC897579F8AC387CB9DF8EBE26698F8D52E79B5F",
+      "length": 843
+    },
+    {
+      "path": "frontend/src/components/AiPaperComposer.vue",
+      "sha256": "4B9B7DD506CB0429B133BF34843530CE36D95523792E72772BE46D80BC5D9313",
+      "length": 7820
+    },
+    {
+      "path": "frontend/src/components/CreateMakeupForm.vue",
+      "sha256": "D205A0C05927FDBAEAA1CA9C76BFE14C9347374274DE20B85679E347463FAB69",
+      "length": 3445
+    },
+    {
+      "path": "frontend/src/components/ExamCandidatesPanel.vue",
+      "sha256": "3C3A41D1AD47F57E4D3A5696E4F97E719392B084405A80ACBBE612855DFE4029",
+      "length": 2477
+    },
+    {
+      "path": "frontend/src/components/ExamForm.vue",
+      "sha256": "FE5BE868E3899EAA9AF837A19A22650EBA0FA1D74B343EA7B36B98D5AD2B1F32",
+      "length": 2575
+    },
+    {
+      "path": "frontend/src/components/ExamGradingPanel.vue",
+      "sha256": "8ACA76AF742F99D0C87B93ED4779DA9BF0D14CBCC6D5EB9900E667E5D044BBAB",
+      "length": 4993
+    },
+    {
+      "path": "frontend/src/components/ExamList.vue",
+      "sha256": "F2EFEA5ECCFE1238DBE53F80FB914D74F8E5940EF2958C1D5E5A301AE2D50CCA",
+      "length": 1336
+    },
+    {
+      "path": "frontend/src/components/ExamMonitorPanel.vue",
+      "sha256": "9A47ACA0CF78F227A36621C8A410A8DB5D12C712D93615CC10D47380E0D7D864",
+      "length": 9337
+    },
+    {
+      "path": "frontend/src/components/ExamPublishReadiness.vue",
+      "sha256": "F6B5AD0CB1A5F80CF253C3C5B68B722A83182F05F1D7F84AC50E32C969394516",
+      "length": 2661
+    },
+    {
+      "path": "frontend/src/components/QuestionBankBatchMetadata.vue",
+      "sha256": "B576F8628ECCE88F905981B91CF1E396D8C4D724B2B373113860FDCFA14DD0A2",
+      "length": 5075
+    },
+    {
+      "path": "frontend/src/components/QuestionBankExcelImport.vue",
+      "sha256": "991ECD6906F20D1E402C6B04DE308053E2AFE62CDAA2336FE7DF9DBB81427D2D",
+      "length": 7572
+    },
+    {
+      "path": "frontend/src/components/QuestionBankItemForm.vue",
+      "sha256": "4FBFACC3D5E50F8E3F48343AE59F50B94D53AC432513B3FF8C5C24397AE5B7CC",
+      "length": 7144
+    },
+    {
+      "path": "frontend/src/components/QuestionBankPicker.vue",
+      "sha256": "835002C88AC07894D5806338F52E39A8E751C7AC78A7ABA52FB311F612342C18",
+      "length": 3968
+    },
+    {
+      "path": "frontend/src/components/QuestionBankStructureManager.vue",
+      "sha256": "FF37BC8915F6A88FFF9AA8F8C632F6AE99CD0BB9E4BE0E364DA5832F28CB646D",
+      "length": 9574
+    },
+    {
+      "path": "frontend/src/components/QuestionForm.vue",
+      "sha256": "AD7C720C4C3D5FB9B2E2BC433CF443B11CD19A69EDC207EF149E9569A196B6B1",
+      "length": 4508
+    },
+    {
+      "path": "frontend/src/components/RandomPaperComposer.vue",
+      "sha256": "8B77605C1CFF13A3DE39A10E246D297543D1BEE8449CDB51EFCBE31FFE272051",
+      "length": 4859
+    },
+    {
+      "path": "frontend/src/components/ResultsAnalysisPanel.vue",
+      "sha256": "8FAD147B3ABEDADA95CB522F0B204C18185C4D8FB8984F20DABDD2C5DFF609A4",
+      "length": 4492
+    },
+    {
+      "path": "frontend/src/components/RulePaperComposer.vue",
+      "sha256": "A25BAB836EE88664BD7929A3A1519FE5050C5F2853830D302394FFC56E960074",
+      "length": 17997
+    },
+    {
+      "path": "frontend/src/components/TeacherModal.vue",
+      "sha256": "910EEB91D308F68735F3226A4BC66F1702D62081CD43F96FA0917F3B4F7A356F",
+      "length": 2843
+    },
+    {
+      "path": "frontend/src/layouts/AppLayout.vue",
+      "sha256": "E1D86293A3D57F25F7F250D19DFA1A188C791841771FDF948F7F7C141EFBACB5",
+      "length": 5471
+    },
+    {
+      "path": "frontend/src/main.js",
+      "sha256": "B176DDDE8F563FB5EDDD2AC9746F121A4B245C9DE9D1ECA991B1544DCAF51186",
+      "length": 165
+    },
+    {
+      "path": "frontend/src/router/index.js",
+      "sha256": "7619AA68D09A7B094E4A6C596CCCF343A233E4CB23BA7E19A0E18DE59AE6A591",
+      "length": 6647
+    },
+    {
+      "path": "frontend/src/styles/admin.css",
+      "sha256": "CF99E1CD1AE62B4593970DB3BD3C28726318B4776F7F9E5367C38D196C398308",
+      "length": 9140
+    },
+    {
+      "path": "frontend/src/styles/main.css",
+      "sha256": "B6A62C2D2E1BEFF234F64900349A6BCABB41C1EC0ACF6182600BD8C4F43E7A3A",
+      "length": 3523
+    },
+    {
+      "path": "frontend/src/styles/student.css",
+      "sha256": "915659AFB3F7A2B0FDD79952AE4206F256F449385EC7A1D9E2B3041AA4EA787A",
+      "length": 14989
+    },
+    {
+      "path": "frontend/src/styles/teacher.css",
+      "sha256": "8FB1C62EB41CD16249583DEA55AC5772B6ADAE942AC574335BF3FCF45C39FE2B",
+      "length": 38970
+    },
+    {
+      "path": "frontend/src/styles/tokens.css",
+      "sha256": "16B119F5E57A2898D9E33FB9D304122042AFB413BD551D3CAF9F0A79DB462A37",
+      "length": 971
+    },
+    {
+      "path": "frontend/src/styles/workspace.css",
+      "sha256": "5416D61ED939215A11935C6B25548C3A732C4A231B13ACA5A1E4534D6F202925",
+      "length": 19335
+    },
+    {
+      "path": "frontend/src/utils/aiPaperComposer.js",
+      "sha256": "2C1F4B4DF4C2DE21CEC785B631C31FD9CACC1B80A10DBB6D66EC793ED23BD13C",
+      "length": 2329
+    },
+    {
+      "path": "frontend/src/utils/examCenter.js",
+      "sha256": "D03BE14353FBDF127FAA912D2042F6518567317E342712BC82AC3B50E3BBB712",
+      "length": 1347
+    },
+    {
+      "path": "frontend/src/utils/examLifecycle.js",
+      "sha256": "72BC0F67014C6D5B326BD26F37013538C89D36D4E0FC5C6F426A40FEE429A562",
+      "length": 414
+    },
+    {
+      "path": "frontend/src/utils/examMonitor.js",
+      "sha256": "9EA97FE42C474619B3E7E9110E24B069D88D900F2B665167044640C95C67E185",
+      "length": 1374
+    },
+    {
+      "path": "frontend/src/utils/gradingPaperState.js",
+      "sha256": "C9A0DB1CA9BB98BF988CA73ADE0A7978F33C791672CAFB2DA48B73FBBFA2DC47",
+      "length": 262
+    },
+    {
+      "path": "frontend/src/utils/questionBankImport.js",
+      "sha256": "E11E3DC730A38D806C2B68897CC68E93B32FAA1E3F7679A6B0EC996D5632F637",
+      "length": 628
+    },
+    {
+      "path": "frontend/src/utils/questionBankMetadata.js",
+      "sha256": "B0C3C52F163DE8CE774C9434B165AD0A2CCB36DD24D07A65C695C634B370A588",
+      "length": 2510
+    },
+    {
+      "path": "frontend/src/utils/rulePaperComposer.js",
+      "sha256": "3DDF01B0441356302B7790BE32C1A35EFA19FA39EB950DBAD298767211624C66",
+      "length": 2910
+    },
+    {
+      "path": "frontend/src/utils/statusDisplay.js",
+      "sha256": "42A494C68FE438F088EE30B5D37A8CDDA1776340E62213E3411B0680FB9FF49C",
+      "length": 4127
+    },
+    {
+      "path": "frontend/src/utils/studentExamLifecycle.js",
+      "sha256": "95D662257A2D1039D292A8C074A3665B02E73E80421D7DF87D00FB67312F9AAC",
+      "length": 846
+    },
+    {
+      "path": "frontend/src/views/LoginView.vue",
+      "sha256": "7D68B0DB708162C8F9939696C81CD098A3764C263191520A92F74C5215171CEA",
+      "length": 2404
+    },
+    {
+      "path": "frontend/src/views/admin/AdminCoursesView.vue",
+      "sha256": "FBA10F1BBAB1EF8495B11AD639C658072C3E949E772374F617FEBADCC05FD442",
+      "length": 3794
+    },
+    {
+      "path": "frontend/src/views/admin/AdminDashboardView.vue",
+      "sha256": "0A4B8A9055F38D08DC939D070EB7CC36A6EFF860D3ABA664A6E13E59AE5DD768",
+      "length": 3433
+    },
+    {
+      "path": "frontend/src/views/admin/AdminExamsView.vue",
+      "sha256": "A343BC64A30500B4BA3B03D37E028A98FEF747B8A538A477DD163CFAD34BFC37",
+      "length": 5646
+    },
+    {
+      "path": "frontend/src/views/admin/AdminStudentsView.vue",
+      "sha256": "DB350F5CCA0A10B2D6D808497F4C34AB2278656B7DFF96830E1439776F6231AA",
+      "length": 7626
+    },
+    {
+      "path": "frontend/src/views/admin/AdminTeachersView.vue",
+      "sha256": "EC8B88EF2D98E2A7FC52D58B116D2696D0DE209D1B374B786D7A473F1D2AF6AB",
+      "length": 9418
+    },
+    {
+      "path": "frontend/src/views/student/ChangePasswordView.vue",
+      "sha256": "E3C21F7AB2B149F3311C03EB6295E02BCFA94D9187413F1E79C6E94BF8A28E98",
+      "length": 2248
+    },
+    {
+      "path": "frontend/src/views/student/StudentExamDetailView.vue",
+      "sha256": "17E6B1EF70BE9EEB137F7235D56F0B0425EC5DD007F6D451455D91366B0D0BA2",
+      "length": 3658
+    },
+    {
+      "path": "frontend/src/views/student/StudentHomeView.vue",
+      "sha256": "7650694609C2BB13F3836AE59EA2D5FE4975EC51C52028D77A761546BA3FB1CA",
+      "length": 5179
+    },
+    {
+      "path": "frontend/src/views/student/StudentPaperView.vue",
+      "sha256": "D01E147A98C8BDCAE674357E300681DAFCF0FFDF4109D0A0B3C656077D168968",
+      "length": 10489
+    },
+    {
+      "path": "frontend/src/views/student/StudentRegisterView.vue",
+      "sha256": "E10EDB3290F68117F65AB95E8B2D99BDC072F02FE14569E3B179099C482D7ECF",
+      "length": 2473
+    },
+    {
+      "path": "frontend/src/views/student/StudentResultDetailView.vue",
+      "sha256": "0322F389951B61D2DDA3A38D98F3411CB4CF01E992F272C5501C19C8977FD963",
+      "length": 3053
+    },
+    {
+      "path": "frontend/src/views/student/StudentResultsView.vue",
+      "sha256": "354E008F8F00BCC9336D7874F06DA370B93CD6AAC582351571A87516432E2B5B",
+      "length": 1731
+    },
+    {
+      "path": "frontend/src/views/teacher/AiEvaluationView.vue",
+      "sha256": "BCE091157F1DA28CE28127402FBD0F9257546F34C9193800A8B800FAF730A36C",
+      "length": 8255
+    },
+    {
+      "path": "frontend/src/views/teacher/CourseDetailView.vue",
+      "sha256": "D89099DE54D370C2EB2EF70626748A0880B52C36C9B19AE99EEF161EBFC832FC",
+      "length": 12756
+    },
+    {
+      "path": "frontend/src/views/teacher/CoursesView.vue",
+      "sha256": "70138451AF69845BB98873121BAB54B1B40CA0039205FA65ACF1EFF338BA06E0",
+      "length": 3311
+    },
+    {
+      "path": "frontend/src/views/teacher/ExamDetailView.vue",
+      "sha256": "496999634F2F34F58D1C2F97A06C493149AA218048832E0F1E93F3BE5CF43405",
+      "length": 15475
+    },
+    {
+      "path": "frontend/src/views/teacher/ExamsView.vue",
+      "sha256": "310435E65016B770538487290C7A71B5FF677380F98569466C3878ED0F783EAB",
+      "length": 11814
+    },
+    {
+      "path": "frontend/src/views/teacher/GradingPaperView.vue",
+      "sha256": "6EAD3AD965AA42BD7FE12134BC49BDD000C744CF29E68A4C7496BD361CEE665F",
+      "length": 13030
+    },
+    {
+      "path": "frontend/src/views/teacher/GradingTaskView.vue",
+      "sha256": "BC76287081E18D6FE62D3D9550C64609950EB9F0ABA7B1C8D7143944801F64F3",
+      "length": 10366
+    },
+    {
+      "path": "frontend/src/views/teacher/LegacyGradingSubmissionRedirect.vue",
+      "sha256": "3993A65CBA62DCF4B06C428CFE468F4CF1F4A25ED49C1672E2029EAA4FD69FD7",
+      "length": 580
+    },
+    {
+      "path": "frontend/src/views/teacher/QuestionBankDetailView.vue",
+      "sha256": "5C40CBAEECA6919CE89ED4A053EC1C22BEAE8129BFD89B52C342F3E45F52917D",
+      "length": 12415
+    },
+    {
+      "path": "frontend/src/views/teacher/QuestionBanksView.vue",
+      "sha256": "587073DBAAB74EB320FF9AC2D21AE818BEA80CA88822721604A70F978BDCF2BE",
+      "length": 7503
+    },
+    {
+      "path": "frontend/src/views/teacher/TeacherHomeView.vue",
+      "sha256": "6A65A86D35816991EB8CB359D5A7B280279ABED54B7BD40883B0936F60F850E3",
+      "length": 6291
+    },
+    {
+      "path": "frontend/tests/aiPaperComposer.test.mjs",
+      "sha256": "3667065EF5CD02738E5BE761C4713F6581B1C4FEC0AFA5495DA83D88173CA808",
+      "length": 3194
+    },
+    {
+      "path": "frontend/tests/examMonitor.test.mjs",
+      "sha256": "1EF302D995ABD2C0293EF8F3B3CCB5206E56F30C4A492887699EC22B8CA8CD7A",
+      "length": 2392
+    },
+    {
+      "path": "frontend/tests/gradingPaperState.test.mjs",
+      "sha256": "BB9B1D2D220E87075B76C328C3DDD71F70EE1295CB70E6049F07EDFBF3763339",
+      "length": 1010
+    },
+    {
+      "path": "frontend/tests/questionBankImport.test.mjs",
+      "sha256": "6AD851F0914AAF09C436D75DF1561281BBB88FC1D16E0A015EB9B6EC4E3EF89A",
+      "length": 1420
+    },
+    {
+      "path": "frontend/tests/questionBankMetadata.test.mjs",
+      "sha256": "0718AC03F1795AD15E922FEA1E450ED12BE611788AD000C00A511DF70D176058",
+      "length": 2319
+    },
+    {
+      "path": "frontend/tests/rulePaperComposer.test.mjs",
+      "sha256": "986FC4B022E05D0968F9159E178B57E7DDC41A3B6867DC9028632977FA67BE39",
+      "length": 3522
+    },
+    {
+      "path": "frontend/vite.config.js",
+      "sha256": "0BED9DD49CEA97881871A631DE41BEB5B525CD695902C770681D5CD5E0B75B86",
+      "length": 538
+    },
+    {
+      "path": "gui-test-screenshots/ai-main-preview.png",
+      "sha256": "8C3F1CBAEB1D2C03CBB109D4D66FDBFCCCEE472BD73C699A07A85620FA0D1672",
+      "length": 358174
+    },
+    {
+      "path": "gui-test-screenshots/p7-admin.png",
+      "sha256": "F3B4F921D4C99A84BD92F52F5BE77B584178A2978EEEE4E3EA0740902F2502C5",
+      "length": 30964
+    },
+    {
+      "path": "gui-test-screenshots/p7-student-detail-post.png",
+      "sha256": "CCBCCC7E0A84E572ED33D0E659E506FD83E57AE46B760095F2905603CD3EA86E",
+      "length": 124470
+    },
+    {
+      "path": "gui-test-screenshots/p7-student-exams-post.png",
+      "sha256": "8D87741CF986DDEE67F1DBCB977E7E1FF78BE14F6FE5692F145ACFEE8EF3F8C5",
+      "length": 35280
+    },
+    {
+      "path": "gui-test-screenshots/p7-student-results-post.png",
+      "sha256": "66D4A3FE03F00BC13989416282DA79A4BDFA201822D4ECF7137FB5171139482A",
+      "length": 34542
+    },
+    {
+      "path": "gui-test-screenshots/p7-teacher-grading-post.png",
+      "sha256": "6A8D48563512DBB678D4D27F462457760A560D1ECE9ACEF4B6D9D1260D0D38F6",
+      "length": 67418
+    },
+    {
+      "path": "gui-test-screenshots/p7-teacher-paper-post.png",
+      "sha256": "7A39A2C755CE5C611635A561BB3BBB465B8A2A63BED67D021F5AB9ED6D65D23A",
+      "length": 231672
+    },
+    {
+      "path": "scripts/dev.ps1",
+      "sha256": "8CEF94BE2B628600AE27F7E8AB216F24646B45D9217F6CA492F537A3225C7129",
+      "length": 24243
+    },
+    {
+      "path": "scripts/ensure-maven.ps1",
+      "sha256": "D21455F868272B8C06CB6A1AACB8B34D323872AF6FC91723136BC6361244BC8E",
+      "length": 2117
+    },
+    {
+      "path": "sql/README_数据库共享说明.md",
+      "sha256": "2B587A2668A78D502F702A3396899B9A60C18C78922028A0F9B844B43C5CFE81",
+      "length": 1959
+    },
+    {
+      "path": "sql/archive/smart_exam_team_v1.sql",
+      "sha256": "0B731CE9CDBAA705FE350B61BA0814DA20AA9F3BC1B46C57B2B21287E9431131",
+      "length": 20095
+    },
+    {
+      "path": "sql/demo-data.sql",
+      "sha256": "E44C4C545F7484A27DA3E636D0F3E3FFF7FFCD1CBF9905F0114E08DAC45E1E72",
+      "length": 12026
+    },
+    {
+      "path": "sql/init.sql",
+      "sha256": "3EB5BB3B3073D5816CE882B72BE908155B4FF486FE1673AA560D71C2671B3D85",
+      "length": 18595
+    },
+    {
+      "path": "sql/upgrade_phase10_exam_archive.sql",
+      "sha256": "B2429948983DB9FBC42DF48048E1680408D978ECDED5A3D69D2D32FDD1EE4123",
+      "length": 141
+    },
+    {
+      "path": "sql/upgrade_phase2_batch1_question_bank_metadata.sql",
+      "sha256": "09FBA25996F35C92DA5040CE1A0B1D879DAC6EA60D74FABB11FCA87A6F554B62",
+      "length": 6767
+    },
+    {
+      "path": "sql/upgrade_phase6_batch1_exam_behavior_events.sql",
+      "sha256": "4DE901D0E47D50A3E2D355D5D444B3D2AE5D37DD6347A5956D6BCD38DCBFB970",
+      "length": 989
+    },
+    {
+      "path": "sql/upgrade_phase8_makeup_exams.sql",
+      "sha256": "0A33A27D65DD208DCA7329623374A50D9D7B9F48C72A16324F68F8867749B70A",
+      "length": 655
+    },
+    {
+      "path": "sql/upgrade_t08_2a_exam_candidates.sql",
+      "sha256": "A1438BE20927932466E14EFADCD493B8B886ADC89C7E4414CB4E19C7165D54BC",
+      "length": 2259
+    },
+    {
+      "path": "sql/upgrade_t08_2b_exam_result_release.sql",
+      "sha256": "EFB28C877691AEF04900C561C33422DB9244150D458F14A4FE92BEF271990B0E",
+      "length": 1321
+    },
+    {
+      "path": "sql/upgrade_t08_2c_question_bank_scope.sql",
+      "sha256": "2976C5EDDC034C8ACD2BA3546028BA45F61F9FB4486BF1CD62BA354875B65370",
+      "length": 5963
+    },
+    {
+      "path": "start-dev.bat",
+      "sha256": "2D17CDA951E7D2E5B97EA1342E28439E99B8AA30E39A7B92ED76EC6FC1B78751",
+      "length": 197
+    },
+    {
+      "path": "stop-dev.bat",
+      "sha256": "E70BD8DFC612B6A38B3F96E34D397512DC45C4EB6CAAE33114087345FA5E363A",
+      "length": 196
+    },
+    {
+      "path": "《重构验收记录.md》",
+      "sha256": "99A534F2EF6FC6C36200D232AEDA69E66B512D6AFCE839C9C96D77588F7F8326",
+      "length": 77114
+    }
+  ],
+  "originalUntrackedFiles": [
+    {
+      "path": "docs/phase3/Java主展示题库-FinalB扩充.xlsx",
+      "sha256": "7E0AB5A9B60BBA932A8954A1808916AA7C33E1D79E791825226D48073DADF0F0",
+      "length": 15492
+    },
+    {
+      "path": "docs/phase3/Java主展示题库-首批迁入.xlsx",
+      "sha256": "AFE52904768A185132D70C14FFF5F47419934B9762027BF21A1E543DECF9F5B3",
+      "length": 15543
+    },
+    {
+      "path": "docs/phase3/Java主题库-FinalB来源清单.csv",
+      "sha256": "36D81197AF40F8235B33C01543C944BE74CAEDD83113A32D2CB593FA20492915",
+      "length": 8357
+    }
+  ],
+  "protectedPathMetadata": [
+    {
+      "path": "config/local.env",
+      "exists": true,
+      "isDirectory": false,
+      "lastWriteTimeUtc": "2026-09-22T07:02:36.5621484Z"
+    },
+    {
+      "path": ".tok_teacher.txt",
+      "exists": true,
+      "isDirectory": false,
+      "lastWriteTimeUtc": "2026-09-24T06:19:57.3728855Z"
+    },
+    {
+      "path": "frontend/.env",
+      "exists": false
+    },
+    {
+      "path": "frontend/.env.local",
+      "exists": false
+    },
+    {
+      "path": "backend/src/main/resources/application-local.yml",
+      "exists": false
+    },
+    {
+      "path": ".runtime",
+      "exists": true,
+      "isDirectory": true,
+      "lastWriteTimeUtc": "2026-10-19T04:24:37.9254059Z"
+    },
+    {
+      "path": "frontend/node_modules",
+      "exists": true,
+      "isDirectory": true,
+      "lastWriteTimeUtc": "2026-09-22T07:38:27.8557159Z"
+    },
+    {
+      "path": "backend/target",
+      "exists": true,
+      "isDirectory": true,
+      "lastWriteTimeUtc": "2026-10-19T04:23:23.0176983Z"
+    }
+  ],
+  "listeners": [
+    {
+      "address": "::",
+      "port": 8080,
+      "pid": 15380
+    },
+    {
+      "address": "::",
+      "port": 3306,
+      "pid": 20460
+    },
+    {
+      "address": "127.0.0.1",
+      "port": 5173,
+      "pid": 37380
+    }
+  ],
+  "databaseBackupCreated": false,
+  "secretContentsRead": false,
+  "notes": [
+    "Hash manifest is not a database backup.",
+    "Secret-bearing local files are metadata-only.",
+    "Planning turn must not modify code, DB, local config or existing services."
+  ]
+}

@@ -156,7 +156,9 @@ class ExamMonitorIntegrationTest {
                 Integer.class, paper.getId());
         assertThat(count).isEqualTo(1);
         assertThat(occurred).isAfterOrEqualTo(before.withNano((before.getNano() / 1_000_000) * 1_000_000));
-        assertThat(occurred).isBeforeOrEqualTo(LocalDateTime.now());
+        // DATETIME(3) can round up; compare the upper bound at the same precision.
+        assertThat(occurred).isBeforeOrEqualTo(LocalDateTime.now().plusNanos(999_999)
+                .truncatedTo(java.time.temporal.ChronoUnit.MILLIS));
     }
 
     private JsonNode studentRow(JsonNode result, Users student) {

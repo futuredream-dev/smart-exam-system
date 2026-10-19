@@ -184,7 +184,7 @@ class ExamResultExportIntegrationTest {
             assertThat(allText).doesNotContain("AI建议分", "AI评分", "AI评语", "建议详情", "AI建议详情", "AI建议评语", "命中评分点", "缺失评分点");
             Row row = workbook.getSheetAt(0).getRow(1);
             assertThat(row.getCell(0).getStringCellValue()).isEqualTo("student_demo_1");
-            assertThat(row.getCell(1).getStringCellValue()).isEqualTo("测试学生一");
+            assertThat(row.getCell(1).getStringCellValue()).isEqualTo(users.findByUsername("student_demo_1").getName());
             assertThat(row.getCell(2).getStringCellValue()).isEqualTo("Java：期末/考试*测试?");
             assertThat(row.getCell(3).getNumericCellValue()).isEqualTo(objective);
             assertThat(row.getCell(4).getNumericCellValue()).isEqualTo(shortScore);
