@@ -90,6 +90,23 @@ class ManualBankAssemblyIntegrationTest {
         assertThat(snapshots.get(1).path("content").asText()).isEqualTo("请选择Java继承");
     }
 
+    @Test void extendedOptionsPublishAndCorruptedReadyOptionsAreRejected() throws Exception {
+        long bankId=createBank("扩展选项",teacherToken);
+        var body=singleChoice("E与自定义", "一");
+        body.put("options",List.of(Map.of("key","E","text","五"),Map.of("key","自定义","text","六")));
+        body.put("correctAnswer","E");
+        long item=ready(createItem(bankId,body,teacherToken),teacherToken);
+        add(examId,List.of(item),teacherToken,200);
+        jdbc.update("UPDATE questions SET options_json=? WHERE exam_id=?", "[{\"key\":\"E\",\"text\":\"五\"},{\"key\":\"E\",\"text\":\"重复\"}]",examId);
+        call(post("/api/teacher/exams/"+examId+"/publish"),null,teacherToken,400);
+        jdbc.update("UPDATE question_bank_items SET options_json=? WHERE id=?", "[{\"key\":\"E\",\"text\":\"五\"},{\"key\":\"E\",\"text\":\"重复\"}]",item);
+        call(post("/api/teacher/question-bank-items/"+item+"/ready"),null,teacherToken,400);
+        long another=draftExam(users.findByUsername("teacher_demo"),"损坏快照");
+        jdbc.update("UPDATE exams SET course_id=? WHERE id=?",exams.getById(examId).getCourseId(),another);
+        add(another,List.of(item),teacherToken,400);
+        assertThat(questionCount(another)).isZero();
+    }
+
     @Test
     void listsOnlyReadyActiveOwnItemsAndMarksAlreadyAdded() throws Exception {
         long bankId = createBank("筛选题库", teacherToken);

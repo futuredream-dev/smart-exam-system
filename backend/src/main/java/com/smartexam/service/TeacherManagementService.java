@@ -524,6 +524,7 @@ public class TeacherManagementService {
                         .in("bank_id", bankIds).eq("status", QuestionBankItemStatus.READY.name())).stream()
                 .filter(item -> !added.contains(item.getId()))
                 .filter(item -> supported.contains(item.getQuestionType()))
+                .filter(this::usableChoice)
                 .toList();
         List<QuestionBankItem> singlePool = new ArrayList<>(candidates.stream()
                 .filter(item -> QuestionType.SINGLE_CHOICE.name().equals(item.getQuestionType())).toList());
@@ -570,6 +571,8 @@ public class TeacherManagementService {
                 throw failure(HttpStatus.CONFLICT, ErrorCode.CONFLICT, "只有可用题目可以加入试卷");
             if (!Set.of(QuestionType.SINGLE_CHOICE.name(), QuestionType.SHORT_ANSWER.name()).contains(item.getQuestionType()))
                 throw invalid("不支持的题目类型");
+            if (QuestionType.SINGLE_CHOICE.name().equals(item.getQuestionType()))
+                QuestionOptionPolicy.validateSnapshot(item.getOptionsJson(), item.getCorrectAnswer());
             selected.add(item);
         }
 
@@ -599,6 +602,8 @@ public class TeacherManagementService {
     }
 
     private TeacherViews.Question saveBankSnapshot(Long examId, QuestionBankItem item, BigDecimal score, int sortOrder) {
+        if (QuestionType.SINGLE_CHOICE.name().equals(item.getQuestionType()))
+            QuestionOptionPolicy.validateSnapshot(item.getOptionsJson(), item.getCorrectAnswer());
         Questions snapshot = new Questions();
         snapshot.setExamId(examId);
         snapshot.setSourceBankItemId(item.getId());
@@ -657,6 +662,12 @@ public class TeacherManagementService {
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
             if (sum.compareTo(r.score()) > 0) throw invalid("评分点总分不得超过题目分值");
         }
+    }
+
+    private boolean usableChoice(QuestionBankItem item) {
+        if (!QuestionType.SINGLE_CHOICE.name().equals(item.getQuestionType())) return true;
+        try { QuestionOptionPolicy.validateSnapshot(item.getOptionsJson(), item.getCorrectAnswer()); return true; }
+        catch (BusinessException e) { return false; }
     }
 
     private String optionsJson(TeacherRequests.Question r) {
@@ -753,6 +764,10 @@ public class TeacherManagementService {
         if (paper.isEmpty()) errors.add("至少添加一道题后才能发布");
         if (paper.stream().anyMatch(q -> q.getScore() == null || q.getScore().signum() <= 0))
             errors.add("题目分值必须大于零");
+        for (Questions question : paper) if (QuestionType.SINGLE_CHOICE.name().equals(question.getQuestionType())) {
+            try { QuestionOptionPolicy.validateSnapshot(question.getOptionsJson(), question.getReferenceAnswer()); }
+            catch (BusinessException e) { errors.add("第 " + question.getSortOrder() + " 题：" + e.getMessage()); }
+        }
         BigDecimal total = paper.stream().map(Questions::getScore).filter(Objects::nonNull)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         if (total.signum() <= 0) errors.add("试卷总分必须大于零");

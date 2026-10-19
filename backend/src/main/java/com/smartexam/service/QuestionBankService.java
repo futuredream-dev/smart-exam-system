@@ -304,11 +304,7 @@ public class QuestionBankService {
         if (!StringUtils.hasText(item.getContent()) || item.getDefaultScore() == null || item.getDefaultScore().signum() <= 0)
             throw bad("题干不能为空且默认分值必须大于零");
         if (QuestionType.SINGLE_CHOICE.name().equals(item.getQuestionType())) {
-            List<QuestionBankRequests.Option> options = readOptions(item.getOptionsJson());
-            if (options.isEmpty() || options.stream().anyMatch(o -> !StringUtils.hasText(o.key()) || !StringUtils.hasText(o.text())))
-                throw bad("单选题必须存在有效选项");
-            if (!StringUtils.hasText(item.getCorrectAnswer()) || options.stream().noneMatch(o -> o.key().equals(item.getCorrectAnswer())))
-                throw bad("正确答案必须对应现有选项");
+            QuestionOptionPolicy.validateSnapshot(item.getOptionsJson(), item.getCorrectAnswer());
         } else {
             if (!StringUtils.hasText(item.getReferenceAnswer())) throw bad("简答题参考答案不能为空");
             if (pointList.isEmpty()) throw bad("简答题至少需要一个评分点");

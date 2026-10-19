@@ -294,14 +294,8 @@ public class RuleAssemblyService {
         for (QuestionBankItem item : rows) {
             if (!"SINGLE_CHOICE".equals(item.getQuestionType())) continue;
             try {
-                List<QuestionBankRequests.Option> parsed = options(item.getOptionsJson());
-                if (!parsed.isEmpty() && parsed.stream().allMatch(option -> option != null
-                        && option.key() != null && !option.key().isBlank()
-                        && option.text() != null && !option.text().isBlank())
-                        && item.getCorrectAnswer() != null
-                        && parsed.stream().anyMatch(option -> option != null
-                                && item.getCorrectAnswer().equals(option.key())))
-                    readableChoices.add(item.getId());
+                QuestionOptionPolicy.validateSnapshot(item.getOptionsJson(), item.getCorrectAnswer());
+                readableChoices.add(item.getId());
             } catch (BusinessException ignored) {
                 // 不可解析的题目不会进入规则候选池；Confirm 对其返回 QUESTION_ITEM_CHANGED。
             }

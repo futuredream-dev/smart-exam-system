@@ -11,6 +11,15 @@ import java.math.BigDecimal;import java.time.LocalDateTime;import java.util.*;im
  Long exam(Long courseId,String title,String status){Exams e=new Exams();e.setCourseId(courseId);e.setTitle(title);e.setStartTime(LocalDateTime.now().minusMinutes(5));e.setEndTime(LocalDateTime.now().plusMinutes(30));e.setLateEntryMinutes(10);e.setMinSubmitMinutes(0);e.setStatus(status);e.setCreatedBy(users.findByUsername("teacher_demo").getId());exams.save(e);return e.getId();}
  Long single(String content,String score,int sortOrder){Questions q=new Questions();q.setExamId(examId);q.setQuestionType("SINGLE_CHOICE");q.setContent(content);q.setScore(new BigDecimal(score));q.setOptionsJson("[{\"key\":\"A\",\"text\":\"正确\"},{\"key\":\"B\",\"text\":\"错误\"},{\"key\":\"C\",\"text\":\"选项C\"},{\"key\":\"D\",\"text\":\"选项D\"}]");q.setReferenceAnswer("A");q.setSortOrder(sortOrder);questions.save(q);return q.getId();}
  void assertStudentPayloadSafe(JsonNode payload){assertThat(payload.toString()).doesNotContain("referenceAnswer","scoringPoints","autoScore","teacherScore","teacherComment","gradingStatus","aiSuggestion","aiScore","aiReason","aiComment","matchedPoints","missingPoints");}
+ @Test void extendedOptionKeysSaveScoreAndRemainHiddenUntilRelease()throws Exception{
+  Questions q=questions.getById(singleId);q.setOptionsJson("[{\"key\":\"E\",\"text\":\"五\"},{\"key\":\"自定义\",\"text\":\"六\"}]");q.setReferenceAnswer("E");questions.updateById(q);
+  Long sid=call(post("/api/student/exams/"+examId+"/enter"),null,student,200).path("data").path("submissionId").asLong();
+  call(put("/api/student/submissions/"+sid+"/answers/"+singleId),Map.of("answerContent","自定义"),student,200);
+  call(put("/api/student/submissions/"+sid+"/answers/"+singleId),Map.of("answerContent","D"),student,400);
+  JsonNode saved=call(put("/api/student/submissions/"+sid+"/answers/"+singleId),Map.of("answerContent"," E "),student,200);assertStudentPayloadSafe(saved);
+  call(post("/api/student/submissions/"+sid+"/submit"),null,student,200);assertThat(answers.findOne(sid,singleId).getAutoScore()).isEqualByComparingTo("5");
+  call(get("/api/student/results/"+sid),null,student,403);
+ }
  @Test void studentCompletesWorkflowWithoutSensitiveFields()throws Exception{
   Long courseId=exams.getById(examId).getCourseId(),gradingId=exam(courseId,"阅卷中考试","GRADING"),releasedId=exam(courseId,"已发布成绩考试","RELEASED");Courses other=new Courses();other.setTeacherId(users.findByUsername("teacher_demo").getId());other.setCourseName("未加入课程");courses.save(other);Long otherPublishedId=exam(other.getId(),"其他课程考试","PUBLISHED");
   JsonNode list=call(get("/api/student/exams"),null,student,200);assertStudentPayloadSafe(list);List<Long> visibleIds=new ArrayList<>();list.path("data").forEach(candidate->visibleIds.add(candidate.path("id").asLong()));assertThat(visibleIds).contains(examId).doesNotContain(gradingId,releasedId,otherPublishedId);
