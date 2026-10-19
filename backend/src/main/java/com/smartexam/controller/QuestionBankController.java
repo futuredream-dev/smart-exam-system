@@ -42,7 +42,7 @@ public class QuestionBankController {
     private final Validator validator;
 
     @GetMapping("/question-banks")
-    public ApiResponse<List<QuestionBankViews.Bank>> banks(Authentication auth) { return ApiResponse.success(service.listBanks(auth.getName())); }
+    public ApiResponse<List<QuestionBankViews.Bank>> banks(Authentication auth, @RequestParam(defaultValue="ACTIVE") String status) { return ApiResponse.success(service.listBanks(auth.getName(), status)); }
     @GetMapping("/question-banks/available-courses")
     public ApiResponse<List<QuestionBankViews.CourseChoice>> availableCourses(Authentication auth) { return ApiResponse.success(service.availableCourses(auth.getName())); }
     @PostMapping("/question-banks")
@@ -56,6 +56,8 @@ public class QuestionBankController {
             @Valid @RequestBody QuestionBankRequests.BindCourse request) { return ApiResponse.success(service.bindCourse(auth.getName(), bankId, request.courseId())); }
     @DeleteMapping("/question-banks/{bankId}")
     public ApiResponse<QuestionBankViews.Bank> archiveBank(Authentication auth, @PathVariable Long bankId) { return ApiResponse.success(service.archiveBank(auth.getName(), bankId)); }
+    @PostMapping("/question-banks/{bankId}/restore")
+    public ApiResponse<QuestionBankViews.Bank> restoreBank(Authentication auth, @PathVariable Long bankId) { return ApiResponse.success(service.restoreBank(auth.getName(), bankId)); }
     @GetMapping("/question-banks/{bankId}/items")
     public ApiResponse<List<QuestionBankViews.Item>> items(Authentication auth, @PathVariable Long bankId,
             @RequestParam(required = false) String keyword, @RequestParam(required = false) QuestionType questionType,

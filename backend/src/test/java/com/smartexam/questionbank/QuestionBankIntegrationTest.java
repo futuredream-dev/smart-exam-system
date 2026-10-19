@@ -70,6 +70,30 @@ class QuestionBankIntegrationTest {
         assertThat(otherRows).noneMatch(row -> row.path("id").asLong() == created.path("id").asLong());
     }
 
+    @Test void archivedBankCanBeFoundAndRestoredWithoutChangingCourseOrItemStatus() throws Exception {
+        JsonNode bank=createBank("归档恢复",teacherToken);long id=bank.path("id").asLong(), course=bank.path("courseId").asLong();
+        long item=createItem(id,singleChoice("保留草稿","一","A"),teacherToken).path("id").asLong();
+        call(delete("/api/teacher/question-banks/"+id),null,teacherToken,200);
+        assertThat(call(get("/api/teacher/question-banks"),null,teacherToken,200).path("data")).noneMatch(row->row.path("id").asLong()==id);
+        assertThat(call(get("/api/teacher/question-banks?status=ARCHIVED"),null,teacherToken,200).path("data")).anyMatch(row->row.path("id").asLong()==id);
+        assertThat(call(get("/api/teacher/question-banks?status=ALL"),null,teacherToken,200).path("data")).anyMatch(row->row.path("id").asLong()==id);
+        assertThat(call(get("/api/teacher/question-banks/available-courses"),null,teacherToken,200).path("data")).noneMatch(row->row.path("id").asLong()==course);
+        for(String token:List.of(otherTeacherToken,studentToken,adminToken))call(post("/api/teacher/question-banks/"+id+"/restore"),null,token,403);
+        JsonNode restored=call(post("/api/teacher/question-banks/"+id+"/restore"),null,teacherToken,200).path("data");
+        assertThat(restored.path("status").asText()).isEqualTo("ACTIVE");assertThat(restored.path("courseId").asLong()).isEqualTo(course);
+        assertThat(jdbc.queryForObject("SELECT status FROM question_bank_items WHERE id=?",String.class,item)).isEqualTo("DRAFT");
+        call(get("/api/teacher/question-banks?status=UNKNOWN"),null,teacherToken,400);
+    }
+
+    @Test void changedCourseOwnershipBlocksRestoreWithoutReleasingBinding() throws Exception {
+        JsonNode bank=createBank("历史绑定冲突",teacherToken);long id=bank.path("id").asLong(), course=bank.path("courseId").asLong();
+        call(delete("/api/teacher/question-banks/"+id),null,teacherToken,200);
+        jdbc.update("UPDATE courses SET teacher_id=? WHERE id=?",otherTeacherId,course);
+        call(post("/api/teacher/question-banks/"+id+"/restore"),null,teacherToken,409);
+        assertThat(jdbc.queryForObject("SELECT status FROM question_banks WHERE id=?",String.class,id)).isEqualTo("ARCHIVED");
+        assertThat(jdbc.queryForObject("SELECT course_id FROM question_banks WHERE id=?",Long.class,id)).isEqualTo(course);
+    }
+
     @Test
     void anotherTeacherCannotReadOrModifyBankAndItsItems() throws Exception {
         long bankId = createBank("私有题库", teacherToken).path("id").asLong();

@@ -42,9 +42,14 @@ public class QuestionBankService {
 
     /** 题库列表：自己的 ACTIVE TEACHER 题库 + 全部 ACTIVE 平台题库。 */
     public List<QuestionBankViews.Bank> listBanks(String username) {
+        return listBanks(username, "ACTIVE");
+    }
+
+    public List<QuestionBankViews.Bank> listBanks(String username, String status) {
         long ownerId = teacher(username).getId();
+        if (!Set.of("ACTIVE", "ARCHIVED", "ALL").contains(status)) throw bad("题库状态必须为 ACTIVE、ARCHIVED 或 ALL");
         return banks.selectList(new QueryWrapper<QuestionBank>()
-                        .eq("status", QuestionBankStatus.ACTIVE.name())
+                        .eq(!"ALL".equals(status), "status", status)
                         .and(q -> q.eq("scope", QuestionBankScope.PLATFORM.name())
                                 .or(w -> w.eq("scope", QuestionBankScope.TEACHER.name())
                                         .eq("owner_teacher_id", ownerId)))
@@ -120,6 +125,23 @@ public class QuestionBankService {
         QuestionBank bank = writableActiveBank(username, id);
         bank.setStatus(QuestionBankStatus.ARCHIVED.name());
         banks.updateById(bank);
+        return bank(username, id);
+    }
+
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public QuestionBankViews.Bank restoreBank(String username, Long id) {
+        QuestionBank original = writableBank(username, id);
+        // Use the same course -> bank lock order as binding/creation; preserve the relationship.
+        if (original.getCourseId() != null) {
+            Courses course = courses.selectOne(new QueryWrapper<Courses>().eq("id", original.getCourseId()).last("FOR UPDATE"));
+            if (course == null || !Objects.equals(course.getTeacherId(), teacher(username).getId()))
+                throw conflict("所属课程不存在或归属已变化，无法恢复题库");
+            ensureCourseAvailable(original.getCourseId(), id);
+        }
+        QuestionBank bank = banks.selectOne(new QueryWrapper<QuestionBank>().eq("id", id).last("FOR UPDATE"));
+        if (bank == null || !Objects.equals(bank.getOwnerTeacherId(), teacher(username).getId())) throw forbidden();
+        if (!Objects.equals(bank.getCourseId(), original.getCourseId())) throw conflict("课程绑定已变化，请刷新后重试");
+        banks.update(null, new UpdateWrapper<QuestionBank>().eq("id", id).set("status", QuestionBankStatus.ACTIVE.name()));
         return bank(username, id);
     }
 
