@@ -25,6 +25,7 @@ import AdminStudentsView from '../views/admin/AdminStudentsView.vue'
 import AdminCoursesView from '../views/admin/AdminCoursesView.vue'
 import AdminExamsView from '../views/admin/AdminExamsView.vue'
 import { authState, restoreSession } from '../auth/auth'
+import { safeReturnPath } from '../utils/returnPath'
 
 const routes = [
   {
@@ -120,7 +121,7 @@ router.afterEach((to) => {
 
 router.beforeEach(async (to) => {
   if (to.meta.requiresAuth && !authState.currentUser) await restoreSession()
-  if (to.meta.requiresAuth && !authState.currentUser) return { name: 'login' }
+  if (to.meta.requiresAuth && !authState.currentUser) return { name: 'login', query: { returnTo: safeReturnPath(to.fullPath) || undefined } }
   const role = authState.currentUser?.role
   const home = role === 'ADMIN' ? '/admin' : role === 'TEACHER' ? '/teacher' : '/student'
   const passwordRoute = `${role?.toLowerCase()}-change-password`

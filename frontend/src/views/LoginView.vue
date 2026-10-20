@@ -2,7 +2,8 @@
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { login } from '../api/auth'
-import { setSession } from '../auth/auth'
+import { authState, setSession } from '../auth/auth'
+import { safeReturnPath } from '../utils/returnPath'
 
 const username = ref('')
 const password = ref('')
@@ -13,16 +14,20 @@ const route = useRoute()
 const registrationNotice = computed(() => route.query.registered === '1'
   ? '注册成功，请使用学号和密码登录'
   : '')
-function destination(user) {
+function destination(user, previousOwner = authState.draftOwner) {
   if (user.mustChangePassword) return `/${user.role.toLowerCase()}/change-password`
-  return user.role === 'ADMIN' ? '/admin' : user.role === 'TEACHER' ? '/teacher' : '/student'
+  const home = user.role === 'ADMIN' ? '/admin' : user.role === 'TEACHER' ? '/teacher' : '/student'
+  const requested = safeReturnPath(route.query.returnTo)
+  if (previousOwner && String(previousOwner) !== String(user.id)) return home
+  return requested && (requested === home || requested.startsWith(home + '/')) ? requested : home
 }
 
 async function handleSubmit() {
   notice.value = ''
   if (!username.value || !password.value) { notice.value = '请输入用户名和密码'; return }
   loading.value = true
-  try { const result = await login({ username: username.value, password: password.value }); setSession(result.data.token, result.data.user); await router.push(destination(result.data.user)) }
+  const previousOwner = authState.draftOwner
+  try { const result = await login({ username: username.value, password: password.value }); setSession(result.data.token, result.data.user); await router.push(destination(result.data.user, previousOwner)) }
   catch (error) { notice.value = error.errorCode === 'ACCOUNT_DISABLED' ? '账号已停用，请联系管理员' : error.message || '登录失败，请稍后重试' }
   finally { loading.value = false }
 }

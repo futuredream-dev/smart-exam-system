@@ -13,3 +13,9 @@ test('timeouts clearly identify an unknown result rather than claiming the reque
 test('structured business validation messages remain usable', () => {
   assert.equal(normalize({ response: { status: 400, data: { success: false, message: '题库不能超过1MB', errorCode: 'BAD_REQUEST' } } }).message, '题库不能超过1MB')
 })
+test('unstructured authentication and conflict errors retain non-retryable status', () => {
+  for (const [status, errorCode] of [[401, 'UNAUTHORIZED'], [403, 'FORBIDDEN'], [409, 'CONFLICT']]) {
+    const result = normalize({ response: { status, data: '<html>proxy</html>' } })
+    assert.equal(result.errorCode, errorCode); assert.equal(result.httpStatus, status)
+  }
+})
