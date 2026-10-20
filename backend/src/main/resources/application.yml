@@ -1,4 +1,8 @@
 spring:
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
   application:
     name: smart-exam-backend
   datasource:
@@ -28,6 +32,9 @@ mybatis-plus:
     banner: false
 
 server:
+  tomcat:
+    # Allow a boundary-sized rejected upload to receive the JSON 413 before closing.
+    max-swallow-size: 7MB
   port: ${SERVER_PORT:8080}
   servlet:
     context-path: /

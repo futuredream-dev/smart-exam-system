@@ -42,6 +42,18 @@ class StudentExcelImportIntegrationTest {
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper json;
     @Autowired UsersService users;
+
+    @Test void studentImportAcceptsFiveMiBAndRejectsOneByteOverAtServiceBoundary() throws Exception {
+        byte[] bytes=workbook(List.of(row("学号","姓名"),row("limit_"+suffix(),"大小边界")));
+        for(long advertisedSize:new long[]{5L*1024*1024,5L*1024*1024+1}) {
+            MockMultipartFile file=new MockMultipartFile("file","students.xlsx","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",bytes) {
+                @Override public long getSize(){return advertisedSize;}
+            };
+            var response=mvc.perform(multipart("/api/teacher/courses/"+courseId+"/students/import-preview").file(file).header("Authorization","Bearer "+teacherToken))
+                    .andExpect(status().is(advertisedSize==5L*1024*1024?200:400)).andReturn().getResponse();
+            if(advertisedSize>5L*1024*1024)assertThat(response.getContentAsString()).contains("5MB");
+        }
+    }
     @Autowired CoursesService courses;
     @Autowired CourseStudentsService memberships;
     @Autowired JwtService jwt;

@@ -41,7 +41,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<ApiResponse<Void>> handleUploadTooLarge() {
-        return badRequest("上传文件超过允许大小（单文件上限 1MB）", ErrorCode.BAD_REQUEST);
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(ApiResponse.failure("上传文件超过允许大小（单文件上限 5MB，请求上限 6MB；题库文件上限 1MB）", ErrorCode.BAD_REQUEST.name()));
     }
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
