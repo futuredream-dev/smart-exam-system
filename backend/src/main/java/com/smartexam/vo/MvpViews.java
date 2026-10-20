@@ -3,6 +3,7 @@ package com.smartexam.vo;
 import com.smartexam.dto.TeacherRequests.Option;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 public final class MvpViews {
@@ -16,7 +17,7 @@ public final class MvpViews {
             List<Option> options, Integer sortOrder, String answerContent) {}
     public record Paper(Long submissionId, Long examId, String title, LocalDateTime startTime,
             LocalDateTime endTime, LocalDateTime firstEnterTime, LocalDateTime lastEnterTime,
-            String status, List<StudentQuestion> questions) {}
+            String status, List<StudentQuestion> questions, Instant serverNow, Instant deadlineAt) {}
     public record ResultQuestion(Long questionId, Integer orderNo, String questionType, String content,
             List<Option> options, String studentAnswer, BigDecimal finalScore, BigDecimal maxScore,
             String correctAnswer) {}

@@ -1,3 +1,11 @@
 package com.smartexam.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper; import com.smartexam.entity.Submissions; import org.apache.ibatis.annotations.*;
-@Mapper public interface SubmissionsMapper extends BaseMapper<Submissions> { @Select("SELECT * FROM submissions WHERE id=#{id} FOR UPDATE") Submissions selectByIdForUpdate(Long id); @Select("SELECT * FROM submissions WHERE exam_id=#{examId} ORDER BY id FOR UPDATE") java.util.List<Submissions> selectByExamIdForUpdate(Long examId); @Select("SELECT * FROM submissions WHERE exam_id = #{examId} AND student_id = #{studentId} LIMIT 1") Submissions selectByExamAndStudent(Long examId, Long studentId); @Select("SELECT * FROM submissions WHERE exam_id=#{examId} ORDER BY submit_time DESC,id DESC") java.util.List<Submissions> selectByExamId(Long examId); @Select("SELECT s.* FROM submissions s JOIN exams e ON e.id=s.exam_id WHERE s.student_id=#{studentId} AND s.score_published=1 AND e.results_released_at IS NOT NULL ORDER BY e.results_released_at DESC,s.id DESC") java.util.List<Submissions> selectPublishedByStudent(Long studentId); }
+@Mapper public interface SubmissionsMapper extends BaseMapper<Submissions> {
+    @Update("UPDATE submissions SET last_enter_time=#{time} WHERE id=#{id} AND status='IN_PROGRESS'")
+    int updateLastEnterTimeIfInProgress(@Param("id") Long id, @Param("time") java.time.LocalDateTime time);
+    @Select("SELECT * FROM submissions WHERE id=#{id} FOR UPDATE") Submissions selectByIdForUpdate(Long id);
+    @Select("SELECT * FROM submissions WHERE exam_id=#{examId} ORDER BY id FOR UPDATE") java.util.List<Submissions> selectByExamIdForUpdate(Long examId);
+    @Select("SELECT * FROM submissions WHERE exam_id = #{examId} AND student_id = #{studentId} LIMIT 1") Submissions selectByExamAndStudent(Long examId, Long studentId);
+    @Select("SELECT * FROM submissions WHERE exam_id=#{examId} ORDER BY submit_time DESC,id DESC") java.util.List<Submissions> selectByExamId(Long examId);
+    @Select("SELECT s.* FROM submissions s JOIN exams e ON e.id=s.exam_id WHERE s.student_id=#{studentId} AND s.score_published=1 AND e.results_released_at IS NOT NULL ORDER BY e.results_released_at DESC,s.id DESC") java.util.List<Submissions> selectPublishedByStudent(Long studentId);
+}

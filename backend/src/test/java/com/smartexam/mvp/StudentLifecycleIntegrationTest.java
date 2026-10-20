@@ -8,20 +8,27 @@ import com.smartexam.security.JwtService;
 import com.smartexam.service.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -37,6 +44,7 @@ class StudentLifecycleIntegrationTest {
     @Autowired AnswersService answers;
     @Autowired ExamCandidatesMapper candidates;
     @Autowired JwtService jwt;
+    @MockitoBean Clock examClock;
 
     Users teacher;
     Users student;
@@ -44,6 +52,7 @@ class StudentLifecycleIntegrationTest {
 
     @BeforeEach
     void setup() {
+        when(examClock.instant()).thenAnswer(call -> Instant.now());
         teacher = users.findByUsername("teacher_demo");
         student = new Users();
         student.setUsername("lifecycle_" + UUID.randomUUID().toString().substring(0, 8));
@@ -101,6 +110,36 @@ class StudentLifecycleIntegrationTest {
         assertThat(releasedView.path("totalScore").decimalValue()).isEqualByComparingTo("5");
 
         assertState(exam(LocalDateTime.now().minusMinutes(20), LocalDateTime.now().minusMinutes(1), false), "ABSENT");
+    }
+
+    @Test
+    void paperTimeContractUsesUtcAnchorsAndPreservesExistingLocalTimes() throws Exception {
+        when(examClock.instant()).thenReturn(Instant.parse("2028-01-02T03:00:00Z"));
+        Exams exam = exam(LocalDateTime.of(2028, 1, 2, 10, 58), LocalDateTime.of(2028, 1, 2, 11, 20), true);
+        JsonNode entered = json.readTree(mvc.perform(post("/api/student/exams/" + exam.getId() + "/enter")
+                .header("Authorization", "Bearer " + token)).andExpect(status().isOk()).andReturn().getResponse().getContentAsString()).path("data");
+        assertThat(entered.path("serverNow").asText()).isEqualTo("2028-01-02T03:00:00Z");
+        assertThat(entered.path("deadlineAt").asText()).isEqualTo("2028-01-02T03:20:00Z");
+        assertThat(entered.path("endTime").asText()).isEqualTo("2028-01-02T11:20:00");
+        Long id = entered.path("submissionId").asLong();
+        JsonNode paper = call("/api/student/submissions/" + id + "/paper").path("data");
+        assertThat(paper.path("serverNow").asText()).isEqualTo("2028-01-02T03:00:00Z");
+        Questions shortQuestion = questions.findByExamId(exam.getId()).stream().filter(q -> q.getQuestionType().equals("SHORT_ANSWER")).findFirst().orElseThrow();
+        JsonNode saved = json.readTree(mvc.perform(put("/api/student/submissions/" + id + "/answers/" + shortQuestion.getId())
+                .header("Authorization", "Bearer " + token).contentType("application/json").content("{\"answerContent\":\"截止前保存\"}"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString()).path("data");
+        assertThat(saved.path("deadlineAt").asText()).isEqualTo("2028-01-02T03:20:00Z");
+        assertThat(saved.path("serverNow").asText()).isEqualTo("2028-01-02T03:00:00Z");
+    }
+
+    @ParameterizedTest @ValueSource(ints = {-1, 0, 1})
+    void exactDeadlineIsAHardBoundaryWithoutChangingTheSystemClock(int offsetMillis) throws Exception {
+        when(examClock.instant()).thenReturn(Instant.parse("2028-01-02T03:04:05Z").plusMillis(offsetMillis));
+        Exams exam = exam(LocalDateTime.of(2028, 1, 2, 10, 58), LocalDateTime.of(2028, 1, 2, 11, 4, 5), false);
+        Submissions row = submission(exam, "IN_PROGRESS", false, false);
+        mvc.perform(get("/api/student/submissions/" + row.getId() + "/paper").header("Authorization", "Bearer " + token))
+                .andExpect(status().is(offsetMillis < 0 ? 200 : 409));
+        assertThat(submissions.getById(row.getId()).getStatus()).isEqualTo(offsetMillis < 0 ? "IN_PROGRESS" : "AUTO_SUBMITTED");
     }
 
     private JsonNode assertState(Exams exam, String expected) throws Exception {
