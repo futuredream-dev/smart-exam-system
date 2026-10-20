@@ -10,7 +10,7 @@
 
 **Spec:** [`../specs/2026-10-19-system-optimization-design.md`](../specs/2026-10-19-system-optimization-design.md)
 
-**状态：** 2026-10-19 已完成 B0 / T01 准备与验证，B1—B5 未开始。本分支只提交 B0 及其计划文档，未合并或发布。详见 [执行基线报告](../verification/2026-10-19-execution-baseline.md)。后续按批次顺序推进；独立复核仅审查 B0，不代表分发后续实现。
+**状态：** B0 与 B1 / T02—T05 的实现、本地回归和代理边界验证已完成。B2—B5 未开始；未合并、推送或发布。B1 结果见 [批次报告](../verification/2026-10-20-b1-acceptance.md)。原环境状态按续接时实际情况单列，不能沿用旧 PID 作为当前事实。
 
 ## Global Constraints
 
@@ -57,7 +57,7 @@
 - 审查：`scripts/dev.ps1`、`frontend/vite.config.js`、`sql/init.sql`、`sql/demo-data.sql`、`frontend/scripts/verify-*.mjs` 和 `verify-teacher.cjs`。
 
 **Interfaces**
-- `verify-test-database.ps1 -ExpectedDatabase smart_exam_opt_test_20261019`：使用受控环境连接，读取 `SELECT DATABASE()` 和当前账号授权；不匹配或无法证明隔离时非零退出，不写数据、不回显密码。
+- `verify-test-database.ps1 -ExpectedDatabase smart_exam_opt_test_20261019`：使用受控环境连接（支持显式 `-Port`），读取 `SELECT DATABASE()` 和当前账号授权；不匹配或无法证明隔离时非零退出，不写数据、不回显密码。
 - 测试profile固定预期库名 `smart_exam_opt_test_20261019`，JDBC URL只从 `TEST_DB_HOST/TEST_DB_PORT/TEST_DB_NAME/TEST_DB_USERNAME/TEST_DB_PASSWORD` 组装；主机和端口可默认localhost/3306，测试账号和密码无原环境回落值。应用内guard与外部检查器预期库相同。
 - 产出：工作区绝对路径、基线 SHA、测试数据库确认、独立应用地址、脚本适用清单与恢复演练结果。
 - `OptimizationTestFixtures.createSubmittedShortAnswer(): Fixture`：Fixture 返回新建 courseId/examId/submissionId/questionId/answerId；引用已知Demo角色账号但不假定其主键，创建题目与答卷关联，事务结束可回滚。
@@ -82,14 +82,14 @@
 - 测试：`frontend/tests/gradingPaperState.test.mjs`。
 
 **Interfaces**
-- 新增 `mergeReviewDraft(state, serverPaper, savedFields)`；`state` 为 `{paperId,scores,comments,finalComment,baseline}`，`savedFields` 为 `{answerIds:number[],finalComment:boolean}`。返回新草稿与服务端基线，函数不访问 API 或存储。
+- 新增 `mergeReviewDraft(state, serverPaper, savedFields)`；`state` 为 `{paperId,scores,comments,finalComment,baseline}`，`savedFields` 为 `{answerIds:number[],finalComment:boolean,submitted?:DraftSnapshot}`，可选快照用于保留请求期间的新编辑。返回新草稿与服务端基线，函数不访问 API 或存储。
 - 同答卷：只把成功保存字段对齐服务端，保留其他脏字段；不同 `paperId`：清空旧答卷草稿。服务端基线始终更新，防止虚假脏状态。
 
-- [ ] 写失败测试：第二题 8 分与评语在保存第一题、AI 刷新、保存总评后保持；初始未评分 0 不自动标记复核；切换答卷不串数据。
-- [ ] 运行 `node --test tests/gradingPaperState.test.mjs`，确认失败来自未实现行为。
-- [ ] 实现合并函数并接入三个响应入口，保存失败保持原输入；“保存并下一份”确认所有脏字段成功。
-- [ ] 单测通过后，在隔离应用用含两道简答题的答卷验证三种刷新与失败重试；记录当前总分、输入和服务端状态。
-- [ ] 运行前端全套逻辑测试、构建并提交。
+- [x] 写失败测试：第二题 8 分与评语在保存第一题、AI 刷新、保存总评后保持；初始未评分 0 不自动标记复核；切换答卷不串数据。
+- [x] 运行 `node --test tests/gradingPaperState.test.mjs`，确认失败来自未实现行为。
+- [x] 实现合并函数并接入三个响应入口，保存失败保持原输入；“保存并下一份”确认所有脏字段成功。
+- [x] 单测通过后，在隔离应用用含两道简答题的答卷验证三种刷新与失败重试；记录当前总分、输入和服务端状态。
+- [x] 运行前端全套逻辑测试、构建并提交。
 
 ### T03：统一题目选项与学生答案验证（F02）
 
@@ -103,11 +103,11 @@
 - `validateBankOptions(List<QuestionBankRequests.Option>, String correctAnswer): void`：非空完整题目要求 2—20 个唯一标识，正确答案属于选项。
 - `normalizeAnswer(String raw, String optionsJson): String`：保留空答案语义；非空值 trim 后必须精确属于快照。手动四选一 DTO 继续 A—D。
 
-- [ ] 写失败测试：E、自定义标识可保存和正确计分；不存在选项拒绝；重复标识和错误正确答案阻断 READY/发布；历史 A—D不变。
-- [ ] 在隔离库运行上述三类测试，确认当前 E 保存路径失败。
-- [ ] 接入共用策略，保证题库、手动/随机/规则组卷与最终发布采用一致的可用性检查；不批量重标历史数据。
-- [ ] 运行指定后端测试，并实际完成含 E 选项的发布、作答、交卷、自动评分与出分回顾。
-- [ ] 核对未发布答案/正确答案不泄漏后提交。
+- [x] 写失败测试：E、自定义标识可保存和正确计分；不存在选项拒绝；重复标识和错误正确答案阻断 READY/发布；历史 A—D不变。
+- [x] 在隔离库运行上述三类测试，确认当前 E 保存路径失败。
+- [x] 接入共用策略，保证题库、手动/随机/规则组卷与最终发布采用一致的可用性检查；不批量重标历史数据。
+- [x] 运行指定后端测试，并实际完成含 E 选项的发布、作答、交卷、自动评分与出分回顾。
+- [x] 核对未发布答案/正确答案不泄漏后提交。
 
 ### T04：题库归档可见与恢复（F04）
 
@@ -119,10 +119,10 @@
 - `GET /api/teacher/question-banks?status=ACTIVE|ARCHIVED|ALL`：默认 ACTIVE，保留原调用结果。
 - `POST /api/teacher/question-banks/{bankId}/restore`：所属教师可恢复；平台库不可写；冲突返回 409；不改变题目原状态或课程绑定。
 
-- [ ] 写失败测试：归档库能在 ARCHIVED 查询找到并恢复；其他教师/管理员不能调用教师写接口；课程占用和原考试快照保留。
-- [ ] 确认当前恢复端点不存在，再实现服务与页面入口；归档确认文案说明保留绑定及恢复位置。
-- [ ] 测试历史绑定冲突整次不改变状态，不以删除或解绑规避；无需 schema 变更。
-- [ ] 指定后端测试＋隔离浏览器归档/恢复闭环通过后提交。
+- [x] 写失败测试：归档库能在 ARCHIVED 查询找到并恢复；其他教师/管理员不能调用教师写接口；课程占用和原考试快照保留。
+- [x] 确认当前恢复端点不存在，再实现服务与页面入口；归档确认文案说明保留绑定及恢复位置。
+- [x] 测试历史绑定冲突整次不改变状态，不以删除或解绑规避；无需 schema 变更。
+- [x] 指定后端测试＋隔离浏览器归档/恢复闭环通过后提交。
 
 ### T05：发布检查、AI 时限/持久化与上传一致性（F07/F08/F09/F18）
 
@@ -136,12 +136,12 @@
 - AI 阅卷前端 40000ms，后端默认 30s，组卷前端 65000ms，代理读取 70s。
 - Spring multipart：单文件 5MiB、请求 6MiB；Nginx 请求 6MiB；学生服务 5MiB、题库 1MiB。
 
-- [ ] 先分别补失败测试：过期发布；SUCCESS 后 FAILED/NOT_CONFIGURED 的数据库字段；延迟超过 10 秒的模拟 AI；各类文件大小边界。不调用真实模型。
-- [ ] 运行指定用例，记录 F09 是否实际存在，若不成立保留反证，不做多余实体重构。
-- [ ] 每项最小修复，AI 失败用显式 NULL 写入；页面超时先查结果，不盲目重发。对外失败不暴露 Prompt、答案全文或凭据。
-- [ ] 复现模型调用占用数据库锁的影响，只有确认必要时拆为“验证—调用—加锁回填”，回填时重新校验未出分；旧任务结果不能覆盖较新请求。
-- [ ] 测试 1MiB 题库上限、5MiB 学生上限及超过 6MiB 代理拒绝；分别确认 JSON 与非 JSON 错误均可理解。
-- [ ] 每个独立修复形成可审阅提交；运行本批相关后端测试、前端全套逻辑和构建。
+- [x] 先分别补失败测试：过期发布；SUCCESS 后 FAILED/NOT_CONFIGURED 的数据库字段；延迟超过 10 秒的模拟 AI；各类文件大小边界。不调用真实模型。
+- [x] 运行指定用例，记录 F09 是否实际存在，若不成立保留反证，不做多余实体重构。
+- [x] 每项最小修复，AI 失败用显式 NULL 写入；页面超时先查结果，不盲目重发。对外失败不暴露 Prompt、答案全文或凭据。
+- [x] 复现模型调用占用数据库锁的影响，只有确认必要时拆为“验证—调用—加锁回填”，回填时重新校验未出分；旧任务结果不能覆盖较新请求。
+- [x] 测试 1MiB 题库上限、5MiB 学生上限及超过 6MiB 代理拒绝；分别确认 JSON 与非 JSON 错误均可理解。
+- [x] 每个独立修复形成可审阅提交；运行本批相关后端测试、前端全套逻辑和构建。
 
 ## B2：在线作答与并发可靠性
 
