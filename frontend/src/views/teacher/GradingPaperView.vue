@@ -13,7 +13,8 @@ async function loadContext(){if(!paper.value)return;try{workspace.value=(await t
 async function loadPaper(id){error.value='';notice.value='';paper.value=undefined;workspace.value=null;try{hydrate((await teacherApi.gradingPaper(id)).data);loadContext();const tip=sessionStorage.getItem('gradingNotice');if(tip){sessionStorage.removeItem('gradingNotice');notice.value=tip}window.scrollTo(0,0)}catch(e){error.value=e.message;sessionStorage.removeItem('gradingNotice')}}
 onMounted(()=>loadPaper(route.params.submissionId))
 async function review(a){if(saving.value||busy.value||savingNext.value||examReleased.value)return;error.value='';notice.value='';saving.value=true;const submitted=draftState();try{hydrate((await teacherApi.reviewAnswer(a.answerId,{teacherScore:submitted.scores[a.answerId],teacherComment:submitted.comments[a.answerId]})).data,{answerIds:[a.answerId],submitted});notice.value='评分已保存并重新汇总总分'}catch(e){error.value=e.message}finally{saving.value=false}}
-async function aiGrade(a){if(busy.value||saving.value||savingNext.value||examReleased.value)return;error.value='';notice.value='';busy.value=true;try{hydrate((await teacherApi.aiGrade(a.answerId)).data)}catch(e){error.value=e.message}finally{busy.value=false}}
+async function aiGrade(a){if(busy.value||saving.value||savingNext.value||examReleased.value||paper.value?.answers.find(answer=>answer.answerId===a.answerId)?.aiSuggestion?.status==='RUNNING')return;error.value='';notice.value='';busy.value=true;try{hydrate((await teacherApi.aiGrade(a.answerId)).data)}catch(e){error.value=e.message;if(['REQUEST_TIMEOUT','NETWORK_ERROR'].includes(e.errorCode)){try{hydrate((await teacherApi.gradingPaper(paper.value.id)).data);notice.value='AI请求结果尚未确认，已刷新答卷；请查看建议状态后决定是否重试。'}catch{notice.value='AI处理结果尚未确认，请稍后刷新答卷，避免重复生成。'}}}finally{busy.value=false}}
+async function refreshAiResult(){if(busy.value||saving.value||savingNext.value||!paper.value)return;busy.value=true;error.value='';try{hydrate((await teacherApi.gradingPaper(paper.value.id)).data);notice.value=paper.value.answers.some(a=>a.aiSuggestion?.status==='RUNNING')?'AI建议仍在生成，请稍后再刷新结果。':'AI状态已刷新，请检查建议后继续操作。'}catch(e){error.value=e.message}finally{busy.value=false}}
 async function saveComment(){if(saving.value||busy.value||savingNext.value||examReleased.value)return;error.value='';notice.value='';saving.value=true;const submitted=draftState();try{hydrate((await teacherApi.saveFinalComment(paper.value.id,submitted.finalComment)).data,{finalComment:true,submitted});notice.value='最终评语已保存'}catch(e){error.value=e.message}finally{saving.value=false}}
 function dirtyEdits(){return(paper.value?paper.value.answers:[]).filter(a=>a.questionType==='SHORT_ANSWER'&&(scores[a.answerId]!==base.scores[a.answerId]||comments[a.answerId]!==base.comments[a.answerId])).map(a=>({answerId:a.answerId,score:scores[a.answerId],comment:comments[a.answerId]}))}
 async function saveAndNext(){
@@ -104,11 +105,13 @@ async function saveAndNext(){
           <section v-if="a.questionType==='SHORT_ANSWER'" class="grading-ai-assist">
             <div class="grading-ai-head">
               <div><h3>AI辅助建议</h3><span>仅供参考，最终评分由教师确认</span></div>
-              <button class="grading-ai-button" :disabled="busy||saving||savingNext||examReleased" @click="aiGrade(a)">{{a.aiSuggestion?'重新生成':'生成AI建议'}}</button>
+              <button class="grading-ai-button" :disabled="busy||saving||savingNext||examReleased||a.aiSuggestion?.status==='RUNNING'" @click="aiGrade(a)">{{a.aiSuggestion?.status==='RUNNING'?'正在生成…':a.aiSuggestion?'重新生成':'生成AI建议'}}</button>
+              <button v-if="a.aiSuggestion?.status==='RUNNING'||a.aiSuggestion?.status==='TIMED_OUT'" class="grading-ai-button" :disabled="busy||saving||savingNext" @click="refreshAiResult">刷新AI状态</button>
             </div>
             <p v-if="!a.aiSuggestion" class="muted">尚未生成 AI 建议。</p>
             <template v-else>
-              <p v-if="a.aiSuggestion.errorMessage" class="error-message" role="alert">{{a.aiSuggestion.errorMessage}}</p>
+              <p v-if="a.aiSuggestion.status==='RUNNING'" class="muted" role="status">AI建议正在生成，请稍后刷新答卷确认结果。</p>
+              <p v-else-if="a.aiSuggestion.errorMessage" class="error-message" role="alert">{{a.aiSuggestion.errorMessage}}</p>
               <dl v-else class="grading-ai-details">
                 <div><dt>AI建议分</dt><dd>{{a.aiSuggestion.aiScore}}</dd></div>
                 <div><dt>建议理由</dt><dd>{{a.aiSuggestion.aiReason}}</dd></div>

@@ -69,3 +69,26 @@ test('a delayed answer save preserves newer input and blocks duplicate writes', 
   resolve({ data: structuredClone(server) }); await pending
   assert.equal(s.scores[1], 9); assert.equal(s.base.scores[1], 6); assert.equal(s.comments[1], '请求后编辑')
 })
+test('an uncertain AI timeout refreshes once without repeating the AI call or losing drafts', async () => {
+  let aiCalls = 0, reads = 0
+  const { state: s } = await page({ api: {
+    aiGrade: async () => { aiCalls++; throw { errorCode: 'REQUEST_TIMEOUT', message: '请求超时' } },
+    gradingPaper: async () => { reads++; return { data: { id: 10, examId: 7, teacherComment: '', answers: [1, 2].map(answerId => ({ answerId, questionType: 'SHORT_ANSWER', teacherScore: null, autoScore: null, teacherComment: '', gradingStatus: 'PENDING' })) } } },
+  } })
+  s.scores[2] = 8; s.comments[2] = '保留草稿'
+  await s.aiGrade(s.paper.value.answers[0])
+  assert.equal(aiCalls, 1); assert.equal(reads, 1); assert.equal(s.scores[2], 8); assert.equal(s.comments[2], '保留草稿')
+  assert.match(s.notice.value, /刷新|确认/)
+})
+test('a server RUNNING suggestion blocks regeneration and provides a read-only status refresh', async () => {
+  let aiCalls = 0, reads = 0
+  const { state: s, server } = await page({ api: {
+    aiGrade: async () => { aiCalls++; return { data: structuredClone(server) } },
+    gradingPaper: async () => { reads++; return { data: structuredClone(server) } },
+  } })
+  server.answers[0].aiSuggestion = { status: 'RUNNING' }; s.hydrate(structuredClone(server))
+  s.scores[2] = 8; s.comments[2] = '刷新保留草稿'
+  await s.aiGrade(s.paper.value.answers[0]); assert.equal(aiCalls, 0)
+  assert.equal(typeof s.refreshAiResult, 'function'); await s.refreshAiResult()
+  assert.equal(reads, 1); assert.equal(aiCalls, 0); assert.equal(s.scores[2], 8); assert.equal(s.comments[2], '刷新保留草稿')
+})

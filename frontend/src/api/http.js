@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { normalizeApiError } from '../utils/httpError'
 import { TOKEN_KEY, clearSession } from '../auth/auth'
 
 const http = axios.create({
@@ -26,12 +27,7 @@ http.interceptors.response.use(
   (response) => response.config.rawResponse ? response : response.data,
   (error) => {
     if (error.response?.status === 401 && !error.config?.silentBehaviorEvent) clearSession()
-    const apiError = error.response?.data || {
-      success: false,
-      message: '网络异常，请稍后重试',
-      errorCode: 'NETWORK_ERROR',
-      data: null,
-    }
+    const apiError = normalizeApiError(error)
     return Promise.reject(apiError)
   },
 )

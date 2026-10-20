@@ -28,13 +28,25 @@ public class AiGradingService {
     public AiGradingResults grade(Answers answer, Questions question) {
         AiGradingResults row = results.findByAnswerId(answer.getId());
         if (row == null) { row = new AiGradingResults(); row.setAnswerId(answer.getId()); }
+        calculate(row, answer, question);
+        results.saveOrUpdate(row);
+        return row;
+    }
+
+    /** Detached suggestion: no database writes and no transaction around the provider call. */
+    public AiGradingResults generate(Answers answer, Questions question) {
+        AiGradingResults row = new AiGradingResults(); row.setAnswerId(answer.getId());
+        calculate(row, answer, question);
+        return row;
+    }
+
+    private void calculate(AiGradingResults row, Answers answer, Questions question) {
         row.setUpdatedAt(LocalDateTime.now());
         if (!provider.configured()) {
             clearSuggestion(row);
             row.setStatus("NOT_CONFIGURED");
             row.setErrorMessage("AI服务未配置：请配置 AI_API_KEY、AI_BASE_URL 和 AI_MODEL");
-            results.saveOrUpdate(row);
-            return row;
+            return;
         }
         try {
             var request = new AiGradingProvider.GradeRequest(question.getContent(), question.getScore(),
@@ -49,14 +61,19 @@ public class AiGradingService {
             row.setAiReason(grade.reason()); row.setAiComment(grade.comment());
             row.setMatchedPoints(json.writeValueAsString(grade.matchedPoints()));
             row.setMissingPoints(json.writeValueAsString(grade.missingPoints()));
-            row.setStatus("SUCCESS"); row.setErrorMessage(null); results.saveOrUpdate(row);
+            row.setStatus("SUCCESS"); row.setErrorMessage(null);
         } catch (Exception e) {
             clearSuggestion(row);
-            row.setStatus("FAILED"); row.setErrorMessage("AI 阅卷失败：" + e.getMessage()); results.saveOrUpdate(row);
+            row.setStatus("FAILED"); row.setErrorMessage(safeFailure(e));
         }
-        return row;
     }
 
+    private String safeFailure(Exception error) {
+        String message = error.getMessage();
+        if (message != null && message.startsWith("AI 接口超时或无法连接")) return "AI 阅卷失败：AI 接口超时或无法连接";
+        if (message != null && message.startsWith("AI 返回格式异常")) return "AI 阅卷失败：AI 返回格式异常";
+        return "AI 阅卷失败：请稍后重试，或继续人工评分";
+    }
     private void clearSuggestion(AiGradingResults row) {
         row.setAiScore(null); row.setAiReason(null); row.setAiComment(null);
         row.setMatchedPoints(null); row.setMissingPoints(null);

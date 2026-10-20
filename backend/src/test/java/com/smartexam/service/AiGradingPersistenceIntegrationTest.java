@@ -28,6 +28,22 @@ class AiGradingPersistenceIntegrationTest {
     @Autowired OptimizationTestFixtures fixtures;
     @MockitoBean AiGradingProvider provider;
 
+    @Test void failedOrUnconfiguredRegradeClearsEveryPersistedSuggestionField() {
+        for(boolean configured:new boolean[]{true,false}) {
+            var fixture=fixtures.createSubmittedShortAnswer();
+            AiGradingResults existing=new AiGradingResults();existing.setAnswerId(fixture.answerId());existing.setStatus("SUCCESS");
+            existing.setAiScore(BigDecimal.TEN);existing.setAiReason("旧理由");existing.setAiComment("旧评语");existing.setMatchedPoints("[\"旧命中\"]");existing.setMissingPoints("[\"旧缺失\"]");results.save(existing);
+            when(provider.configured()).thenReturn(configured);
+            org.mockito.Mockito.doThrow(new IllegalStateException("private-provider-payload-and-key")).when(provider).grade(any());
+            service.grade(answers.getById(fixture.answerId()),questions.getById(fixture.questionId()));
+            var persisted=results.findByAnswerId(fixture.answerId());
+            assertThat(persisted.getStatus()).isEqualTo(configured?"FAILED":"NOT_CONFIGURED");
+            assertThat(persisted.getAiScore()).isNull();assertThat(persisted.getAiReason()).isNull();assertThat(persisted.getAiComment()).isNull();
+            assertThat(persisted.getMatchedPoints()).isNull();assertThat(persisted.getMissingPoints()).isNull();
+            assertThat(persisted.getErrorMessage()).doesNotContain("private-provider-payload-and-key");
+        }
+    }
+
     @Test
     void successfulRegradeClearsPersistedErrorFromPreviousAttempt() {
         var fixture = fixtures.createSubmittedShortAnswer();
