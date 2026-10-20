@@ -12,7 +12,8 @@ public final class MvpViews {
             LocalDateTime startTime, LocalDateTime endTime, Integer lateEntryMinutes,
             Integer minSubmitMinutes, String examStatus, String submissionStatus, Long submissionId,
             int questionCount, String lifecycleStatus,
-            LocalDateTime resultsReleasedAt, BigDecimal totalScore, BigDecimal maxScore) {}
+            LocalDateTime resultsReleasedAt, BigDecimal totalScore, BigDecimal maxScore,
+            Instant serverNow, Instant startsAt, Instant entryDeadlineAt, Instant deadlineAt) {}
     public record StudentQuestion(Long id, String questionType, String content, BigDecimal score,
             List<Option> options, Integer sortOrder, String answerContent) {}
     public record Paper(Long submissionId, Long examId, String title, LocalDateTime startTime,

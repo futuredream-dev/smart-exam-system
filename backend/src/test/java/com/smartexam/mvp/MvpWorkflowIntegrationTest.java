@@ -20,6 +20,18 @@ import java.math.BigDecimal;import java.time.LocalDateTime;import java.util.*;im
   call(post("/api/student/submissions/"+sid+"/submit"),null,student,200);assertThat(answers.findOne(sid,singleId).getAutoScore()).isEqualByComparingTo("5");
   call(get("/api/student/results/"+sid),null,student,403);
  }
+ @Test void deadlineRecoveryReturnsAutomaticReceiptWithoutAcceptingLateAnswers()throws Exception{
+  Long sid=call(post("/api/student/exams/"+examId+"/enter"),null,student,200).path("data").path("submissionId").asLong();
+  call(put("/api/student/submissions/"+sid+"/answers/"+singleId),Map.of("answerContent","A"),student,200);
+  Exams exam=exams.getById(examId);exam.setEndTime(LocalDateTime.now().minusSeconds(1));exams.updateById(exam);
+  call(put("/api/student/submissions/"+sid+"/answers/"+singleId),Map.of("answerContent","B"),student,409);
+  JsonNode receipt=call(get("/api/student/exams/"+examId),null,student,200).path("data");
+  assertThat(receipt.path("submissionStatus").asText()).isEqualTo("AUTO_SUBMITTED");
+  assertThat(receipt.path("deadlineAt").asText()).endsWith("Z");assertStudentPayloadSafe(receipt);
+  call(post("/api/student/submissions/"+sid+"/submit"),null,student,409);
+  assertThat(answers.findOne(sid,singleId).getAnswerContent()).isEqualTo("A");
+  assertThat(submissions.getById(sid).getTotalScore()).isEqualByComparingTo("5");
+ }
  @Test void studentCompletesWorkflowWithoutSensitiveFields()throws Exception{
   Long courseId=exams.getById(examId).getCourseId(),gradingId=exam(courseId,"阅卷中考试","GRADING"),releasedId=exam(courseId,"已发布成绩考试","RELEASED");Courses other=new Courses();other.setTeacherId(users.findByUsername("teacher_demo").getId());other.setCourseName("未加入课程");courses.save(other);Long otherPublishedId=exam(other.getId(),"其他课程考试","PUBLISHED");
   JsonNode list=call(get("/api/student/exams"),null,student,200);assertStudentPayloadSafe(list);List<Long> visibleIds=new ArrayList<>();list.path("data").forEach(candidate->visibleIds.add(candidate.path("id").asLong()));assertThat(visibleIds).contains(examId).doesNotContain(gradingId,releasedId,otherPublishedId);

@@ -1,16 +1,22 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, onBeforeUnmount, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { studentApi, formatTime } from '../../api/student'
 import { lifecycleMeta } from '../../utils/studentExamLifecycle'
+import { createBoundaryRefresh } from '../../utils/examClock'
 
 const route = useRoute(), router = useRouter()
 const exam = ref(), error = ref(''), busy = ref(false), loading = ref(true)
-onMounted(async () => {
-  try { exam.value = (await studentApi.exam(route.params.examId)).data }
-  catch (e) { error.value = e.message || '加载考试详情失败，请刷新重试' }
-  finally { loading.value = false }
+const lastSync = ref(''), refreshing = ref(false)
+const boundaryRefresh = createBoundaryRefresh({
+  load: async () => { refreshing.value = true; try { return (await studentApi.exam(route.params.examId)).data } finally { refreshing.value = false; loading.value = false } },
+  onData: data => { exam.value = data; error.value = ''; lastSync.value = new Date(data.serverNow).toLocaleTimeString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false }) },
+  onError: e => { error.value = e.message || '加载考试详情失败，请刷新重试' },
 })
+function refresh() { return boundaryRefresh.refresh() }
+function onVisibilityChange() { if (document.visibilityState === 'visible') void refresh() }
+onMounted(() => { document.addEventListener('visibilitychange', onVisibilityChange); void refresh() })
+onBeforeUnmount(() => { boundaryRefresh.dispose(); document.removeEventListener('visibilitychange', onVisibilityChange) })
 async function enter() {
   busy.value = true; error.value = ''
   try {
@@ -24,6 +30,7 @@ async function enter() {
 <template>
   <div class="student-detail-page">
     <RouterLink class="student-back-link" to="/student">返回我的考试</RouterLink>
+    <p class="muted"><button class="secondary" :disabled="refreshing" @click="refresh">{{ refreshing ? '正在刷新…' : '刷新状态' }}</button><span v-if="lastSync"> 上次同步 {{ lastSync }}</span></p>
     <p v-if="error" class="error-message" role="alert">{{ error }}</p>
     <p v-if="loading" class="loading-state" role="status">正在加载考试详情…</p>
     <article v-if="exam" class="surface student-exam-detail">

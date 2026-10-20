@@ -1,11 +1,13 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, onBeforeUnmount, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { studentApi, formatTime } from '../../api/student'
 import { lifecycleMeta } from '../../utils/studentExamLifecycle'
+import { createBoundaryRefresh } from '../../utils/examClock'
 
-const router = useRouter()
+const router = useRouter(), route = useRoute()
 const exams = ref([]), loading = ref(true), error = ref(''), success = ref(''), busyId = ref(null)
+const lastSync = ref(''), refreshing = ref(false)
 const groupDefinitions = [
   { key: 'current', title: '现在可以参加', statuses: ['IN_PROGRESS', 'AVAILABLE'] },
   { key: 'upcoming', title: '即将开始', statuses: ['NOT_STARTED'] },
@@ -24,20 +26,24 @@ const examGroups = computed(() => groupDefinitions.map(group => ({
     }),
 })).filter(group => group.key === 'current' || group.items.length))
 
-onMounted(async () => {
-  try {
-    exams.value = (await studentApi.exams()).data
-    const submitted = sessionStorage.getItem('studentSubmitSuccess')
-    if (submitted) {
-      const { examId } = JSON.parse(submitted)
-      if (exams.value.some(exam => String(exam.id) === String(examId))) {
-        success.value = '交卷成功，答卷已提交。成绩公布后可在“我的成绩”查看。'
-        sessionStorage.removeItem('studentSubmitSuccess')
-      }
+const boundaryRefresh = createBoundaryRefresh({
+  load: async () => { refreshing.value = true; try { return (await studentApi.exams()).data } finally { refreshing.value = false; loading.value = false } },
+  onData: data => {
+    exams.value = data; error.value = ''
+    lastSync.value = data[0]?.serverNow ? new Date(data[0].serverNow).toLocaleTimeString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false }) : '刚刚'
+    let examId = route.query.submitted
+    try { const stored = sessionStorage.getItem('studentSubmitSuccess'); if (stored) examId = JSON.parse(stored).examId } catch {}
+    if (examId && data.some(exam => String(exam.id) === String(examId) && exam.submissionStatus && exam.submissionStatus !== 'IN_PROGRESS')) {
+      success.value = '交卷成功，答卷已提交。成绩公布后可在“我的成绩”查看。'
+      try { sessionStorage.removeItem('studentSubmitSuccess') } catch {}
     }
-  } catch (e) { error.value = e.message || '加载考试失败，请刷新重试' }
-  finally { loading.value = false }
+  },
+  onError: e => { error.value = e.message || '加载考试失败，请刷新重试' },
 })
+function refresh() { return boundaryRefresh.refresh() }
+function onVisibilityChange() { if (document.visibilityState === 'visible') void refresh() }
+onMounted(() => { document.addEventListener('visibilitychange', onVisibilityChange); void refresh() })
+onBeforeUnmount(() => { boundaryRefresh.dispose(); document.removeEventListener('visibilitychange', onVisibilityChange) })
 async function act(exam) {
   const status = exam.lifecycleStatus
   if (status === 'NOT_STARTED') return router.push('/student/exams/' + exam.id)
@@ -54,7 +60,7 @@ async function act(exam) {
 
 <template>
   <div class="student-home">
-    <header class="page-heading"><div><h1>我的考试</h1><p class="muted">参加考试、查看安排与交卷状态</p></div><RouterLink class="secondary" to="/student/results">我的成绩</RouterLink></header>
+    <header class="page-heading"><div><h1>我的考试</h1><p class="muted">参加考试、查看安排与交卷状态<span v-if="lastSync"> · 上次同步 {{ lastSync }}</span></p></div><div class="actions"><button class="secondary" :disabled="refreshing" @click="refresh">{{ refreshing ? '正在刷新…' : '刷新考试' }}</button><RouterLink class="secondary" to="/student/results">我的成绩</RouterLink></div></header>
     <p v-if="success" class="success-message" role="status">{{ success }}</p>
     <p v-if="error" class="error-message" role="alert">{{ error }}</p>
     <p v-if="loading" class="loading-state" role="status">正在加载考试…</p>

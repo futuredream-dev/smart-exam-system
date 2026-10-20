@@ -121,6 +121,11 @@ class StudentLifecycleIntegrationTest {
         assertThat(entered.path("serverNow").asText()).isEqualTo("2028-01-02T03:00:00Z");
         assertThat(entered.path("deadlineAt").asText()).isEqualTo("2028-01-02T03:20:00Z");
         assertThat(entered.path("endTime").asText()).isEqualTo("2028-01-02T11:20:00");
+        JsonNode detail = call("/api/student/exams/" + exam.getId()).path("data");
+        assertThat(detail.path("serverNow").asText()).isEqualTo("2028-01-02T03:00:00Z");
+        assertThat(detail.path("startsAt").asText()).isEqualTo("2028-01-02T02:58:00Z");
+        assertThat(detail.path("entryDeadlineAt").asText()).isEqualTo("2028-01-02T03:08:00Z");
+        assertThat(detail.path("deadlineAt").asText()).isEqualTo("2028-01-02T03:20:00Z");
         Long id = entered.path("submissionId").asLong();
         JsonNode paper = call("/api/student/submissions/" + id + "/paper").path("data");
         assertThat(paper.path("serverNow").asText()).isEqualTo("2028-01-02T03:00:00Z");
