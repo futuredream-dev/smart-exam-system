@@ -37,6 +37,15 @@ test('a successful save advances the baseline without overwriting a newer edit d
   assert.equal(result.finalComment, '新的总评'); assert.equal(result.baseline.scores[1], 6)
   assert.equal(result.baseline.comments[1], '第一题'); assert.equal(result.baseline.finalComment, '未保存总评')
 })
+test('reverting an inflight score or comment to the old baseline is still a newer edit', () => {
+  const sent = draft(), state = structuredClone(sent), paper = serverPaper()
+  state.scores[1] = 0; state.comments[1] = ''; state.finalComment = ''
+  paper.answers[0].teacherScore = 6; paper.answers[0].teacherComment = '第一题'; paper.teacherComment = '未保存总评'
+  const result = merge(state, paper, { answerIds: [1], finalComment: true, submitted: sent })
+  assert.equal(result.scores[1], 0); assert.equal(result.comments[1], ''); assert.equal(result.finalComment, '')
+  assert.equal(result.baseline.scores[1], 6); assert.equal(result.baseline.comments[1], '第一题')
+  assert.equal(result.baseline.finalComment, '未保存总评')
+})
 test('initial pending zero remains clean and is not marked manually reviewed', () => {
   const paper = serverPaper(), result = merge({}, paper)
   assert.equal(result.scores[1], 0); assert.equal(result.baseline.scores[1], 0)

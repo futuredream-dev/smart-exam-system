@@ -10,8 +10,10 @@ export function mergeReviewDraft(state, serverPaper, savedFields = {}) {
   const baseline = { scores: {}, comments: {}, finalComment: serverPaper.teacherComment ?? '' }
   const scores = {}, comments = {}, acknowledged = new Set(savedFields.answerIds ?? [])
   function field(current, previous, server, saved, submitted) {
-    if (!samePaper || current === undefined || current === previous) return server
-    if (saved && (submitted === undefined || current === submitted)) return server
+    if (!samePaper || current === undefined) return server
+    // A changed value can be a deliberate revert to the previous baseline.
+    if (saved && submitted !== undefined) return current === submitted ? server : current
+    if (current === previous || saved) return server
     return current
   }
   for (const answer of serverPaper.answers ?? []) {
