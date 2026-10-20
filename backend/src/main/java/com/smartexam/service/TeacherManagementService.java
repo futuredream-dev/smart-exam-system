@@ -749,6 +749,7 @@ public class TeacherManagementService {
         if (course == null) errors.add("所属课程不存在");
         if (exam.getStartTime() == null) errors.add("开始时间不能为空");
         if (exam.getEndTime() == null) errors.add("结束时间不能为空");
+        else if (!exam.getEndTime().isAfter(LocalDateTime.now())) errors.add("考试已经结束，请调整结束时间后再发布");
         if (exam.getStartTime() != null && exam.getEndTime() != null) {
             if (!exam.getEndTime().isAfter(exam.getStartTime())) errors.add("结束时间必须晚于开始时间");
             else {

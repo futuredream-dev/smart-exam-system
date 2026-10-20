@@ -35,6 +35,17 @@ class ExamCenterIntegrationTest {
     @Autowired SubmissionsService submissions;
     @Autowired JwtService jwt;
 
+    @Test void endedDraftCannotPassReadinessOrPublish() throws Exception {
+        Users owner=users.findByUsername("teacher_demo"); Exams exam=draft(owner);
+        exam.setStartTime(LocalDateTime.now().minusHours(2));exam.setEndTime(LocalDateTime.now().minusHours(1));exams.updateById(exam);
+        Questions q=new Questions();q.setExamId(exam.getId());q.setQuestionType("SHORT_ANSWER");q.setContent("过期发布");q.setReferenceAnswer("答案");q.setScore(BigDecimal.TEN);q.setSortOrder(1);questions.save(q);
+        String token=jwt.generate(owner);
+        JsonNode readiness=response(get("/api/teacher/exams/"+exam.getId()+"/publish-readiness").header("Authorization","Bearer "+token)).path("data");
+        assertThat(readiness.path("ready").asBoolean()).isFalse();assertThat(readiness.path("errors").toString()).contains("结束");
+        mvc.perform(post("/api/teacher/exams/"+exam.getId()+"/publish").header("Authorization","Bearer "+token)).andExpect(status().isBadRequest());
+        assertThat(exams.getById(exam.getId()).getStatus()).isEqualTo("DRAFT");
+    }
+
     @Test
     void teacherCannotSeeAnotherTeachersDetailOrReadiness() throws Exception {
         Users owner = users.findByUsername("teacher_demo");
