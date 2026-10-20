@@ -1,3 +1,4 @@
+param([ValidateRange(1,65535)][int]$Port = 3306)
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $script = Join-Path $root 'scripts/verify-test-database.ps1'
@@ -12,6 +13,6 @@ $wrong = Invoke-Check @('-ExpectedDatabase','smart_exam')
 if ($wrong.ExitCode -eq 0 -or $wrong.Text -notmatch 'DB_TARGET_MISMATCH') { throw 'Wrong target must be rejected before connecting.' }
 $closed = Invoke-Check @('-Port','1')
 if ($closed.ExitCode -eq 0 -or $closed.Text -notmatch 'CONNECTION_FAILED') { throw 'An unavailable server must fail closed.' }
-$safe = Invoke-Check @()
+$safe = Invoke-Check @('-Port', [string]$Port)
 if ($safe.ExitCode -ne 0 -or $safe.Text -notmatch '"safe"\s*:\s*true') { throw 'The dedicated account must pass isolation preflight.' }
 Write-Output 'PASS 3 isolation preflight scenarios'
