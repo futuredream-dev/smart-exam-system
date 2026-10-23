@@ -115,7 +115,8 @@ const router = createRouter({
   routes,
 })
 
-router.afterEach((to) => {
+router.afterEach((to, from, failure) => {
+  if (failure) return
   document.title = `${to.meta.title || '智能考试管理系统'} - 智能考试管理系统`
 })
 
