@@ -8,7 +8,8 @@ public final class AdminPlatformViews {
     private AdminPlatformViews() {}
 
     public record Dashboard(long teacherCount, long studentCount, long courseCount, long examCount,
-                            long activeUserCount, long disabledUserCount, Map<String, Long> examStatuses) {}
+                            long activeUserCount, long disabledUserCount, Map<String, Long> examStatuses,
+                            Map<String, Long> examStages) {}
     public record Student(Long id, String username, String name, String status,
                           boolean mustChangePassword, LocalDateTime createdAt) {
         public static Student from(Users user) {
@@ -22,6 +23,7 @@ public final class AdminPlatformViews {
     public record Exam(Long id, String title, Long courseId, String courseName, Long teacherId,
                        String teacherName, String status, String examKind, LocalDateTime startTime,
                        LocalDateTime endTime, long candidateCount, long submittedCount,
-                       LocalDateTime resultsReleasedAt, LocalDateTime archivedAt) {}
+                       LocalDateTime resultsReleasedAt, LocalDateTime archivedAt, String displayStage,
+                       String nextAction, boolean canReleaseResults, String releaseBlockReason) {}
     public record TemporaryPassword(Long id, String username, String name, String temporaryPassword) {}
 }

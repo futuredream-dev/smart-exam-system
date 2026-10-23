@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -25,6 +24,8 @@ public class ResultsAnalysisService {
     private final QuestionsService questions;
     private final SubmissionsService submissions;
     private final AnswersService answers;
+    private final com.smartexam.mapper.ExamLifecycleRepository lifecycleRows;
+    private final ExamLifecyclePolicy lifecycle;
 
     public ResultsAnalysisViews.Analysis analyze(String username, Long examId) {
         // Reuse the existing course-owner check before reading scores or answers.
@@ -37,19 +38,21 @@ public class ResultsAnalysisService {
         Map<Long, Submissions> byStudent = all.stream()
                 .collect(Collectors.toMap(Submissions::getStudentId, s -> s));
         List<Submissions> participants = all.stream().filter(s -> !"IN_PROGRESS".equals(s.getStatus())).toList();
-        int pending = (int) all.stream().filter(s -> !"GRADED".equals(s.getStatus())).count();
+        var counts = lifecycleRows.counts(List.of(examId)).getOrDefault(examId, ExamLifecyclePolicy.Counts.EMPTY);
+        int pending = counts.inProgress() + Math.max(0, counts.submitted() - counts.reviewed());
         List<Questions> paper = questions.findByExamId(examId);
         BigDecimal fullScore = paper.stream().map(Questions::getScore)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         boolean ready = !"DRAFT".equals(exam.status())
-                && !LocalDateTime.now().isBefore(exams.getById(examId).getEndTime())
+                && !lifecycle.now().isBefore(exams.getById(examId).getEndTime())
                 && pending == 0 && fullScore.signum() > 0;
 
         List<ResultsAnalysisViews.Student> students = candidates.stream().map(c -> {
             Submissions submission = byStudent.get(c.studentId());
             return new ResultsAnalysisViews.Student(c.studentId(), c.studentName(), c.username(),
                     c.submissionId(), c.submissionStatus(), c.candidateStatus(),
-                    submission != null && "GRADED".equals(submission.getStatus()) ? submission.getTotalScore() : null);
+                    submission != null && !"IN_PROGRESS".equals(submission.getStatus())
+                            && (ready || "GRADED".equals(submission.getStatus())) ? submission.getTotalScore() : null);
         }).toList();
         if (!ready) return new ResultsAnalysisViews.Analysis(examId, exam.title(), fullScore, false, pending,
                 new ResultsAnalysisViews.Summary(candidates.size(), participants.size(), null, null, null, null, null),

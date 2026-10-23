@@ -6,6 +6,7 @@ import com.smartexam.common.PageResponse;
 import com.smartexam.entity.*;
 import com.smartexam.exception.BusinessException;
 import com.smartexam.mapper.ExamCandidatesMapper;
+import com.smartexam.mapper.ExamLifecycleRepository;
 import com.smartexam.vo.ExamCenterViews;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -29,7 +30,8 @@ public class ExamCenterService {
     private final QuestionsService questions;
     private final CourseStudentsService memberships;
     private final ExamCandidatesMapper candidates;
-    private final SubmissionsService submissions;
+    private final ExamLifecycleRepository lifecycleRows;
+    private final ExamLifecyclePolicy lifecycle;
 
     public PageResponse<ExamCenterViews.Summary> list(String username, String keyword, Long courseId,
                                                        String stage, Boolean archived, int page, int size) {
@@ -49,16 +51,15 @@ public class ExamCenterService {
         List<Long> ids = examRows.stream().map(Exams::getId).toList();
         Map<Long, List<Questions>> paper = questions.list(new QueryWrapper<Questions>().in("exam_id", ids)).stream()
                 .collect(Collectors.groupingBy(Questions::getExamId));
-        Map<Long, List<Submissions>> answers = submissions.list(new QueryWrapper<Submissions>().in("exam_id", ids)).stream()
-                .collect(Collectors.groupingBy(Submissions::getExamId));
+        Map<Long, ExamLifecyclePolicy.Counts> counts = lifecycleRows.counts(ids);
         Map<Long, Long> candidateCounts = candidates.selectList(new QueryWrapper<ExamCandidate>().in("exam_id", ids)).stream()
                 .collect(Collectors.groupingBy(ExamCandidate::getExamId, Collectors.counting()));
         Map<Long, Long> draftCounts = memberships.list(new QueryWrapper<CourseStudents>()
                 .in("course_id", byCourse.keySet()).eq("status", 1)).stream()
                 .collect(Collectors.groupingBy(CourseStudents::getCourseId, Collectors.counting()));
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = lifecycle.now();
         List<ExamCenterViews.Summary> matching = examRows.stream().map(e -> summary(e, byCourse.get(e.getCourseId()),
-                paper.getOrDefault(e.getId(), List.of()), answers.getOrDefault(e.getId(), List.of()),
+                paper.getOrDefault(e.getId(), List.of()), counts.getOrDefault(e.getId(), ExamLifecyclePolicy.Counts.EMPTY),
                 "DRAFT".equals(e.getStatus()) && !"MAKEUP".equals(e.getExamKind())
                         ? draftCounts.getOrDefault(e.getCourseId(), 0L).intValue()
                         : candidateCounts.getOrDefault(e.getId(), 0L).intValue(), now))
@@ -79,56 +80,30 @@ public class ExamCenterService {
         int eligible = "DRAFT".equals(exam.getStatus()) && !"MAKEUP".equals(exam.getExamKind())
                 ? (int) memberships.count(new QueryWrapper<CourseStudents>().eq("course_id", course.getId()).eq("status", 1))
                 : (int) candidates.selectCount(new QueryWrapper<ExamCandidate>().eq("exam_id", id)).longValue();
-        ExamCenterViews.Summary s = summary(exam, course, paper, submissions.findByExamId(id), eligible, LocalDateTime.now());
+        ExamCenterViews.Summary s = summary(exam, course, paper,
+                lifecycleRows.counts(List.of(id)).getOrDefault(id, ExamLifecyclePolicy.Counts.EMPTY), eligible, lifecycle.now());
         Map<String, Long> types = paper.stream().collect(Collectors.groupingBy(Questions::getQuestionType, Collectors.counting()));
         return new ExamCenterViews.Detail(id, id, exam.getTitle(), exam.getDescription(), course.getId(), course.getCourseName(),
                 exam.getStartTime(), exam.getEndTime(), exam.getLateEntryMinutes(), exam.getMinSubmitMinutes(),
                 exam.getStatus(), exam.getPublishedAt(), exam.getCreatedAt(), exam.getResultsReleasedAt(), s.questionCount(), s.totalScore(),
                 types, s.eligibleStudentCount(), s.submittedCount(), s.gradedCount(), s.pendingGradingCount(),
                 s.releasableCount(), s.releasedCount(), s.displayStage(), s.nextAction(),
-                exam.getExamKind(), exam.getSourceExamId(), exam.getArchivedAt());
+                exam.getExamKind(), exam.getSourceExamId(), exam.getArchivedAt(), s.canReleaseResults(), s.releaseBlockReason());
     }
 
     static ExamCenterViews.Summary summary(Exams exam, Courses course, List<Questions> paper,
-                                           List<Submissions> rows, int eligible, LocalDateTime now) {
-        int submitted = 0, graded = 0, released = 0;
-        for (Submissions row : rows) {
-            if (!Set.of("SUBMITTED", "AUTO_SUBMITTED", "GRADED").contains(row.getStatus())) continue;
-            submitted++;
-            if ("GRADED".equals(row.getStatus())) graded++;
-            if (Integer.valueOf(1).equals(row.getScorePublished()) && exam.getResultsReleasedAt() != null) released++;
-        }
-        // Current release API is atomic for the whole exam: one pending or in-progress row blocks it.
-        boolean releaseEligible = !"DRAFT".equals(exam.getStatus()) && exam.getEndTime() != null
-                && !now.isBefore(exam.getEndTime()) && graded == submitted
-                && rows.stream().noneMatch(row -> "IN_PROGRESS".equals(row.getStatus()));
-        int releasable = releaseEligible ? graded : 0;
-        String stage;
-        if ("DRAFT".equals(exam.getStatus())) stage = "DRAFT";
-        else if (exam.getStartTime() != null && now.isBefore(exam.getStartTime())) stage = "SCHEDULED";
-        else if (exam.getEndTime() != null && now.isBefore(exam.getEndTime())) stage = "RUNNING";
-        else if (released > 0 && released < graded) stage = "RESULT_PARTIAL";
-        else if (exam.getResultsReleasedAt() != null && released == releasable && graded == submitted)
-            stage = "COMPLETED";
-        else if (submitted > graded) stage = "GRADING";
-        else if (graded > 0) stage = "GRADED";
-        else stage = "ENDED";
-        String action = switch (stage) {
-            case "DRAFT" -> paper.isEmpty() || paper.stream().anyMatch(q -> q.getScore() == null
-                    || q.getScore().signum() <= 0) ? "CONFIGURE_PAPER" : "PUBLISH";
-            case "SCHEDULED", "RUNNING" -> "VIEW";
-            case "GRADING" -> graded == 0 ? "START_GRADING" : "CONTINUE_GRADING";
-            case "GRADED" -> releaseEligible ? "RELEASE_RESULTS" : "VIEW";
-            case "RESULT_PARTIAL" -> "CONTINUE_RELEASE";
-            case "COMPLETED" -> "VIEW_RESULTS";
-            default -> "VIEW";
-        };
-        if (exam.getArchivedAt() != null) action = "VIEW";
+                                           ExamLifecyclePolicy.Counts counts, int eligible, LocalDateTime now) {
+        var projection = ExamLifecyclePolicy.evaluate(exam, counts, now);
+        String action = projection.nextAction();
+        if ("DRAFT".equals(projection.displayStage()) && exam.getArchivedAt() == null
+                && !paper.isEmpty() && paper.stream().allMatch(q -> q.getScore() != null && q.getScore().signum() > 0)) action = "PUBLISH";
         BigDecimal total = paper.stream().map(Questions::getScore).filter(Objects::nonNull)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         return new ExamCenterViews.Summary(exam.getId(), exam.getTitle(), course.getId(), course.getCourseName(),
-                exam.getStartTime(), exam.getEndTime(), paper.size(), total, eligible, submitted, graded,
-                submitted - graded, releasable, released, stage, action, exam.getExamKind(), exam.getArchivedAt());
+                exam.getStartTime(), exam.getEndTime(), paper.size(), total, eligible, counts.submitted(), counts.reviewed(),
+                counts.pendingManual(), projection.canReleaseResults() ? counts.reviewed() : 0, counts.released(),
+                projection.displayStage(), action, exam.getExamKind(), exam.getArchivedAt(),
+                projection.canReleaseResults(), projection.releaseBlockReason(), exam.getStatus());
     }
 
     private Users teacher(String username) {
@@ -145,11 +120,11 @@ public class ExamCenterService {
     }
 
     static boolean matchesStage(String requested, String actual) {
-        return requested == null || ("TODO".equals(requested)
-                ? TODO_STAGES.contains(actual) : requested.equals(actual));
+        return requested == null || ("TODO".equals(requested) ? TODO_STAGES.contains(actual)
+                : "COMPLETED".equals(requested) ? Set.of("COMPLETED", "NO_PARTICIPANTS").contains(actual) : requested.equals(actual));
     }
 
     private static final Set<String> TODO_STAGES = Set.of("ENDED", "GRADING", "GRADED", "RESULT_PARTIAL");
     private static final Set<String> STAGES = Set.of("DRAFT", "SCHEDULED", "RUNNING", "ENDED",
-            "GRADING", "GRADED", "RESULT_PARTIAL", "COMPLETED", "TODO");
+            "GRADING", "GRADED", "RESULT_PARTIAL", "COMPLETED", "NO_PARTICIPANTS", "TODO");
 }

@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { adminApi } from '../../api/admin'
-import { accountStatus, examBusinessStatus, statusLabel, statusTone } from '../../utils/statusDisplay'
+import { accountStatus, examDisplayStage, statusLabel, statusTone } from '../../utils/statusDisplay'
 
 const summary = ref(null), error = ref('')
 const scales = [
@@ -46,13 +46,13 @@ onMounted(async () => {
           <div class="admin-summary-links"><RouterLink to="/admin/teachers">教师管理</RouterLink><RouterLink to="/admin/students">学生管理</RouterLink></div>
         </section>
         <section aria-labelledby="admin-exam-status-title">
-          <header class="admin-summary-head"><h2 id="admin-exam-status-title">考试业务状态</h2><RouterLink to="/admin/exams">查看考试监管</RouterLink></header>
+          <header class="admin-summary-head"><h2 id="admin-exam-status-title">考试当前阶段</h2><RouterLink to="/admin/exams">查看考试监管</RouterLink></header>
           <table class="admin-summary-table">
-            <thead><tr><th scope="col">业务状态</th><th scope="col" class="admin-number">考试数</th></tr></thead>
+            <thead><tr><th scope="col">当前阶段</th><th scope="col" class="admin-number">考试数</th></tr></thead>
             <tbody>
-              <tr v-for="(item, key) in examBusinessStatus" :key="key">
+              <tr v-for="(item, key) in examDisplayStage" :key="key">
                 <td><span class="badge" :data-tone="item.tone">{{ item.label }}</span></td>
-                <td class="admin-number">{{ summary.examStatuses[key] ?? 0 }}</td>
+                <td class="admin-number">{{ summary.examStages?.[key] ?? 0 }}</td>
               </tr>
             </tbody>
           </table>

@@ -100,12 +100,13 @@ onMounted(() => { consumeNotice(); load() })
           <p class="exam-detail-meta"><span>{{ exam.courseName }}</span><span>{{ formatTime(exam.startTime) }} 至 {{ formatTime(exam.endTime) }}</span></p></div>
         <div class="actions"><button v-if="canCreateMakeup" class="secondary" @click="makeupOpen = true">创建补考</button><button class="primary" @click="primary">{{ actionNames[exam.nextAction] || '查看考试' }}</button></div>
       </header>
-      <section class="surface exam-center-lifecycle" aria-label="考试进度"><div v-for="(item, index) in lifecycle" :key="item.label" :class="['exam-center-step', item.state]"><span class="step-index">{{ index + 1 }}</span><span>{{ item.label }}</span><small>{{ item.state === 'done' ? '已完成' : item.state === 'current' ? '当前步骤' : '未开始' }}</small></div></section>
+      <p v-if="stage === 'NO_PARTICIPANTS'" class="notice">考试已结束，本场无人交卷，无需阅卷或发布成绩。可核对考生情况，或创建补考。</p>
+      <section v-else class="surface exam-center-lifecycle" aria-label="考试进度"><div v-for="(item, index) in lifecycle" :key="item.label" :class="['exam-center-step', item.state]"><span class="step-index">{{ index + 1 }}</span><span>{{ item.label }}</span><small>{{ item.state === 'done' ? '已完成' : item.state === 'current' ? '当前步骤' : '未开始' }}</small></div></section>
       <section class="exam-center-metrics" aria-label="考试摘要">
         <div><span>试卷</span><strong>{{ exam.questionCount }} 题 / {{ exam.totalScore }} 分</strong></div>
         <div><span>已交 / 应考</span><strong>{{ exam.submittedCount }} / {{ exam.eligibleStudentCount }}</strong></div>
-        <div><span>已阅 / 已交</span><strong>{{ exam.gradedCount }} / {{ exam.submittedCount }}</strong></div>
-        <div><span>成绩</span><strong>{{ stage === 'COMPLETED' ? '成绩已发布' : stage === 'RESULT_PARTIAL' ? '成绩部分发布' : '成绩未发布' }}</strong></div>
+        <div><span>已评分 / 已交</span><strong>{{ exam.gradedCount }} / {{ exam.submittedCount }}</strong></div>
+        <div><span>成绩</span><strong>{{ stage === 'NO_PARTICIPANTS' ? '无需发布' : stage === 'COMPLETED' ? '成绩已发布' : stage === 'RESULT_PARTIAL' ? '成绩部分发布' : '成绩未发布' }}</strong></div>
       </section>
       <nav class="workspace-tabs" aria-label="考试详情"><button v-for="item in tabs" :key="item[0]" :aria-current="active === item[0] ? 'page' : undefined" :class="{ active: active === item[0] }" @click="tab(item[0])">{{ item[1] }}</button></nav>
 

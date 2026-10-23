@@ -1,17 +1,23 @@
 package com.smartexam.mapper;
 
 import com.smartexam.vo.AdminPlatformViews;
+import com.smartexam.entity.Exams;
+import com.smartexam.service.ExamLifecyclePolicy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Map;
+import java.util.LinkedHashMap;
+import java.time.LocalDateTime;
 
 /** Cross-teacher read models use grouped SQL; no per-row lookups. */
 @Repository
 @RequiredArgsConstructor
 public class AdminPlatformRepository {
     private final JdbcTemplate jdbc;
+    private final ExamLifecycleRepository lifecycleRows;
+    private final ExamLifecyclePolicy lifecycle;
 
     public AdminPlatformViews.Dashboard dashboard() {
         Map<String, Object> users = jdbc.queryForMap("SELECT "
@@ -22,10 +28,21 @@ public class AdminPlatformRepository {
                 + "COALESCE(SUM(status='GRADING'),0) grading, COALESCE(SUM(status='RELEASED'),0) released "
                 + "FROM exams");
         long courses = jdbc.queryForObject("SELECT COUNT(*) FROM courses", Long.class);
+        List<Exams> snapshots = jdbc.query("SELECT id,status,start_time,end_time,results_released_at,archived_at FROM exams", (rs, row) -> {
+            Exams exam = new Exams(); exam.setId(rs.getLong("id")); exam.setStatus(rs.getString("status"));
+            exam.setStartTime(rs.getObject("start_time", LocalDateTime.class)); exam.setEndTime(rs.getObject("end_time", LocalDateTime.class));
+            exam.setResultsReleasedAt(rs.getObject("results_released_at", LocalDateTime.class));
+            exam.setArchivedAt(rs.getObject("archived_at", LocalDateTime.class)); return exam;
+        });
+        var counts = lifecycleRows.counts(snapshots.stream().map(Exams::getId).toList());
+        Map<String, Long> stages = new LinkedHashMap<>();
+        LocalDateTime now = lifecycle.now();
+        for (Exams exam : snapshots) stages.merge(ExamLifecyclePolicy.evaluate(exam,
+                counts.getOrDefault(exam.getId(), ExamLifecyclePolicy.Counts.EMPTY), now).displayStage(), 1L, Long::sum);
         return new AdminPlatformViews.Dashboard(n(users, "teachers"), n(users, "students"), courses,
                 n(exams, "total"), n(users, "active_users"), n(users, "disabled_users"),
                 Map.of("DRAFT", n(exams, "draft"), "PUBLISHED", n(exams, "published"),
-                        "GRADING", n(exams, "grading"), "RELEASED", n(exams, "released")));
+                        "GRADING", n(exams, "grading"), "RELEASED", n(exams, "released")), stages);
     }
 
     public long countCourses(String keyword, Long teacherId) {
@@ -63,7 +80,7 @@ public class AdminPlatformRepository {
                 + "LEFT JOIN (SELECT exam_id,COUNT(*) candidate_count FROM exam_candidates GROUP BY exam_id) ec ON ec.exam_id=e.id "
                 + "LEFT JOIN (SELECT exam_id,COUNT(*) submitted_count FROM submissions WHERE status<>'IN_PROGRESS' GROUP BY exam_id) sc ON sc.exam_id=e.id "
                 + examFilter() + " ORDER BY e.id DESC LIMIT ? OFFSET ?";
-        return jdbc.query(sql, (rs, row) -> new AdminPlatformViews.Exam(rs.getLong("id"), rs.getString("title"),
+        List<ExamFacts> rows = jdbc.query(sql, (rs, row) -> new ExamFacts(rs.getLong("id"), rs.getString("title"),
                 rs.getLong("course_id"), rs.getString("course_name"), rs.getLong("teacher_id"),
                 rs.getString("teacher_name"), rs.getString("status"), rs.getString("exam_kind"),
                 rs.getTimestamp("start_time").toLocalDateTime(), rs.getTimestamp("end_time").toLocalDateTime(),
@@ -72,7 +89,24 @@ public class AdminPlatformRepository {
                 rs.getTimestamp("archived_at") == null ? null : rs.getTimestamp("archived_at").toLocalDateTime()),
                 keyword, keyword, keyword, keyword, courseId, courseId, status, status,
                 examKind, examKind, archived, archived, archived, size, offset);
+        var counts = lifecycleRows.counts(rows.stream().map(ExamFacts::id).toList());
+        LocalDateTime now = lifecycle.now();
+        return rows.stream().map(row -> {
+            Exams exam = new Exams(); exam.setId(row.id()); exam.setStatus(row.status());
+            exam.setStartTime(row.startTime()); exam.setEndTime(row.endTime());
+            exam.setResultsReleasedAt(row.resultsReleasedAt()); exam.setArchivedAt(row.archivedAt());
+            var projection = ExamLifecyclePolicy.evaluate(exam, counts.getOrDefault(row.id(), ExamLifecyclePolicy.Counts.EMPTY), now);
+            return new AdminPlatformViews.Exam(row.id(), row.title(), row.courseId(), row.courseName(), row.teacherId(),
+                    row.teacherName(), row.status(), row.examKind(), row.startTime(), row.endTime(), row.candidateCount(),
+                    row.submittedCount(), row.resultsReleasedAt(), row.archivedAt(), projection.displayStage(), projection.nextAction(),
+                    projection.canReleaseResults(), projection.releaseBlockReason());
+        }).toList();
     }
+
+    private record ExamFacts(Long id, String title, Long courseId, String courseName, Long teacherId,
+                             String teacherName, String status, String examKind, LocalDateTime startTime,
+                             LocalDateTime endTime, long candidateCount, long submittedCount,
+                             LocalDateTime resultsReleasedAt, LocalDateTime archivedAt) {}
 
     private static String courseFilter() {
         return "WHERE (? IS NULL OR c.course_name LIKE ? OR u.name LIKE ?) "

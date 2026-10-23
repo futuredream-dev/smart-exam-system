@@ -41,6 +41,7 @@ function primary(row) {
   else router.push(actionRoute(row.examId, row.nextAction))
 }
 function scoreLabel(row) {
+  if (row.displayStage === 'NO_PARTICIPANTS') return '无需发布成绩'
   if (row.displayStage === 'COMPLETED') return '成绩已发布'
   if (row.displayStage === 'RESULT_PARTIAL') return '成绩部分发布'
   return '成绩未发布'
@@ -102,10 +103,10 @@ watch(() => route.fullPath, () => { draft.keyword = appliedKeyword.value; draft.
           <td class="exam-center-title-cell"><RouterLink :to="`/teacher/exams/${row.examId}`"><strong>{{ row.title }}</strong></RouterLink><small>{{ row.courseName }}<span v-if="row.examKind === 'MAKEUP'"> · 补考</span><span v-if="row.archivedAt"> · 已归档</span></small></td>
           <td>{{ formatTime(row.startTime) }}<small>至 {{ formatTime(row.endTime) }}</small></td>
           <td>{{ row.questionCount }} 题<small>{{ row.totalScore }} 分</small></td>
-          <td>{{ row.submittedCount }} / {{ row.eligibleStudentCount }} 已交<small>{{ ['DRAFT', 'SCHEDULED', 'RUNNING'].includes(row.displayStage) ? '阅卷未开始' : `已阅 ${row.gradedCount} / ${row.submittedCount}` }}</small></td>
+          <td>{{ row.submittedCount }} / {{ row.eligibleStudentCount }} 已交<small>{{ ['DRAFT', 'SCHEDULED', 'RUNNING'].includes(row.displayStage) ? '阅卷未开始' : `已评分 ${row.gradedCount} / ${row.submittedCount}` }}</small></td>
           <td class="exam-center-score-cell">{{ scoreLabel(row) }}</td>
           <td><span :class="['badge', row.displayStage]" :data-tone="statusTone(examDisplayStage, row.displayStage)">{{ displayStageNames[row.displayStage] || row.displayStage }}</span></td>
-          <td class="table-action"><div class="exam-row-actions"><button class="ghost" @click="primary(row)">{{ actionNames[row.nextAction] || '查看考试' }}</button><details><summary>更多</summary><div><button type="button" class="ghost" @click="openCopy(row)">复制考试</button><button v-if="row.archivedAt || row.displayStage === 'DRAFT' || row.displayStage === 'COMPLETED'" type="button" class="ghost" :disabled="actionBusy" @click="askArchive(row)">{{ row.archivedAt ? '恢复考试' : '归档考试' }}</button></div></details></div></td>
+          <td class="table-action"><div class="exam-row-actions"><button class="ghost" @click="primary(row)">{{ actionNames[row.nextAction] || '查看考试' }}</button><details><summary>更多</summary><div><button type="button" class="ghost" @click="openCopy(row)">复制考试</button><button v-if="row.archivedAt || row.displayStage === 'DRAFT' || ['COMPLETED', 'NO_PARTICIPANTS'].includes(row.displayStage)" type="button" class="ghost" :disabled="actionBusy" @click="askArchive(row)">{{ row.archivedAt ? '恢复考试' : '归档考试' }}</button></div></details></div></td>
         </tr></tbody></table></div>
       <div v-if="total > pageSize" class="exam-center-pagination"><span>第 {{ currentPage }} / {{ pageCount }} 页</span><button class="secondary" :disabled="currentPage <= 1" @click="changePage(currentPage - 1)">上一页</button><button class="secondary" :disabled="currentPage >= pageCount" @click="changePage(currentPage + 1)">下一页</button></div>
     </section>

@@ -52,7 +52,7 @@ async function saveAndNext(){
         <div><dt>学生</dt><dd>{{paper.studentName}}</dd></div>
         <div><dt>交卷时间</dt><dd>{{formatTime(paper.submitTime)}}</dd></div>
         <div><dt>当前总分</dt><dd>{{paper.totalScore}}</dd></div>
-        <div v-if="workspace"><dt>阅卷进度</dt><dd>已阅 {{workspace.reviewedCount}} / 待阅 {{workspace.pendingReviewCount}}</dd></div>
+        <div v-if="workspace"><dt>阅卷进度</dt><dd>已评分 {{workspace.gradedCount ?? workspace.reviewedCount}} / 待阅 {{workspace.pendingReviewCount}}</dd></div>
       </dl>
     </header>
 

@@ -45,7 +45,7 @@ onMounted(load); watch(() => props.examId, load)
 <template>
   <p v-if="error && !releaseOpen" class="error-message" role="alert">{{ error }} <button class="ghost" @click="load">重新加载答卷</button></p>
   <p v-if="notice" class="success-message" role="status">{{ notice }}</p>
-  <div class="section-head"><div><h2>已提交答卷</h2><p v-if="workspace" class="muted">待阅 {{ workspace.pendingReviewCount }} 份 · 已复核 {{ workspace.reviewedCount }} 份</p></div><div class="actions"><button class="secondary" :disabled="exporting" @click="exportResults">{{ exporting ? '导出中…' : '导出成绩' }}</button><span v-if="workspace?.resultsReleasedAt" class="badge RESULTS_RELEASED">成绩已发布</span><button v-else-if="workspace" class="primary" :disabled="busy || !workspace.canReleaseResults" @click="askRelease">{{ busy ? '发布中…' : '发布成绩' }}</button></div></div>
+  <div class="section-head"><div><h2>已提交答卷</h2><p v-if="workspace" class="muted">待阅 {{ workspace.pendingReviewCount }} 份 · 已评分 {{ workspace.gradedCount ?? workspace.reviewedCount }} 份</p></div><div class="actions"><button class="secondary" :disabled="exporting" @click="exportResults">{{ exporting ? '导出中…' : '导出成绩' }}</button><span v-if="workspace?.resultsReleasedAt" class="badge RESULTS_RELEASED">成绩已发布</span><button v-else-if="workspace && workspace.displayStage !== 'NO_PARTICIPANTS'" class="primary" :disabled="busy || !workspace.canReleaseResults" @click="askRelease">{{ busy ? '发布中…' : '发布成绩' }}</button></div></div>
   <p v-if="workspace && !workspace.resultsReleasedAt && !workspace.canReleaseResults" class="notice">{{ workspace.releaseBlockReason }}</p>
   <p v-if="loading" class="loading-state" role="status">正在加载已提交答卷…</p>
   <p v-else-if="!error && !rows.length" class="empty-state">暂无已提交答卷。</p>

@@ -2,7 +2,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { adminApi } from '../../api/admin'
 import { formatTime } from '../../api/teacher'
-import { archiveStatus, examBusinessStatus, examKind, releaseStatus, statusLabel, statusTone } from '../../utils/statusDisplay'
+import { archiveStatus, examBusinessStatus, examDisplayStage, examKind, releaseStatus, statusLabel, statusTone } from '../../utils/statusDisplay'
 
 const filters = reactive({ keyword: '', status: '', examKind: '', archived: '' })
 const rows = ref([]), page = ref(1), total = ref(0), error = ref(''), loading = ref(false)
@@ -45,7 +45,7 @@ onMounted(load)
           <td class="admin-title-cell"><strong :title="row.title">{{ row.title }}</strong></td>
           <td class="admin-title-cell"><span :title="row.courseName">{{ row.courseName }}</span><small>{{ row.teacherName }}</small></td>
           <td>{{ statusLabel(examKind, row.examKind) }}</td>
-          <td><span class="badge" :data-tone="statusTone(examBusinessStatus, row.status)">{{ statusLabel(examBusinessStatus, row.status) }}</span></td>
+          <td><span class="badge" :data-tone="statusTone(examDisplayStage, row.displayStage)">{{ statusLabel(examDisplayStage, row.displayStage) }}</span><small>业务：{{ statusLabel(examBusinessStatus, row.status) }}</small></td>
           <td class="admin-time">{{ formatTime(row.startTime) }}<small>至 {{ formatTime(row.endTime) }}</small></td>
           <td class="admin-number">{{ row.submittedCount }} / {{ row.candidateCount }}</td>
           <td><span class="admin-release-state" :data-tone="statusTone(releaseStatus, row.resultsReleasedAt ? 'RELEASED' : 'UNRELEASED')">{{ statusLabel(releaseStatus, row.resultsReleasedAt ? 'RELEASED' : 'UNRELEASED') }}</span></td>

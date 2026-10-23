@@ -13,7 +13,7 @@ public final class ExamCenterViews {
                           BigDecimal totalScore, int eligibleStudentCount, int submittedCount,
                           int gradedCount, int pendingGradingCount, int releasableCount,
                           int releasedCount, String displayStage, String nextAction, String examKind,
-                          LocalDateTime archivedAt) {}
+                          LocalDateTime archivedAt, boolean canReleaseResults, String releaseBlockReason, String status) {}
 
     public record Detail(Long id, Long examId, String title, String description, Long courseId,
                          String courseName, LocalDateTime startTime, LocalDateTime endTime,
@@ -23,7 +23,7 @@ public final class ExamCenterViews {
                          int eligibleStudentCount, int submittedCount, int gradedCount,
                          int pendingGradingCount, int releasableCount, int releasedCount,
                          String displayStage, String nextAction, String examKind, Long sourceExamId,
-                         LocalDateTime archivedAt) {}
+                         LocalDateTime archivedAt, boolean canReleaseResults, String releaseBlockReason) {}
 
     public record PublishReadiness(boolean ready, List<String> errors, List<String> warnings,
                                    int questionCount, BigDecimal totalScore,

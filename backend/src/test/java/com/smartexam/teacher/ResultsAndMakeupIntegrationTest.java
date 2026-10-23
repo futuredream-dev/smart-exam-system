@@ -74,6 +74,21 @@ class ResultsAndMakeupIntegrationTest {
         assertThat(shortRow.path("correctRate").isNull()).isTrue();
     }
 
+    @Test void objectiveAutomaticScoresAreReadyWithoutChangingSubmissionStatus() throws Exception {
+        Fixture f=fixture(5);Users student=student();candidate(f.exam,student);
+        Questions choice=question(f.exam,"SINGLE_CHOICE",5,1);
+        Submissions row=submission(f.exam,student,"SUBMITTED",5);
+        Answers answer=new Answers();answer.setSubmissionId(row.getId());answer.setQuestionId(choice.getId());
+        answer.setAnswerContent("A");answer.setAutoScore(BigDecimal.valueOf(5));answer.setGradingStatus("AUTO_GRADED");answers.save(answer);
+        JsonNode data=call(get("/api/teacher/exams/"+f.exam.getId()+"/results/analysis"),null,f.teacher,200).path("data");
+        assertThat(data.path("analysisReady").asBoolean()).isTrue();
+        assertThat(data.path("pendingGradingCount").asInt()).isZero();
+        assertThat(data.path("summary").path("averageScore").decimalValue()).isEqualByComparingTo("5");
+        assertThat(data.path("students").get(0).path("totalScore").decimalValue()).isEqualByComparingTo("5");
+        assertThat(data.path("questions").get(0).path("correctRate").decimalValue()).isEqualByComparingTo("100");
+        assertThat(submissions.getById(row.getId()).getStatus()).isEqualTo("SUBMITTED");
+    }
+
     @Test void pendingReviewSuppressesFinalStatistics() throws Exception {
         Fixture f = fixture(50);
         Users a = student(); candidate(f.exam, a); question(f.exam, "SINGLE_CHOICE", 50, 1);

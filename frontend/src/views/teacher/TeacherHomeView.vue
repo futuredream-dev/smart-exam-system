@@ -54,7 +54,7 @@ onMounted(async () => {
           <p v-if="!dashboard.pendingReview.length" class="teacher-home-empty">当前没有待阅卷任务</p>
           <div v-else class="teacher-home-table-scroll">
             <table>
-              <thead><tr><th>考试名称</th><th>课程</th><th>剩余答卷</th><th>已阅</th><th>操作</th></tr></thead>
+              <thead><tr><th>考试名称</th><th>课程</th><th>剩余答卷</th><th>已评分</th><th>操作</th></tr></thead>
               <tbody><tr v-for="item in visiblePending" :key="item.examId">
                 <td class="teacher-home-title">{{ item.examTitle }}</td>
                 <td>{{ item.courseName }}</td>
@@ -75,7 +75,7 @@ onMounted(async () => {
           <p v-if="!dashboard.readyToRelease.length" class="teacher-home-empty">当前没有待发布成绩</p>
           <div v-else class="teacher-home-table-scroll">
             <table>
-              <thead><tr><th>考试名称</th><th>课程</th><th>已阅答卷</th><th>操作</th></tr></thead>
+              <thead><tr><th>考试名称</th><th>课程</th><th>已评分答卷</th><th>操作</th></tr></thead>
               <tbody><tr v-for="item in visibleReady" :key="item.examId">
                 <td class="teacher-home-title">{{ item.examTitle }}</td>
                 <td>{{ item.courseName }}</td>

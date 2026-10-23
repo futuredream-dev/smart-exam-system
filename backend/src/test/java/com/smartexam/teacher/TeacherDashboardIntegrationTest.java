@@ -6,6 +6,20 @@ import java.math.BigDecimal;import java.time.LocalDateTime;import java.util.*;im
 @SpringBootTest @AutoConfigureMockMvc @Transactional class TeacherDashboardIntegrationTest {
  @Autowired MockMvc mvc;@Autowired ObjectMapper json;@Autowired UsersService users;@Autowired CoursesService courses;@Autowired ExamsService exams;@Autowired QuestionsService questions;@Autowired SubmissionsService submissions;@Autowired AnswersService answers;@Autowired ExamCandidatesMapper candidates;@Autowired JwtService jwt;
  Users teacher;String token;Long courseId;
+ @Test void emptyEndedExamIsNotAReleaseTask()throws Exception{
+   Exams empty=exam(-120,-30);candidate(empty,student("未参加"));
+   assertThat(dashboard(token).path("readyToRelease")).noneMatch(row->row.path("examId").asLong()==empty.getId());
+ }
+ @Test void objectiveReadyTaskAgreesWithExamCenter()throws Exception{
+   Exams e=exam(-120,-30);
+   questions.remove(new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Questions>().eq("exam_id",e.getId()).eq("question_type","SHORT_ANSWER"));
+   Users s=student("自动评分");candidate(e,s);submission(e,s,"SUBMITTED");
+   JsonNode ready=find(dashboard(token).path("readyToRelease"),e.getId());
+   JsonNode center=json.readTree(mvc.perform(get("/api/teacher/exams/"+e.getId()).header("Authorization","Bearer "+token)).andExpect(status().isOk()).andReturn().getResponse().getContentAsString()).path("data");
+   assertThat(center.path("displayStage").asText()).isEqualTo("GRADED");
+   assertThat(center.path("pendingGradingCount").asInt()).isZero();
+   assertThat(ready.path("reviewedCount").asInt()).isEqualTo(center.path("gradedCount").asInt()).isEqualTo(1);
+ }
  @BeforeEach void setup(){teacher=users.findByUsername("teacher_demo");token=jwt.generate(teacher);Courses c=new Courses();c.setTeacherId(teacher.getId());c.setCourseName("任务工作台课程");courses.save(c);courseId=c.getId();}
  @Test void classifiesPendingReadyAndOngoingWithoutOverlap()throws Exception{Exams pending=exam(-120,-30),ready=exam(-120,-30),ongoing=exam(-10,50);Users a=student("待阅"),b=student("已阅");candidate(pending,a);submission(pending,a,"SUBMITTED");candidate(ready,b);submission(ready,b,"GRADED");JsonNode data=dashboard(token);assertIds(data.path("pendingReview"),pending.getId());assertIds(data.path("readyToRelease"),ready.getId());assertIds(data.path("ongoing"),ongoing.getId());assertThat(data.path("pendingReview").toString()).doesNotContain(ready.getId().toString(),ongoing.getId().toString());}
  @Test void releasedExamIsExcludedFromActionLists()throws Exception{Exams released=exam(-120,-30);released.setResultsReleasedAt(LocalDateTime.now());exams.updateById(released);JsonNode data=dashboard(token);assertThat(data.path("pendingReview")).noneMatch(row->row.path("examId").asLong()==released.getId());assertThat(data.path("readyToRelease")).noneMatch(row->row.path("examId").asLong()==released.getId());}

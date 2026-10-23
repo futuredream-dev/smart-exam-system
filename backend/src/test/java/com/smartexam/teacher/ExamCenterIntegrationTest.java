@@ -33,6 +33,8 @@ class ExamCenterIntegrationTest {
     @Autowired ExamsService exams;
     @Autowired QuestionsService questions;
     @Autowired SubmissionsService submissions;
+    @Autowired AnswersService answers;
+    @Autowired com.smartexam.mapper.ExamCandidatesMapper candidates;
     @Autowired JwtService jwt;
 
     @Test void endedDraftCannotPassReadinessOrPublish() throws Exception {
@@ -119,6 +121,8 @@ class ExamCenterIntegrationTest {
         courses.save(course);
         LocalDateTime past = LocalDateTime.now().minusHours(2);
         Exams ended = published(course, past, null);
+        submission(ended, "IN_PROGRESS", false, users.findByUsername("student_demo_1"));
+        Exams nobody = published(course, past, null);
         Exams grading = published(course, past, null);
         submission(grading, "SUBMITTED", false, users.findByUsername("student_demo_1"));
         Exams graded = published(course, past, null);
@@ -131,6 +135,8 @@ class ExamCenterIntegrationTest {
         submission(completed, "GRADED", true, users.findByUsername("student_demo_1"));
 
         String ownerToken = jwt.generate(owner);
+        assertThat(response(get("/api/teacher/exams/" + nobody.getId())
+                .header("Authorization", "Bearer " + ownerToken)).path("data").path("displayStage").asText()).isEqualTo("NO_PARTICIPANTS");
         String url = "/api/teacher/exams";
         JsonNode first = response(get(url).param("courseId", course.getId().toString())
                 .param("stage", "TODO").param("page", "1").param("size", "2")
@@ -164,6 +170,8 @@ class ExamCenterIntegrationTest {
         exam.setTitle("分页考试"); exam.setStatus("PUBLISHED"); exam.setStartTime(start);
         exam.setEndTime(start.plusHours(1)); exam.setResultsReleasedAt(releasedAt);
         exam.setLateEntryMinutes(0); exam.setMinSubmitMinutes(0); exams.save(exam);
+        Questions question = new Questions(); question.setExamId(exam.getId()); question.setQuestionType("SHORT_ANSWER");
+        question.setContent("分页状态用简答题"); question.setScore(BigDecimal.TEN); question.setSortOrder(1); questions.save(question);
         return exam;
     }
 
@@ -173,6 +181,11 @@ class ExamCenterIntegrationTest {
         row.setLastEnterTime(LocalDateTime.now().minusMinutes(30));
         row.setSubmitTime(LocalDateTime.now().minusMinutes(20));
         row.setStatus(status); row.setScorePublished(released ? 1 : 0); submissions.save(row);
+        ExamCandidate candidate = new ExamCandidate(); candidate.setExamId(exam.getId()); candidate.setStudentId(student.getId()); candidates.insert(candidate);
+        Answers answer = new Answers(); answer.setSubmissionId(row.getId()); answer.setQuestionId(questions.findByExamId(exam.getId()).get(0).getId());
+        answer.setGradingStatus("GRADED".equals(status) ? "REVIEWED" : "PENDING");
+        if ("GRADED".equals(status)) answer.setTeacherScore(BigDecimal.TEN);
+        answers.save(answer);
     }
 
     private Exams draft(Users owner) {

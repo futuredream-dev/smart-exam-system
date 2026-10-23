@@ -51,6 +51,8 @@ public class TeacherManagementService {
     private final com.smartexam.mapper.ExamCandidatesMapper examCandidates;
     private final SubmissionsService submissions;
     private final AnswersService answers;
+    private final com.smartexam.mapper.ExamLifecycleRepository lifecycleRows;
+    private final ExamLifecyclePolicy lifecycle;
     private final ObjectMapper json;
 
     private Users teacher(String username) {
@@ -204,7 +206,8 @@ public class TeacherManagementService {
         Courses course = courses.getById(exam.getCourseId());
         List<ExamCandidate> candidateRows = examCandidates.selectList(new QueryWrapper<ExamCandidate>().eq("exam_id", id));
         List<Submissions> submissionRows = submissions.findByExamId(id);
-        return workspaceView(exam, course, candidateRows, submissionRows, questions.findByExamId(id));
+        return workspaceView(exam, course, candidateRows, submissionRows, questions.findByExamId(id),
+                lifecycleRows.counts(List.of(id)).getOrDefault(id, ExamLifecyclePolicy.Counts.EMPTY));
     }
 
     public TeacherViews.Dashboard dashboard(String username) {
@@ -219,15 +222,17 @@ public class TeacherManagementService {
         Map<Long, List<ExamCandidate>> candidatesByExam = examCandidates.selectList(new QueryWrapper<ExamCandidate>().in("exam_id", examIds)).stream().collect(java.util.stream.Collectors.groupingBy(ExamCandidate::getExamId));
         Map<Long, List<Submissions>> submissionsByExam = submissions.list(new QueryWrapper<Submissions>().in("exam_id", examIds)).stream().collect(java.util.stream.Collectors.groupingBy(Submissions::getExamId));
         Map<Long, List<Questions>> questionsByExam = questions.list(new QueryWrapper<Questions>().in("exam_id", examIds)).stream().collect(java.util.stream.Collectors.groupingBy(Questions::getExamId));
+        Map<Long, ExamLifecyclePolicy.Counts> countsByExam = lifecycleRows.counts(examIds);
         List<TeacherViews.DashboardItem> pending = new ArrayList<>(), ready = new ArrayList<>(), ongoing = new ArrayList<>();
         for (Exams exam : examRows) {
             TeacherViews.ExamWorkspace view = workspaceView(exam, courseById.get(exam.getCourseId()),
                     candidatesByExam.getOrDefault(exam.getId(), List.of()), submissionsByExam.getOrDefault(exam.getId(), List.of()),
-                    questionsByExam.getOrDefault(exam.getId(), List.of()));
+                    questionsByExam.getOrDefault(exam.getId(), List.of()), countsByExam.getOrDefault(exam.getId(), ExamLifecyclePolicy.Counts.EMPTY));
             TeacherViews.DashboardItem item = new TeacherViews.DashboardItem(view.examId(), view.examTitle(), view.courseId(),
                     view.courseName(), view.lifecycleStatus(), view.startTime(), view.endTime(), view.candidateCount(),
                     view.inProgressCount(), view.submittedCount() + view.autoSubmittedCount() + view.reviewedCount(),
-                    view.pendingReviewCount(), view.reviewedCount(), view.canReleaseResults(), view.resultsReleasedAt());
+                    view.pendingReviewCount(), view.gradedCount(), view.canReleaseResults(), view.resultsReleasedAt(),
+                    view.displayStage(), view.nextAction());
             if ("PENDING_REVIEW".equals(view.lifecycleStatus())
                     || ("REVIEWING".equals(view.lifecycleStatus()) && view.pendingReviewCount() > 0)) pending.add(item);
             if (view.canReleaseResults()) ready.add(item);
@@ -237,12 +242,11 @@ public class TeacherManagementService {
     }
 
     private TeacherViews.ExamWorkspace workspaceView(Exams exam, Courses course, List<ExamCandidate> candidateRows,
-            List<Submissions> submissionRows, List<Questions> questionRows) {
+            List<Submissions> submissionRows, List<Questions> questionRows, ExamLifecyclePolicy.Counts counts) {
         Map<Long, Submissions> byStudent = new HashMap<>();
         submissionRows.forEach(row -> byStudent.put(row.getStudentId(), row));
-        Set<Long> pendingManual = answers.pendingManualReviewSubmissionIds(exam.getId());
-        boolean ended = !LocalDateTime.now().isBefore(exam.getEndTime());
-        int notEntered = 0, absent = 0, inProgress = 0, submitted = 0, autoSubmitted = 0, reviewed = 0, pending = 0;
+        boolean ended = !lifecycle.now().isBefore(exam.getEndTime());
+        int notEntered = 0, absent = 0, inProgress = 0, submitted = 0, autoSubmitted = 0, reviewed = 0;
         for (ExamCandidate candidate : candidateRows) {
             Submissions row = byStudent.get(candidate.getStudentId());
             if (row == null) { if (ended) absent++; else notEntered++; }
@@ -250,18 +254,14 @@ public class TeacherManagementService {
             else if ("SUBMITTED".equals(row.getStatus())) submitted++;
             else if ("AUTO_SUBMITTED".equals(row.getStatus())) autoSubmitted++;
             else if ("GRADED".equals(row.getStatus())) reviewed++;
-            if (row != null && !"IN_PROGRESS".equals(row.getStatus()) && pendingManual.contains(row.getId())) pending++;
         }
-        boolean canRelease = !"DRAFT".equals(exam.getStatus()) && ended && exam.getResultsReleasedAt() == null
-                && submissionRows.stream().noneMatch(row -> "IN_PROGRESS".equals(row.getStatus()))
-                && submissionRows.stream().noneMatch(row -> pendingManual.contains(row.getId()));
-        String reason = releaseBlockReason(exam, ended, submissionRows, pending);
-        String lifecycle = lifecycle(exam, ended, pending, reviewed, canRelease);
+        var projection = ExamLifecyclePolicy.evaluate(exam, counts, lifecycle.now());
         BigDecimal total = questionRows.stream().map(Questions::getScore).reduce(BigDecimal.ZERO, BigDecimal::add);
         return new TeacherViews.ExamWorkspace(exam.getId(), exam.getTitle(), exam.getCourseId(), course.getCourseName(),
-                exam.getStatus(), lifecycle, exam.getStartTime(), exam.getEndTime(), exam.getLateEntryMinutes(),
+                exam.getStatus(), ExamLifecyclePolicy.legacyLifecycle(projection, counts), exam.getStartTime(), exam.getEndTime(), exam.getLateEntryMinutes(),
                 exam.getMinSubmitMinutes(), questionRows.size(), total, candidateRows.size(), notEntered, inProgress,
-                submitted, autoSubmitted, pending, reviewed, absent, exam.getResultsReleasedAt(), canRelease, reason);
+                submitted, autoSubmitted, counts.pendingManual(), reviewed, absent, exam.getResultsReleasedAt(),
+                projection.canReleaseResults(), projection.releaseBlockReason(), projection.displayStage(), projection.nextAction(), counts.reviewed());
     }
 
     public List<TeacherViews.ExamCandidate> examCandidates(String username, Long id) {
@@ -283,27 +283,6 @@ public class TeacherManagementService {
                     row == null ? null : row.getSubmitTime(), row == null ? null : row.getTotalScore(),
                     exam.getResultsReleasedAt() != null && row != null && Integer.valueOf(1).equals(row.getScorePublished()));
         }).toList();
-    }
-
-    private String lifecycle(Exams exam, boolean ended, int pending, int reviewed, boolean canRelease) {
-        LocalDateTime now = LocalDateTime.now();
-        if ("DRAFT".equals(exam.getStatus())) return "DRAFT";
-        if (exam.getResultsReleasedAt() != null) return "RESULTS_RELEASED";
-        if (now.isBefore(exam.getStartTime())) return "NOT_STARTED";
-        if (!ended) return "IN_PROGRESS";
-        if (pending > 0) return reviewed == 0 ? "PENDING_REVIEW" : "REVIEWING";
-        return canRelease ? "READY_TO_RELEASE" : "REVIEWING";
-    }
-
-    private String releaseBlockReason(Exams exam, boolean ended, List<Submissions> rows, int pending) {
-        if ("DRAFT".equals(exam.getStatus())) return "草稿考试不能发布成绩";
-        if (exam.getResultsReleasedAt() != null) return "成绩已经发布";
-        if (!ended) return "考试尚未结束";
-        long inProgress = rows.stream().filter(row -> "IN_PROGRESS".equals(row.getStatus())).count();
-        if (inProgress > 0) return "存在 " + inProgress + " 份未完成的答卷";
-        if (pending > 0) return "还有 " + pending + " 份答卷待阅";
-        long other = rows.stream().filter(row -> !"GRADED".equals(row.getStatus())).count();
-        return other > 0 ? "存在 " + other + " 份未完成的答卷" : null;
     }
 
     private String candidateStatus(Submissions row, boolean ended, boolean pendingManual) {
@@ -381,13 +360,17 @@ public class TeacherManagementService {
     public void archiveExam(String username, Long id) {
         Exams exam = ownExam(username, id, true);
         if (exam.getArchivedAt() != null) throw failure(HttpStatus.CONFLICT, ErrorCode.CONFLICT, "考试已归档");
-        if (!"DRAFT".equals(exam.getStatus()) && !(exam.getResultsReleasedAt() != null
-                && exam.getEndTime() != null && !exam.getEndTime().isAfter(LocalDateTime.now())))
-            throw failure(HttpStatus.CONFLICT, ErrorCode.CONFLICT, "只允许归档草稿或已结束且成绩已发布的考试");
+        LocalDateTime now = lifecycle.now();
+        var projection = ExamLifecyclePolicy.evaluate(exam,
+                lifecycleRows.counts(List.of(id)).getOrDefault(id, ExamLifecyclePolicy.Counts.EMPTY), now);
+        boolean noParticipants = "NO_PARTICIPANTS".equals(projection.displayStage());
+        if (!"DRAFT".equals(exam.getStatus()) && !noParticipants && !(exam.getResultsReleasedAt() != null
+                && exam.getEndTime() != null && !exam.getEndTime().isAfter(now)))
+            throw failure(HttpStatus.CONFLICT, ErrorCode.CONFLICT, "只允许归档草稿、无人参加或已发布成绩的结束考试");
         if (submissions.count(new QueryWrapper<Submissions>().eq("exam_id", id).eq("status", "IN_PROGRESS")) > 0)
             throw failure(HttpStatus.CONFLICT, ErrorCode.CONFLICT, "存在进行中的答卷，不能归档");
         exams.update(new UpdateWrapper<Exams>().eq("id", id).isNull("archived_at")
-                .set("archived_at", LocalDateTime.now()));
+                .set("archived_at", now));
     }
 
     @Transactional(isolation=Isolation.READ_COMMITTED)

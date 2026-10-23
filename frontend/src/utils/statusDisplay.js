@@ -11,6 +11,7 @@ export const examDisplayStage = {
   SCHEDULED: { label: '待开始', tone: 'neutral' },
   RUNNING: { label: '进行中', tone: 'info' },
   ENDED: { label: '已结束', tone: 'neutral' },
+  NO_PARTICIPANTS: { label: '无人参加', tone: 'neutral' },
   GRADING: { label: '阅卷中', tone: 'warning' },
   GRADED: { label: '待发布成绩', tone: 'warning' },
   RESULT_PARTIAL: { label: '成绩部分发布', tone: 'warning' },

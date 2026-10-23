@@ -9,6 +9,8 @@ import java.math.BigDecimal;import java.time.LocalDateTime;import java.util.*;
 @Service @RequiredArgsConstructor public class TeacherGradingService {
  @org.springframework.beans.factory.annotation.Value("${ai.timeout-seconds:30}") private long aiTimeoutSeconds;
  private final org.springframework.transaction.PlatformTransactionManager transactions;
+ private final ExamLifecyclePolicy lifecycle;
+ private final com.smartexam.mapper.ExamLifecycleRepository lifecycleRows;
  private final UsersService users;private final CoursesService courses;private final ExamsService exams;private final QuestionsService questions;private final ScoringPointsService points;private final SubmissionsService submissions;private final AnswersService answers;private final AiGradingResultsService aiResults;private final AiGradingService ai;private final StudentExamService studentExams;
  private Users teacher(String name){Users u=users.findByUsername(name);if(u==null||!Integer.valueOf(1).equals(u.getStatus()))throw fail(HttpStatus.UNAUTHORIZED,"请先登录");if(!"TEACHER".equals(u.getRole()))throw fail(HttpStatus.FORBIDDEN,"无权限访问");return u;}
  private Exams ownExam(String name,Long id){Users u=teacher(name);Exams e=exams.getById(id);if(e==null)throw fail(HttpStatus.NOT_FOUND,"考试不存在");Courses c=courses.getById(e.getCourseId());if(c==null||!Objects.equals(c.getTeacherId(),u.getId()))throw fail(HttpStatus.FORBIDDEN,"无权限访问其他教师的数据");return e;}
@@ -58,7 +60,23 @@ import java.math.BigDecimal;import java.time.LocalDateTime;import java.util.*;
  @Transactional public MvpViews.ReviewPaper comment(String name,Long id,MvpRequests.SubmissionComment r){Submissions s=lock(ownSubmission(name,id));ensureUnpublished(s);s.setTeacherComment(r.teacherComment());submissions.updateById(s);return paper(name,id);}
  private void recalculate(Submissions s){List<Answers> rows=answers.findBySubmissionId(s.getId());BigDecimal total=rows.stream().map(a->{Questions q=questions.getById(a.getQuestionId());BigDecimal score="SINGLE_CHOICE".equals(q.getQuestionType())?a.getAutoScore():a.getTeacherScore();return score==null?BigDecimal.ZERO:score;}).reduce(BigDecimal.ZERO,BigDecimal::add);s.setTotalScore(total);long questionCount=questions.count(new QueryWrapper<Questions>().eq("exam_id",s.getExamId()));if(rows.size()==questionCount&&rows.stream().allMatch(a->"REVIEWED".equals(a.getGradingStatus())||("SINGLE_CHOICE".equals(questions.getById(a.getQuestionId()).getQuestionType())&&"AUTO_GRADED".equals(a.getGradingStatus()))))s.setStatus("GRADED");submissions.updateById(s);}
  @Transactional public MvpViews.ReviewPaper publish(String name,Long id){ownSubmission(name,id);throw fail(HttpStatus.CONFLICT,"成绩必须按整场考试统一发布");}
- @Transactional public void publishExamResults(String name,Long examId){LocalDateTime now=LocalDateTime.now();Exams exam=lockOwnExam(name,examId);if("DRAFT".equals(exam.getStatus()))throw fail(HttpStatus.CONFLICT,"草稿考试不能发布成绩");if(exam.getResultsReleasedAt()!=null)throw fail(HttpStatus.CONFLICT,"成绩已经发布");if(now.isBefore(exam.getEndTime()))throw fail(HttpStatus.CONFLICT,"考试尚未结束");List<Submissions> rows=studentExams.autoSubmitExpiredForExam(exam,now);for(Submissions row:rows)recalculate(row);rows=submissions.lockByExamId(examId);long inProgress=rows.stream().filter(s->"IN_PROGRESS".equals(s.getStatus())).count();if(inProgress>0)throw fail(HttpStatus.CONFLICT,"存在 "+inProgress+" 份未完成自动提交处理的答卷");long pending=rows.stream().filter(s->!"GRADED".equals(s.getStatus())).count();if(pending>0)throw fail(HttpStatus.CONFLICT,"还有 "+pending+" 份答卷未完成阅卷");for(Submissions row:rows){row.setScorePublished(1);if(row.getPublishedAt()==null)row.setPublishedAt(now);submissions.updateById(row);}aiResults.update(new com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper<AiGradingResults>().eq("status","RUNNING").inSql("answer_id","SELECT id FROM answers WHERE submission_id IN (SELECT id FROM submissions WHERE exam_id="+examId+")").set("status","FAILED").set("error_message","成绩已发布，本次 AI 建议未应用"));exam.setResultsReleasedAt(now);exams.updateById(exam);}
+ @Transactional public void publishExamResults(String name,Long examId){
+  Exams exam=lockOwnExam(name,examId);LocalDateTime now=lifecycle.now();
+  if(exam.getArchivedAt()!=null)throw fail(HttpStatus.CONFLICT,"已归档考试不能发布成绩，请先恢复");
+  if("DRAFT".equals(exam.getStatus()))throw fail(HttpStatus.CONFLICT,"草稿考试不能发布成绩");
+  if(exam.getResultsReleasedAt()!=null)throw fail(HttpStatus.CONFLICT,"成绩已经发布");
+  if(now.isBefore(exam.getEndTime()))throw fail(HttpStatus.CONFLICT,"考试尚未结束");
+  List<Submissions> rows=studentExams.autoSubmitExpiredForExam(exam,now);
+  for(Submissions row:rows)recalculate(row);
+  rows=submissions.lockByExamId(examId);
+  var projection=ExamLifecyclePolicy.evaluate(exam,lifecycleRows.counts(List.of(examId)).getOrDefault(examId,ExamLifecyclePolicy.Counts.EMPTY),now);
+  if(!projection.canReleaseResults())throw fail(HttpStatus.CONFLICT,projection.releaseBlockReason());
+  long pending=rows.stream().filter(s->!"GRADED".equals(s.getStatus())).count();
+  if(pending>0)throw fail(HttpStatus.CONFLICT,"还有 "+pending+" 份答卷未完成阅卷");
+  for(Submissions row:rows){row.setScorePublished(1);if(row.getPublishedAt()==null)row.setPublishedAt(now);submissions.updateById(row);}
+  aiResults.update(new com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper<AiGradingResults>().eq("status","RUNNING").inSql("answer_id","SELECT id FROM answers WHERE submission_id IN (SELECT id FROM submissions WHERE exam_id="+examId+")").set("status","FAILED").set("error_message","成绩已发布，本次 AI 建议未应用"));
+  exam.setResultsReleasedAt(now);exams.updateById(exam);
+ }
  private String gradingStatus(Submissions s,boolean pendingManual){return Integer.valueOf(1).equals(s.getScorePublished())?"PUBLISHED":pendingManual?"PENDING":"GRADED".equals(s.getStatus())?"REVIEWED":"AUTO_GRADED";}
  private void ensureUnpublished(Submissions s){Exams exam=exams.getById(s.getExamId());if((exam!=null&&exam.getResultsReleasedAt()!=null)||Integer.valueOf(1).equals(s.getScorePublished()))throw fail(HttpStatus.CONFLICT,"成绩已发布，禁止继续修改");}
  private Submissions lock(Submissions s){Submissions locked=submissions.lockById(s.getId());return locked==null?s:locked;}

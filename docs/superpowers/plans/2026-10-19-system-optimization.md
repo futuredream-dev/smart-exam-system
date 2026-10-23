@@ -10,7 +10,7 @@
 
 **Spec:** [`../specs/2026-10-19-system-optimization-design.md`](../specs/2026-10-19-system-optimization-design.md)
 
-**状态（2026-10-23）：** B0 与 B1 / T02—T05 已完成；B2 的 T06—T09 已实现，浏览器主要流程已补验，**故障注入矩阵仍有缺口，B2 未整批验收**。浏览器现已恢复，新增取消离开后标题错误修复。依据设计的“B2 主流程稳定”条件先继续 B3/T10，剩余故障注入保留为 B5 门槛；B4—B5 未开始，未合并、推送或发布。B1 见 [批次报告](../verification/2026-10-20-b1-acceptance.md)，B2 见 [实现记录](../verification/2026-10-20-b2-answer-protection.md)和[本轮浏览器续接记录](../verification/2026-10-23-b2-browser-followup.md)。原环境状态按续接时实际情况单列，不能沿用旧 PID 作为当前事实。
+**状态（2026-10-23）：** B0 与 B1 / T02—T05 已完成；B2 的 T06—T09 已实现，浏览器主要流程已补验，**故障注入矩阵仍有缺口，B2 未整批验收**。浏览器现已恢复，新增取消离开后标题错误修复。依据设计的“B2 主流程稳定”条件推进的 B3/T10 已完成，[阶段统一报告](../verification/2026-10-23-b3-t10-lifecycle.md)记录最终后端 413 项、前端 103 项及实际浏览器证据；下一步 T11。剩余故障注入保留为 B5 门槛；B4—B5 未开始，未合并、推送或发布。B1 见 [批次报告](../verification/2026-10-20-b1-acceptance.md)，B2 见 [实现记录](../verification/2026-10-20-b2-answer-protection.md)和[本轮浏览器续接记录](../verification/2026-10-23-b2-browser-followup.md)。原环境状态按续接时实际情况单列，不能沿用旧 PID 作为当前事实。
 
 ## Global Constraints
 
@@ -230,10 +230,10 @@
 - `ExamLifecyclePolicy.evaluate(Exams exam, Counts counts, LocalDateTime now): Projection`；Counts 定义 candidate/inProgress/submitted/pendingManual/reviewed/released 数量；Projection 返回 displayStage/nextAction/canReleaseResults/releaseBlockReason。
 - 新增派生阶段 NO_PARTICIPANTS；不新增数据库状态。只有有效答卷非零、考试已结束、无进行中或待人工评分时可发成绩。
 
-- [ ] 写表驱动失败用例：零参与、全客观题已交、混合题未阅完、全部阅完、成绩已发布、归档、日期边界。
-- [ ] 按同一政策接入首页、考试中心、详情与管理员，展示原业务 status 与派生阶段的不同职责。
-- [ ] 验证首页数字和点击后的列表一致；全客观题不要求人工给单选评分，也不显示假待阅。
-- [ ] 运行四类指定测试与前端状态测试并提交。
+- [x] 零参与、客观题假待阅及首页/中心矛盾先观察失败；补齐 12 项表驱动边界、混合题、发布、归档、缺失答案用例。
+- [x] 共用政策和批量事实接入首页、中心、workspace、管理员与成绩分析；原业务 status 保留，数据库不新增枚举。
+- [x] 指定 API 与真实浏览器核对：首页/中心/管理员统计一致，客观题无需人工评分即可就绪并发布，学生收到 5/5；零参与归档/恢复和已完成筛选可用。
+- [x] 四类指定测试 34 项、兼容回归及成绩分析回归通过；最终全量后端 413/0/0/0，前端 103 项/构建通过，详见本批报告。发布与归档接口额外执行共享约束。
 
 ### T11：导航与考试详情按任务收敛
 

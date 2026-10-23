@@ -33,7 +33,8 @@ public final class TeacherViews {
                                 int notEnteredCount, int inProgressCount, int submittedCount,
                                 int autoSubmittedCount, int pendingReviewCount, int reviewedCount,
                                 int absentCount, LocalDateTime resultsReleasedAt,
-                                boolean canReleaseResults, String releaseBlockReason) {}
+                                boolean canReleaseResults, String releaseBlockReason, String displayStage,
+                                String nextAction, int gradedCount) {}
     public record ExamCandidate(Long studentId, String studentName, String username, Long submissionId,
                                 String submissionStatus, String candidateStatus, LocalDateTime enteredAt,
                                 LocalDateTime submittedAt, BigDecimal totalScore, boolean resultsReleased) {}
@@ -41,7 +42,7 @@ public final class TeacherViews {
                                 String lifecycleStatus, LocalDateTime startTime, LocalDateTime endTime,
                                 int candidateCount, int inProgressCount, int submittedCount,
                                 int pendingReviewCount, int reviewedCount, boolean canReleaseResults,
-                                LocalDateTime resultsReleasedAt) {}
+                                LocalDateTime resultsReleasedAt, String displayStage, String nextAction) {}
     public record Dashboard(List<DashboardItem> pendingReview, List<DashboardItem> readyToRelease,
                             List<DashboardItem> ongoing) {}
 }
