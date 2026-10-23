@@ -3,15 +3,17 @@ import { computed, onMounted, ref } from 'vue'
 import { authState } from '../../auth/auth'
 import { teacherApi, formatTime } from '../../api/teacher'
 
-const dashboard = ref({ pendingReview: [], readyToRelease: [], ongoing: [] })
+const dashboard = ref({ pendingReview: [], readyToRelease: [], ongoing: [], upcoming: [] })
 const error = ref('')
 const loading = ref(true)
 const visiblePending = computed(() => dashboard.value.pendingReview.slice(0, 5))
 const visibleReady = computed(() => dashboard.value.readyToRelease.slice(0, 5))
 const visibleOngoing = computed(() => dashboard.value.ongoing.slice(0, 5))
+const visibleUpcoming = computed(() => (dashboard.value.upcoming || []).slice(0, 5))
 const pendingPaperCount = computed(() => dashboard.value.pendingReview.reduce((total, item) => total + item.pendingReviewCount, 0))
 const gradingLink = id => `/teacher/exams/${id}?tab=grading`
-const overviewLink = id => `/teacher/exams/${id}?tab=overview`
+const reviewLink = id => `/teacher/exams/${id}?tab=review`
+const overviewLink = id => `/teacher/exams/${id}?tab=monitor`
 
 onMounted(async () => {
   try {
@@ -39,8 +41,8 @@ onMounted(async () => {
     <template v-else-if="!error">
       <nav class="teacher-home-summary" aria-label="工作台任务概览">
         <a href="#pending-review"><span>待阅卷</span><strong>{{ pendingPaperCount }}</strong><small>份答卷</small></a>
+        <a href="#upcoming-exams"><span>即将开考</span><strong>{{ dashboard.upcoming?.length || 0 }}</strong><small>场考试</small></a>
         <a href="#ready-to-release"><span>待发布成绩</span><strong>{{ dashboard.readyToRelease.length }}</strong><small>场考试</small></a>
-        <a href="#ongoing-exams"><span>进行中考试</span><strong>{{ dashboard.ongoing.length }}</strong><small>场考试</small></a>
       </nav>
 
       <section class="teacher-home-work" aria-labelledby="teacher-work-title">
@@ -60,17 +62,24 @@ onMounted(async () => {
                 <td>{{ item.courseName }}</td>
                 <td><strong class="teacher-home-count">{{ item.pendingReviewCount }} 份</strong></td>
                 <td>{{ item.reviewedCount }} 份</td>
-                <td><RouterLink class="ghost" :to="gradingLink(item.examId)">继续阅卷</RouterLink></td>
+                <td><RouterLink class="ghost" :to="reviewLink(item.examId)">继续阅卷</RouterLink></td>
               </tr></tbody>
             </table>
           </div>
           <p v-if="dashboard.pendingReview.length > 5" class="teacher-home-more">首页显示前 5 场，共 {{ dashboard.pendingReview.length }} 场待阅卷考试。</p>
         </section>
 
+        <section id="upcoming-exams" class="teacher-home-section" aria-labelledby="upcoming-title">
+          <header class="teacher-home-section-head"><div><h3 id="upcoming-title">即将开考</h3><span class="muted">按开始时间排序</span></div><RouterLink class="ghost" to="/teacher/exams?tab=scheduled">查看全部待开始考试</RouterLink></header>
+          <p v-if="!dashboard.upcoming?.length" class="teacher-home-empty">当前没有即将开考的考试</p>
+          <div v-else class="teacher-home-table-scroll"><table><thead><tr><th>考试名称</th><th>课程</th><th>开始时间</th><th>应考人数</th><th>操作</th></tr></thead><tbody><tr v-for="item in visibleUpcoming" :key="item.examId"><td class="teacher-home-title">{{ item.examTitle }}</td><td>{{ item.courseName }}</td><td>{{ formatTime(item.startTime) }}</td><td>{{ item.candidateCount }} 人</td><td><RouterLink class="ghost" :to="`/teacher/exams/${item.examId}?tab=overview`">核对安排</RouterLink></td></tr></tbody></table></div>
+          <p v-if="dashboard.upcoming?.length > 5" class="teacher-home-more">首页显示前 5 场，共 {{ dashboard.upcoming.length }} 场待开始考试。</p>
+        </section>
+
         <section id="ready-to-release" class="teacher-home-section" aria-labelledby="ready-to-release-title">
           <header class="teacher-home-section-head">
             <div><h3 id="ready-to-release-title">待发布成绩</h3><span class="muted">阅卷完成后核对并发布</span></div>
-            <RouterLink class="ghost" to="/teacher/exams">查看全部考试</RouterLink>
+            <RouterLink class="ghost" to="/teacher/exams?tab=ready">查看全部待发布考试</RouterLink>
           </header>
           <p v-if="!dashboard.readyToRelease.length" class="teacher-home-empty">当前没有待发布成绩</p>
           <div v-else class="teacher-home-table-scroll">

@@ -2,7 +2,8 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { teacherApi, formatTime } from '../../api/teacher'
-import { actionNames, actionRoute, displayStageNames, stageTabs } from '../../utils/examCenter'
+import { actionNames, displayStageNames, stageTabs } from '../../utils/examCenter'
+import { examDetailRoute } from '../../utils/examNavigation'
 import { examDisplayStage, statusTone } from '../../utils/statusDisplay'
 import ExamForm from '../../components/ExamForm.vue'
 import ExamPublishReadiness from '../../components/ExamPublishReadiness.vue'
@@ -38,7 +39,10 @@ function selectTab(key) { router.push({ path: route.path, query: queryFor({ tab:
 function changePage(page) { if (page >= 1 && page <= pageCount.value) router.push({ path: route.path, query: queryFor({ page }) }) }
 function primary(row) {
   if (row.nextAction === 'PUBLISH') publishExam.value = row
-  else router.push(actionRoute(row.examId, row.nextAction))
+  else {
+    const nextTab = { CONFIGURE_PAPER: 'paper', START_GRADING: 'review', CONTINUE_GRADING: 'review', RELEASE_RESULTS: 'grading', VIEW_RESULTS: 'grading', CONTINUE_RELEASE: 'grading' }[row.nextAction]
+    router.push(examDetailRoute(row.examId, route.fullPath, nextTab))
+  }
 }
 function scoreLabel(row) {
   if (row.displayStage === 'NO_PARTICIPANTS') return '无需发布成绩'
@@ -100,7 +104,7 @@ watch(() => route.fullPath, () => { draft.keyword = appliedKeyword.value; draft.
       <div v-else-if="!rows.length" class="empty-state"><template v-if="!tabKey && !appliedKeyword && !appliedCourseId">暂无考试。<button class="secondary" @click="creating = true">创建考试</button></template><template v-else>没有符合当前条件的考试，请调整筛选条件。</template></div>
       <div v-else class="table-scroll"><table><thead><tr><th>考试 / 课程</th><th>考试时间</th><th>试卷</th><th>参考 / 阅卷</th><th>成绩</th><th>当前阶段</th><th class="table-action">操作</th></tr></thead>
         <tbody><tr v-for="row in rows" :key="row.examId">
-          <td class="exam-center-title-cell"><RouterLink :to="`/teacher/exams/${row.examId}`"><strong>{{ row.title }}</strong></RouterLink><small>{{ row.courseName }}<span v-if="row.examKind === 'MAKEUP'"> · 补考</span><span v-if="row.archivedAt"> · 已归档</span></small></td>
+          <td class="exam-center-title-cell"><RouterLink :to="examDetailRoute(row.examId, route.fullPath)"><strong>{{ row.title }}</strong></RouterLink><small>{{ row.courseName }}<span v-if="row.examKind === 'MAKEUP'"> · 补考</span><span v-if="row.archivedAt"> · 已归档</span></small></td>
           <td>{{ formatTime(row.startTime) }}<small>至 {{ formatTime(row.endTime) }}</small></td>
           <td>{{ row.questionCount }} 题<small>{{ row.totalScore }} 分</small></td>
           <td>{{ row.submittedCount }} / {{ row.eligibleStudentCount }} 已交<small>{{ ['DRAFT', 'SCHEDULED', 'RUNNING'].includes(row.displayStage) ? '阅卷未开始' : `已评分 ${row.gradedCount} / ${row.submittedCount}` }}</small></td>

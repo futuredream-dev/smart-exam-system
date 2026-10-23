@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises'
 import { parse, compileScript } from 'vue/compiler-sfc'
 import { computed, reactive, ref } from 'vue'
 import { mergeReviewDraft } from '../src/utils/gradingPaperState.js'
+import { gradingPaperRoute, gradingReturnTo } from '../src/utils/examNavigation.js'
 
 async function page(overrides = {}) {
   const source = await readFile(new URL('../src/views/teacher/GradingPaperView.vue', import.meta.url), 'utf8')
@@ -24,9 +25,9 @@ async function page(overrides = {}) {
     gradingSubmissions: async () => ({ data: [{ id: 10, pendingManualReview: false }, { id: 11, pendingManualReview: true }] }),
     ...overrides.api,
   }
-  const component = new Function('computed', 'onMounted', 'reactive', 'ref', 'useRoute', 'useRouter', 'teacherApi', 'mergeReviewDraft', 'sessionStorage', `${code}; return component`)(
-    computed, () => {}, reactive, ref, () => ({ params: {}, query: {} }), () => ({ push: async path => navigations.push(path) }),
-    api, mergeReviewDraft, { setItem() {} },
+  const component = new Function('computed', 'onMounted', 'reactive', 'ref', 'useRoute', 'useRouter', 'teacherApi', 'mergeReviewDraft', 'sessionStorage', 'gradingPaperRoute', 'gradingReturnTo', `${code}; return component`)(
+    computed, () => {}, reactive, ref, () => overrides.route || ({ params: {}, query: {} }), () => ({ push: async path => navigations.push(path) }),
+    api, mergeReviewDraft, { setItem() {} }, gradingPaperRoute, gradingReturnTo,
   )
   const state = component.setup({}, { expose() {} }); state.hydrate(structuredClone(server))
   return { state, server, calls, navigations }
@@ -37,6 +38,23 @@ test('save and next saves every dirty answer and final comment before navigating
   await s.saveAndNext()
   assert.deepEqual(calls, [['answer', 1, 6, ''], ['answer', 2, 8, '保留'], ['comment', 10, '总评']])
   assert.deepEqual(navigations, ['/teacher/exams/7/grading/submissions/11'])
+})
+
+test('save and next keeps task filters through the next paper and back to the task list', async () => {
+  const query = { from: 'grading-tasks', examId: '7', keyword: '张同学', taskStatus: 'PENDING_REVIEW', page: '3' }
+  const { state: s, navigations } = await page({ route: { params: { examId: '7' }, query } })
+  s.scores[1] = 6; s.scores[2] = 8
+  await s.saveAndNext()
+  assert.deepEqual(navigations[0], { path: '/teacher/exams/7/grading/submissions/11', query })
+  assert.deepEqual(s.returnTo.value, { path: '/teacher/grading-tasks', query: { examId: '7', keyword: '张同学', taskStatus: 'PENDING_REVIEW', page: '3' } })
+})
+
+test('finishing the last paper returns to the same filtered task page', async () => {
+  const query = { from: 'grading-tasks', examId: '7', page: '2' }
+  const { state: s, navigations } = await page({ route: { params: { examId: '7' }, query }, api: { gradingSubmissions: async () => ({ data: [{ id: 10, pendingManualReview: false }] }) } })
+  s.scores[1] = 6; s.scores[2] = 8
+  await s.saveAndNext()
+  assert.deepEqual(navigations[0], { path: '/teacher/grading-tasks', query: { examId: '7', page: '2' } })
 })
 test('partial save failure stays on the paper and retry writes only remaining dirty fields', async () => {
   const config = { failOn: 2 }, { state: s, calls, navigations } = await page(config)

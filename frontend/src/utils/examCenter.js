@@ -17,6 +17,7 @@ export const stageTabs = [
   { key: 'scheduled', label: '待开始', stages: ['SCHEDULED'] },
   { key: 'running', label: '进行中', stages: ['RUNNING'] },
   { key: 'pending', label: '待处理', stage: 'TODO' },
+  { key: 'ready', label: '待发布成绩', stages: ['GRADED'] },
   { key: 'completed', label: '已完成', stages: ['COMPLETED', 'NO_PARTICIPANTS'] },
   { key: 'archived', label: '已归档', stages: [] },
 ]

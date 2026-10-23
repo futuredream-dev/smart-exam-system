@@ -80,7 +80,7 @@ onMounted(async () => {
 
 <template>
   <div class="grading-task-page">
-    <header class="page-heading"><div><h1>阅卷任务</h1><p class="muted">统一查看并处理当前教师名下考试的阅卷进度</p></div></header>
+    <header class="page-heading"><div><h1>阅卷任务</h1><p class="muted">统一查看并处理当前教师名下考试的阅卷进度</p></div><RouterLink class="secondary" to="/teacher">返回工作台</RouterLink></header>
     <section class="task-summary" aria-label="任务概览">
       <div class="task-section-title"><h2>任务概览</h2><small>当前筛选范围，不受分页影响</small></div>
       <p v-if="summaryLoading && !summary" class="muted" role="status">正在加载任务概览…</p>

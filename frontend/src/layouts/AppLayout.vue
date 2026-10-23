@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { authState, clearSession } from '../auth/auth'
+import { teacherNavigation, teacherNavigationActive, workspacePageKey } from '../utils/examNavigation'
 import '../styles/workspace.css'
 import '../styles/teacher.css'
 import '../styles/student.css'
@@ -26,9 +27,6 @@ const sidebarContext = computed(() => ({
   TEACHER: '课程 · 考试 · 阅卷 · 成绩',
   STUDENT: '考试 · 答题 · 成绩',
 })[role.value] || '')
-const teacherGradingActive = computed(() => route.path === '/teacher/grading-tasks'
-  || /^\/teacher\/exams\/[^/]+\/grading\/submissions\/[^/]+\/?$/.test(route.path)
-  || route.path.startsWith('/teacher/grading/submissions/'))
 
 function logout() {
   clearSession()
@@ -56,12 +54,7 @@ function logout() {
       </nav>
       <nav v-else-if="role === 'TEACHER'" aria-label="教师导航">
         <template v-if="!authState.currentUser?.mustChangePassword">
-          <RouterLink to="/teacher" :class="{ active: route.path === '/teacher' }"><span aria-hidden="true">▦</span>工作台</RouterLink>
-          <RouterLink to="/teacher/exams" :class="{ active: route.path.startsWith('/teacher/exams') && !teacherGradingActive }"><span aria-hidden="true">▣</span>考试</RouterLink>
-          <RouterLink to="/teacher/grading-tasks" :class="{ active: teacherGradingActive }"><span aria-hidden="true">✓</span>阅卷任务</RouterLink>
-          <RouterLink to="/teacher/ai-evaluation" :class="{ active: route.path === '/teacher/ai-evaluation' }"><span aria-hidden="true">◫</span>AI评分分析</RouterLink>
-          <RouterLink to="/teacher/question-banks" :class="{ active: route.path.startsWith('/teacher/question-banks') }"><span aria-hidden="true">▥</span>题库</RouterLink>
-          <RouterLink to="/teacher/courses" :class="{ active: route.path.startsWith('/teacher/courses') }"><span aria-hidden="true">▤</span>课程</RouterLink>
+          <RouterLink v-for="item in teacherNavigation" :key="item.path" :to="item.path" :class="{ active: teacherNavigationActive(route.path, item.path) }"><span aria-hidden="true">{{ item.icon }}</span>{{ item.label }}</RouterLink>
         </template>
       </nav>
       <nav v-else aria-label="学生导航">
@@ -85,7 +78,7 @@ function logout() {
           <button type="button" class="ghost" @click="logout">退出登录</button>
         </div>
       </header>
-      <main class="workspace-content"><RouterView :key="route.fullPath" /></main>
+      <main class="workspace-content"><RouterView :key="workspacePageKey(route)" /></main>
     </div>
   </div>
 </template>

@@ -44,5 +44,5 @@ public final class TeacherViews {
                                 int pendingReviewCount, int reviewedCount, boolean canReleaseResults,
                                 LocalDateTime resultsReleasedAt, String displayStage, String nextAction) {}
     public record Dashboard(List<DashboardItem> pendingReview, List<DashboardItem> readyToRelease,
-                            List<DashboardItem> ongoing) {}
+                            List<DashboardItem> ongoing, List<DashboardItem> upcoming) {}
 }

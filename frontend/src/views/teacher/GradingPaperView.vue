@@ -1,7 +1,8 @@
 <script setup>
 import{computed,onMounted,reactive,ref}from'vue';import{useRoute,useRouter}from'vue-router';import{teacherApi,formatTime}from'../../api/teacher';import{mergeReviewDraft}from'../../utils/gradingPaperState'
 import{submissionStatus,gradingStatus,statusLabel,statusTone}from'../../utils/statusDisplay'
-const route=useRoute(),router=useRouter(),paper=ref(),workspace=ref(),scores=reactive({}),comments=reactive({}),base=reactive({scores:{},comments:{},finalComment:''}),finalComment=ref(''),activeAnswerId=ref(),error=ref(''),notice=ref(''),busy=ref(false),saving=ref(false),savingNext=ref(false),returnTo=computed(()=>{if(route.query.from==='grading-tasks'){const {from,...query}=route.query;return {path:'/teacher/grading-tasks',query}}const id=route.params.examId||(paper.value&&paper.value.examId);return id?'/teacher/exams/'+id+'?tab=grading':''})
+import{gradingPaperRoute,gradingReturnTo}from'../../utils/examNavigation'
+const route=useRoute(),router=useRouter(),paper=ref(),workspace=ref(),scores=reactive({}),comments=reactive({}),base=reactive({scores:{},comments:{},finalComment:''}),finalComment=ref(''),activeAnswerId=ref(),error=ref(''),notice=ref(''),busy=ref(false),saving=ref(false),savingNext=ref(false),returnTo=computed(()=>gradingReturnTo(route.params.examId||paper.value?.examId,route.query))
 function resetMap(m){for(const k of Object.keys(m))delete m[k]}
 function draftState(){return{paperId:paper.value?.id,scores:{...scores},comments:{...comments},finalComment:finalComment.value,baseline:{scores:{...base.scores},comments:{...base.comments},finalComment:base.finalComment}}}
 function hydrate(p,savedFields={}){const merged=mergeReviewDraft(draftState(),p,savedFields);paper.value=p;finalComment.value=merged.finalComment;for(const [target,source]of[[scores,merged.scores],[comments,merged.comments],[base.scores,merged.baseline.scores],[base.comments,merged.baseline.comments]]){resetMap(target);Object.assign(target,source)}base.finalComment=merged.baseline.finalComment;if(!p.answers.some(a=>a.answerId===activeAnswerId.value))activeAnswerId.value=(p.answers.find(a=>a.questionType==='SHORT_ANSWER')||p.answers[0])?.answerId}
@@ -33,9 +34,9 @@ async function saveAndNext(){
     let next=null
     for(let i=idx+1;i<list.length;i++)if(free(list[i])){next=list[i];break}
     if(!next)for(let i=0;i<idx;i++)if(free(list[i])){next=list[i];break}
-    if(!next){sessionStorage.setItem('examWorkspaceNotice:'+latest.examId,'本场答卷已全部阅完');await router.push('/teacher/exams/'+latest.examId+'?tab=grading');return}
+    if(!next){sessionStorage.setItem('examWorkspaceNotice:'+latest.examId,'本场答卷已全部阅完');await router.push(gradingReturnTo(latest.examId,route.query));return}
     sessionStorage.setItem('gradingNotice',savedAny?'评分已保存':'已进入下一份待阅答卷')
-    await router.push('/teacher/exams/'+latest.examId+'/grading/submissions/'+next.id)
+    await router.push(gradingPaperRoute(latest.examId,next.id,route.query))
   }catch(e){error.value='部分内容保存失败，请检查后重试。'+(e&&e.message?'（'+e.message+'）':'')}
   finally{savingNext.value=false}
 }

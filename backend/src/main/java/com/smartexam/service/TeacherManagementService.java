@@ -213,17 +213,17 @@ public class TeacherManagementService {
     public TeacherViews.Dashboard dashboard(String username) {
         Users current = teacher(username);
         List<Courses> courseRows = courses.findByTeacherId(current.getId());
-        if (courseRows.isEmpty()) return new TeacherViews.Dashboard(List.of(), List.of(), List.of());
+        if (courseRows.isEmpty()) return new TeacherViews.Dashboard(List.of(), List.of(), List.of(), List.of());
         Map<Long, Courses> courseById = courseRows.stream().collect(java.util.stream.Collectors.toMap(Courses::getId, row -> row));
         List<Exams> examRows = exams.list(new QueryWrapper<Exams>().in("course_id", courseById.keySet())
                 .isNull("archived_at").orderByAsc("end_time", "id"));
-        if (examRows.isEmpty()) return new TeacherViews.Dashboard(List.of(), List.of(), List.of());
+        if (examRows.isEmpty()) return new TeacherViews.Dashboard(List.of(), List.of(), List.of(), List.of());
         Set<Long> examIds = examRows.stream().map(Exams::getId).collect(java.util.stream.Collectors.toSet());
         Map<Long, List<ExamCandidate>> candidatesByExam = examCandidates.selectList(new QueryWrapper<ExamCandidate>().in("exam_id", examIds)).stream().collect(java.util.stream.Collectors.groupingBy(ExamCandidate::getExamId));
         Map<Long, List<Submissions>> submissionsByExam = submissions.list(new QueryWrapper<Submissions>().in("exam_id", examIds)).stream().collect(java.util.stream.Collectors.groupingBy(Submissions::getExamId));
         Map<Long, List<Questions>> questionsByExam = questions.list(new QueryWrapper<Questions>().in("exam_id", examIds)).stream().collect(java.util.stream.Collectors.groupingBy(Questions::getExamId));
         Map<Long, ExamLifecyclePolicy.Counts> countsByExam = lifecycleRows.counts(examIds);
-        List<TeacherViews.DashboardItem> pending = new ArrayList<>(), ready = new ArrayList<>(), ongoing = new ArrayList<>();
+        List<TeacherViews.DashboardItem> pending = new ArrayList<>(), ready = new ArrayList<>(), ongoing = new ArrayList<>(), upcoming = new ArrayList<>();
         for (Exams exam : examRows) {
             TeacherViews.ExamWorkspace view = workspaceView(exam, courseById.get(exam.getCourseId()),
                     candidatesByExam.getOrDefault(exam.getId(), List.of()), submissionsByExam.getOrDefault(exam.getId(), List.of()),
@@ -237,8 +237,10 @@ public class TeacherManagementService {
                     || ("REVIEWING".equals(view.lifecycleStatus()) && view.pendingReviewCount() > 0)) pending.add(item);
             if (view.canReleaseResults()) ready.add(item);
             if ("IN_PROGRESS".equals(view.lifecycleStatus())) ongoing.add(item);
+            if ("SCHEDULED".equals(view.displayStage())) upcoming.add(item);
         }
-        return new TeacherViews.Dashboard(pending, ready, ongoing);
+        upcoming.sort(java.util.Comparator.comparing(TeacherViews.DashboardItem::startTime).thenComparing(TeacherViews.DashboardItem::examId));
+        return new TeacherViews.Dashboard(pending, ready, ongoing, upcoming);
     }
 
     private TeacherViews.ExamWorkspace workspaceView(Exams exam, Courses course, List<ExamCandidate> candidateRows,

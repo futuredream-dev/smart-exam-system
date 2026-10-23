@@ -1,10 +1,14 @@
 <script setup>
-import { onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { loadWorkspace, teacherApi } from '../../api/teacher'
+import { teacherReturnPath } from '../../utils/examNavigation'
 
 const exams = ref([]), examId = ref(''), summary = ref(null), questions = ref([])
 const selected = ref(null), samples = ref([]), loading = ref(false), samplesLoading = ref(false)
 const error = ref(''), samplesError = ref(''), examsError = ref('')
+const route = useRoute(), router = useRouter()
+const returnTo = computed(() => teacherReturnPath(route.query.returnTo || (examId.value ? `/teacher/exams/${examId.value}?tab=grading` : '/teacher')))
 let loadId = 0, sampleId = 0
 const score = value => value == null ? '—' : Number(value).toFixed(2)
 const percent = value => value == null ? '—' : `${score(value)}%`
@@ -38,20 +42,28 @@ async function openSamples(question) {
   finally { if (id === sampleId) samplesLoading.value = false }
 }
 function closeSamples() { ++sampleId; selected.value = null; samples.value = [] }
-watch(examId, load)
+watch(examId, () => {
+  if (examId.value !== String(route.query.examId || '')) router.replace({ path: '/teacher/ai-evaluation', query: { examId: examId.value || undefined, returnTo: route.query.returnTo } })
+  load()
+})
+watch(() => route.query.examId, value => {
+  examId.value = exams.value.some(exam => String(exam.id) === value) ? value : ''
+})
 onMounted(async () => {
   try {
     exams.value = (await loadWorkspace()).exams.filter(exam => exam.id && (exam.title || exam.examName))
-    if (exams.value.length) examId.value = String(exams.value[0].id)
+    const requested = route.query.examId
+    examId.value = requested ? (exams.value.some(exam => String(exam.id) === requested) ? requested : '') : String(exams.value[0]?.id || '')
   } catch { examsError.value = '考试列表加载失败，请刷新页面重试' }
 })
 </script>
 
 <template>
   <div class="ai-evaluation-page">
-    <header class="page-heading"><div><h1>AI评分分析</h1><p class="muted">比较 AI 建议分与教师最终分，仅包含已完成人工复核的简答题</p></div></header>
+    <header class="page-heading"><div><h1>AI评分分析</h1><p class="muted">比较 AI 建议分与教师最终分，仅包含已完成人工复核的简答题</p></div><RouterLink class="secondary" :to="returnTo">返回考试</RouterLink></header>
     <section class="surface evaluation-filter"><label>考试选择 <select v-model="examId"><option value="">请选择考试</option><option v-for="exam in exams" :key="exam.id" :value="String(exam.id)">{{ exam.title || exam.examName }}</option></select></label></section>
     <p v-if="examsError" class="error-message" role="alert">{{ examsError }}</p>
+    <p v-else-if="!examId" class="empty-state">请选择有权查看的考试。</p>
     <p v-if="error" class="error-message" role="alert">{{ error }} <button class="ghost" @click="load">重试</button></p>
     <p v-if="loading" class="loading-state" role="status">正在加载分析数据…</p>
     <template v-else-if="summary">
