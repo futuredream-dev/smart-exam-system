@@ -30,6 +30,7 @@ import java.util.*;
 public class StudentExamService {
     private final UsersService users; private final ExamsService exams; private final CoursesService courses;
     private final QuestionsService questions;
+    private final com.smartexam.mapper.ExamCenterQueryRepository listRows;
     private final com.smartexam.mapper.ExamCandidatesMapper examCandidates;
     private final SubmissionsService submissions; private final AnswersService answers; private final ObjectMapper json;
     private final ExamReentryEventRecorder reentryEvents;
@@ -75,16 +76,25 @@ public class StudentExamService {
     public List<MvpViews.StudentExam> list(String username) {
         Users u = student(username);
         List<Exams> visible = exams.findForStudent(u.getId());
-        Map<Long, MvpViews.StudentExam> views = new HashMap<>();
-        // Release this exam's locks before waiting for an unrelated exam. There is no list-wide transaction.
-        TransactionTemplate tx = examTransaction();
-        for (Exams candidate : visible.stream().sorted(Comparator.comparing(Exams::getId)).toList()) {
-            views.put(candidate.getId(), tx.execute(ignored -> {
-                Exams e = lockAccessible(u, candidate.getId());
-                Submissions s = lockExisting(e, u); expire(s, e, now()); return examView(e, s);
-            }));
+        if(visible.isEmpty())return List.of();
+        List<Long> ids=visible.stream().map(Exams::getId).toList();
+        // Only IN_PROGRESS rows can require expiry writes. Other rows use a batch read projection.
+        Set<Long> active=submissions.list(new QueryWrapper<Submissions>().select("exam_id").eq("student_id",u.getId())
+                .eq("status","IN_PROGRESS").in("exam_id",ids)).stream().map(Submissions::getExamId).collect(java.util.stream.Collectors.toSet());
+        TransactionTemplate tx=examTransaction();
+        for(Exams candidate:visible.stream().filter(e->active.contains(e.getId())).sorted(Comparator.comparing(Exams::getId)).toList()) {
+            // Preserve exam -> submission locking and release before waiting for an unrelated exam.
+            tx.executeWithoutResult(ignored->{Exams e=lockAccessible(u,candidate.getId());Submissions s=lockExisting(e,u);expire(s,e,now());});
         }
-        return visible.stream().map(e -> views.get(e.getId())).toList();
+        return listRows.studentFacts(u.getId(),ids).stream().map(row->{
+            Exams e=row.exam();Submissions s=row.submission();
+            boolean released=s!=null&&e.getResultsReleasedAt()!=null&&Integer.valueOf(1).equals(s.getScorePublished());
+            return new MvpViews.StudentExam(e.getId(),row.courseName(),e.getTitle(),e.getDescription(),e.getStartTime(),e.getEndTime(),
+                    e.getLateEntryMinutes(),e.getMinSubmitMinutes(),e.getStatus(),s==null?null:s.getStatus(),s==null?null:s.getId(),
+                    row.paper().count(),lifecycle(e,s,row.pending(),released),e.getResultsReleasedAt(),released?s.getTotalScore():null,row.paper().score(),
+                    examClock.instant(),e.getStartTime().atZone(EXAM_ZONE).toInstant(),
+                    e.getStartTime().plusMinutes(Optional.ofNullable(e.getLateEntryMinutes()).orElse(0)).atZone(EXAM_ZONE).toInstant(),e.getEndTime().atZone(EXAM_ZONE).toInstant());
+        }).toList();
     }
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public MvpViews.StudentExam detail(String username,Long id){Users u=student(username);Exams e=lockAccessible(u,id);Submissions s=lockExisting(e,u);expire(s,e,now());return examView(e,s);}

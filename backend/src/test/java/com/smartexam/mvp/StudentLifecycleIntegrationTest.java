@@ -34,6 +34,8 @@ import static org.mockito.Mockito.when;
 @AutoConfigureMockMvc
 @Transactional
 class StudentLifecycleIntegrationTest {
+    @Autowired org.springframework.jdbc.core.JdbcTemplate jdbc;
+    @Autowired StudentExamService studentService;
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper json;
     @Autowired UsersService users;
@@ -164,6 +166,24 @@ class StudentLifecycleIntegrationTest {
         }
         return row;
     }
+
+    @Test
+    void studentListUsesBatchSummariesWithoutLoadingAllQuestionContent() {
+        for (int i=0;i<30;i++) {
+            Exams e=exam(LocalDateTime.now().plusHours(1),LocalDateTime.now().plusHours(2),false);
+            for (int j=2;j<=40;j++) jdbc.update("INSERT INTO questions(exam_id,question_type,content,score,sort_order) VALUES(?,'SHORT_ANSWER',REPEAT('private-content-',50),5,?)",e.getId(),j);
+        }
+        var before=listMetrics(); long started=System.nanoTime();
+        var rows=studentService.list(student.getUsername());
+        long elapsed=(System.nanoTime()-started)/1000000; var after=listMetrics();
+        long selects=after.get("Com_select")-before.get("Com_select"), sent=after.get("Bytes_sent")-before.get("Bytes_sent");
+        System.out.printf("T15 student dataset=30exams/1200questions selects=%d bytesSent=%d elapsedMs=%d%n",selects,sent,elapsed);
+        assertThat(rows).hasSize(30);
+        assertThat(rows).allSatisfy(row->{assertThat(row.questionCount()).isEqualTo(40);assertThat(row.maxScore()).isEqualByComparingTo("200");assertThat(row.totalScore()).isNull();assertThat(row.lifecycleStatus()).isEqualTo("NOT_STARTED");});
+        assertThat(sent).as("student summaries must not transfer 1200 question entities").isLessThan(60000);
+        assertThat(selects).as("no per-exam reads for a list with no active submissions").isLessThanOrEqualTo(7);
+    }
+    private java.util.Map<String,Long> listMetrics(){return jdbc.query("SHOW SESSION STATUS WHERE Variable_name IN ('Com_select','Bytes_sent')",rs->{java.util.Map<String,Long> result=new java.util.HashMap<>();while(rs.next())result.put(rs.getString(1),rs.getLong(2));return result;});}
 
     private Exams exam(LocalDateTime start, LocalDateTime end, boolean withShortAnswer) {
         Courses course = new Courses();

@@ -7,6 +7,7 @@ import com.smartexam.entity.*;
 import com.smartexam.exception.BusinessException;
 import com.smartexam.mapper.ExamCandidatesMapper;
 import com.smartexam.mapper.ExamLifecycleRepository;
+import com.smartexam.mapper.ExamCenterQueryRepository;
 import com.smartexam.vo.ExamCenterViews;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /** Read-only teacher exam management projection. No derived status is persisted. */
@@ -32,41 +32,20 @@ public class ExamCenterService {
     private final ExamCandidatesMapper candidates;
     private final ExamLifecycleRepository lifecycleRows;
     private final ExamLifecyclePolicy lifecycle;
+    private final ExamCenterQueryRepository queryRows;
 
     public PageResponse<ExamCenterViews.Summary> list(String username, String keyword, Long courseId,
                                                        String stage, Boolean archived, int page, int size) {
         if (page < 1 || size < 1 || size > 100) throw invalid("page 必须大于零，size 必须在 1 至 100 之间");
         if (stage != null && !STAGES.contains(stage)) throw invalid("无效的 stage");
         Users teacher = teacher(username);
-        List<Courses> owned = courses.findByTeacherId(teacher.getId());
-        if (courseId != null) owned = owned.stream().filter(c -> c.getId().equals(courseId)).toList();
-        if (owned.isEmpty()) return new PageResponse<>(List.of(), 0, page, size);
-        Map<Long, Courses> byCourse = owned.stream().collect(Collectors.toMap(Courses::getId, Function.identity()));
-        QueryWrapper<Exams> query = new QueryWrapper<Exams>().in("course_id", byCourse.keySet()).orderByDesc("id");
-        if (Boolean.TRUE.equals(archived)) query.isNotNull("archived_at");
-        else query.isNull("archived_at");
-        if (keyword != null && !keyword.isBlank()) query.like("title", keyword.trim());
-        List<Exams> examRows = exams.list(query);
-        if (examRows.isEmpty()) return new PageResponse<>(List.of(), 0, page, size);
-        List<Long> ids = examRows.stream().map(Exams::getId).toList();
-        Map<Long, List<Questions>> paper = questions.list(new QueryWrapper<Questions>().in("exam_id", ids)).stream()
-                .collect(Collectors.groupingBy(Questions::getExamId));
-        Map<Long, ExamLifecyclePolicy.Counts> counts = lifecycleRows.counts(ids);
-        Map<Long, Long> candidateCounts = candidates.selectList(new QueryWrapper<ExamCandidate>().in("exam_id", ids)).stream()
-                .collect(Collectors.groupingBy(ExamCandidate::getExamId, Collectors.counting()));
-        Map<Long, Long> draftCounts = memberships.list(new QueryWrapper<CourseStudents>()
-                .in("course_id", byCourse.keySet()).eq("status", 1)).stream()
-                .collect(Collectors.groupingBy(CourseStudents::getCourseId, Collectors.counting()));
         LocalDateTime now = lifecycle.now();
-        List<ExamCenterViews.Summary> matching = examRows.stream().map(e -> summary(e, byCourse.get(e.getCourseId()),
-                paper.getOrDefault(e.getId(), List.of()), counts.getOrDefault(e.getId(), ExamLifecyclePolicy.Counts.EMPTY),
-                "DRAFT".equals(e.getStatus()) && !"MAKEUP".equals(e.getExamKind())
-                        ? draftCounts.getOrDefault(e.getCourseId(), 0L).intValue()
-                        : candidateCounts.getOrDefault(e.getId(), 0L).intValue(), now))
-                .filter(s -> matchesStage(stage, s.displayStage())).toList();
-        long from = (long) (page - 1) * size;
-        if (from >= matching.size()) return new PageResponse<>(List.of(), matching.size(), page, size);
-        return new PageResponse<>(matching.subList((int) from, (int) Math.min(matching.size(), from + size)), matching.size(), page, size);
+        var pageIds = queryRows.page(teacher.getId(),keyword,courseId,stage,Boolean.TRUE.equals(archived),size,(long)(page-1)*size,now);
+        if(pageIds.ids().isEmpty())return new PageResponse<>(List.of(),pageIds.total(),page,size);
+        var counts=lifecycleRows.counts(pageIds.ids());
+        List<ExamCenterViews.Summary> items=queryRows.examFacts(pageIds.ids()).stream()
+                .map(row->summary(row.exam(),row.courseName(),row.paper(),counts.getOrDefault(row.exam().getId(),ExamLifecyclePolicy.Counts.EMPTY),row.eligible(),now)).toList();
+        return new PageResponse<>(items,pageIds.total(),page,size);
     }
 
     public ExamCenterViews.Detail detail(String username, Long id) {
@@ -93,17 +72,21 @@ public class ExamCenterService {
 
     static ExamCenterViews.Summary summary(Exams exam, Courses course, List<Questions> paper,
                                            ExamLifecyclePolicy.Counts counts, int eligible, LocalDateTime now) {
-        var projection = ExamLifecyclePolicy.evaluate(exam, counts, now);
-        String action = projection.nextAction();
-        if ("DRAFT".equals(projection.displayStage()) && exam.getArchivedAt() == null
-                && !paper.isEmpty() && paper.stream().allMatch(q -> q.getScore() != null && q.getScore().signum() > 0)) action = "PUBLISH";
-        BigDecimal total = paper.stream().map(Questions::getScore).filter(Objects::nonNull)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        return new ExamCenterViews.Summary(exam.getId(), exam.getTitle(), course.getId(), course.getCourseName(),
-                exam.getStartTime(), exam.getEndTime(), paper.size(), total, eligible, counts.submitted(), counts.reviewed(),
-                counts.pendingManual(), projection.canReleaseResults() ? counts.reviewed() : 0, counts.released(),
-                projection.displayStage(), action, exam.getExamKind(), exam.getArchivedAt(),
-                projection.canReleaseResults(), projection.releaseBlockReason(), exam.getStatus());
+        BigDecimal total=paper.stream().map(Questions::getScore).filter(Objects::nonNull).reduce(BigDecimal.ZERO,BigDecimal::add);
+        boolean publishable=!paper.isEmpty()&&paper.stream().allMatch(q->q.getScore()!=null&&q.getScore().signum()>0);
+        return summary(exam,course.getCourseName(),new ExamCenterQueryRepository.PaperTotals(paper.size(),total,publishable),counts,eligible,now);
+    }
+
+    private static ExamCenterViews.Summary summary(Exams exam,String courseName,ExamCenterQueryRepository.PaperTotals paper,
+                                                   ExamLifecyclePolicy.Counts counts,int eligible,LocalDateTime now) {
+        var projection=ExamLifecyclePolicy.evaluate(exam,counts,now);
+        String action=projection.nextAction();
+        if("DRAFT".equals(projection.displayStage())&&exam.getArchivedAt()==null&&paper.publishable())action="PUBLISH";
+        return new ExamCenterViews.Summary(exam.getId(),exam.getTitle(),exam.getCourseId(),courseName,
+                exam.getStartTime(),exam.getEndTime(),paper.count(),paper.score(),eligible,counts.submitted(),counts.reviewed(),
+                counts.pendingManual(),projection.canReleaseResults()?counts.reviewed():0,counts.released(),
+                projection.displayStage(),action,exam.getExamKind(),exam.getArchivedAt(),
+                projection.canReleaseResults(),projection.releaseBlockReason(),exam.getStatus());
     }
 
     private Users teacher(String username) {
