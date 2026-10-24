@@ -21,7 +21,7 @@ public final class MvpViews {
             String status, List<StudentQuestion> questions, Instant serverNow, Instant deadlineAt) {}
     public record ResultQuestion(Long questionId, Integer orderNo, String questionType, String content,
             List<Option> options, String studentAnswer, BigDecimal finalScore, BigDecimal maxScore,
-            String correctAnswer) {}
+            String correctAnswer, String teacherComment) {}
     public record Result(Long submissionId, Long examId, String examTitle, String courseName,
             BigDecimal totalScore, BigDecimal maxScore, String teacherComment,
             LocalDateTime publishedAt, List<ResultQuestion> questions) {}

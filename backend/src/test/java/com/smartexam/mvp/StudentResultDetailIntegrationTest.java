@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.http.MediaType;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -20,6 +21,8 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -122,6 +125,38 @@ class StudentResultDetailIntegrationTest {
         assertThat(data.toString()).doesNotContain("referenceAnswer").doesNotContain("scoringPoints")
                 .doesNotContain("aiScore").doesNotContain("aiReason").doesNotContain("aiComment")
                 .doesNotContain("matchedPoints").doesNotContain("missingPoints").doesNotContain("绝不公开");
+    }
+
+    @Test void perQuestionFeedbackAndZeroScoreAreVisibleOnlyAfterRealPublication() throws Exception {
+        submission.setScorePublished(0);submissions.updateById(submission);
+        Answers shortRow=answers.findBySubmissionId(submission.getId()).stream().filter(row->"SHORT_ANSWER".equals(questions.getById(row.getQuestionId()).getQuestionType())).findFirst().orElseThrow();
+        String feedback="请根据评分标准补充关键步骤。\n".repeat(80);
+        mvc.perform(put("/api/teacher/grading/answers/"+shortRow.getId()+"/review").header("Authorization","Bearer "+jwt.generate(teacher))
+                .contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsString(java.util.Map.of("teacherScore",BigDecimal.ZERO,"teacherComment",feedback))))
+                .andExpect(status().isOk());
+        mvc.perform(put("/api/teacher/grading/submissions/"+submission.getId()+"/comment").header("Authorization","Bearer "+jwt.generate(teacher))
+                .contentType(MediaType.APPLICATION_JSON).content("{\"teacherComment\":\"\"}")).andExpect(status().isOk());
+        request(owner,403);
+        publishThroughApi();request(stranger,404);
+        JsonNode data=request(owner,200).path("data"), question=data.path("questions").get(1);
+        assertThat(question.path("teacherComment").asText()).isEqualTo(feedback);
+        assertThat(question.path("finalScore").decimalValue()).isEqualByComparingTo("0");
+        assertThat(data.path("totalScore").decimalValue()).isEqualByComparingTo("0");
+        assertThat(data.path("teacherComment").asText("")).isBlank();
+        assertThat(data.toString()).doesNotContain("不得公开","绝不公开","aiReason","aiScore","scoringPoints","referenceAnswer");
+    }
+
+    @Test void emptyPerQuestionFeedbackRemainsNullAndRowPublicationFlagIsRequired() throws Exception {
+        submission.setScorePublished(0);submissions.updateById(submission);
+        publishThroughApi();
+        JsonNode data=request(owner,200).path("data");
+        for(JsonNode question:data.path("questions")) assertThat(question.has("teacherComment")&&question.path("teacherComment").isNull()).isTrue();
+        submission=submissions.getById(submission.getId());submission.setScorePublished(0);submissions.updateById(submission);
+        request(owner,403);
+    }
+
+    private void publishThroughApi() throws Exception {
+        mvc.perform(post("/api/teacher/grading/exams/"+exam.getId()+"/publish-results").header("Authorization","Bearer "+jwt.generate(teacher))).andExpect(status().isOk());
     }
 
     private Users student(String prefix) {

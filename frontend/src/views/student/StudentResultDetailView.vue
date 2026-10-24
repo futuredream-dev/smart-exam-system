@@ -34,6 +34,7 @@ const typeName = type => type === 'SINGLE_CHOICE' ? '单选题' : '简答题'
               <div><dt>我的答案</dt><dd class="preserve">{{ question.studentAnswer || '未作答' }}</dd></div>
               <div v-if="question.questionType === 'SINGLE_CHOICE'"><dt>正确答案</dt><dd>{{ question.correctAnswer || '—' }}</dd></div>
             </dl>
+            <section v-if="question.teacherComment?.trim() || question.questionType === 'SHORT_ANSWER'" class="student-teacher-comment" aria-label="教师本题评语"><h4>教师本题评语</h4><p v-if="question.teacherComment?.trim()" class="preserve">{{ question.teacherComment }}</p><p v-else class="muted">教师暂未填写本题评语。</p></section>
           </article>
         </div>
       </section>
