@@ -675,6 +675,14 @@
 .role-teacher .exam-center-overview dt { color: var(--text-secondary); }
 .role-teacher .exam-center-overview dd { margin: 0; }
 .role-teacher .exam-center-panel > .section-head { margin: 14px 0; }
+.role-teacher .bank-page-summary { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin: 16px 0; color: var(--text-secondary); }
+.role-teacher .bank-filter-actions { display: flex; flex-wrap: wrap; gap: 4px; }
+.role-teacher .bank-filter-actions button { white-space: nowrap; }
+.role-teacher .bank-page-summary label { display: flex; align-items: center; gap: 8px; }
+.role-teacher .bank-page-summary select { padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--surface); color: var(--text-primary); }
+.role-teacher .bank-pagination { justify-content: flex-end; }
+.role-teacher .bank-expanded-detail { border-top: 1px solid var(--border); margin-top: 14px; padding-top: 14px; overflow-wrap: anywhere; }
+.role-teacher .bank-item-fields { display: grid; gap: 16px; border: 0; padding: 0; margin: 0; min-width: 0; }
 .role-teacher .exam-composer-options { padding: 16px; margin-bottom: 16px; }
 .role-teacher .exam-composer-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .role-teacher .exam-composer-grid button { display: grid; gap: 4px; justify-content: start; text-align: left; padding: 12px 16px; white-space: normal; }

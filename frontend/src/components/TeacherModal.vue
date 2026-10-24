@@ -6,16 +6,26 @@ const props = defineProps({
   size: { type: String, default: 'form', validator: value => ['confirm', 'form', 'wide'].includes(value) },
   variant: { type: String, default: 'default', validator: value => ['default', 'danger'].includes(value) },
   busy: { type: Boolean, default: false },
+  dirty: { type: Boolean, default: false },
 })
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'discard-request', 'discard-cancel'])
+const discardOpen = ref(false), discardCancel = ref(null)
 const panel = ref(null)
 const heading = ref(null)
 const titleId = useId()
 let previousFocus = null
 
 function requestClose() {
-  if (!props.busy) emit('close')
+  if (props.busy) return
+  if (discardOpen.value) { cancelDiscard(); return }
+  if (!props.dirty) { emit('close'); return }
+  discardOpen.value = true
+  emit('discard-request')
+  nextTick(() => discardCancel.value?.focus())
 }
+function cancelDiscard() { if (!props.busy) { discardOpen.value = false; emit('discard-cancel'); nextTick(() => heading.value?.focus()) } }
+function confirmDiscard() { if (!props.busy && discardOpen.value) emit('close') }
+defineExpose({ requestClose })
 
 function focusableElements() {
   return [...(panel.value?.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])') || [])]
@@ -75,8 +85,9 @@ onUnmounted(() => {
         <h2 :id="titleId" ref="heading" tabindex="-1">{{ title }}</h2>
         <button type="button" class="ghost" aria-label="关闭弹窗" :disabled="busy" @click="requestClose">关闭</button>
       </header>
-      <div class="modal-body"><slot /></div>
-      <footer v-if="$slots.footer" class="modal-footer"><slot name="footer" /></footer>
+      <div v-if="discardOpen" class="modal-body confirmation-copy" role="alert"><h3>放弃未保存的修改？</h3><p>关闭后将丢失本次输入，选择“继续编辑”可保留内容。</p><div class="actions"><button ref="discardCancel" type="button" class="secondary" :disabled="busy" @click="cancelDiscard">继续编辑</button><button type="button" class="danger" :disabled="busy" @click="confirmDiscard">放弃修改</button></div></div>
+      <div v-show="!discardOpen" class="modal-body"><slot /></div>
+      <footer v-if="$slots.footer" v-show="!discardOpen" class="modal-footer"><slot name="footer" /></footer>
     </section>
   </div>
 </template>

@@ -6,6 +6,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smartexam.common.ErrorCode;
 import com.smartexam.dto.QuestionBankRequests;
+import com.smartexam.dto.QuestionBankItemQuery;
+import com.smartexam.common.PageResponse;
 import com.smartexam.entity.*;
 import com.smartexam.enums.QuestionBankItemStatus;
 import com.smartexam.enums.QuestionBankScope;
@@ -150,6 +152,13 @@ public class QuestionBankService {
                                                    Long chapterId, List<Long> chapterIds, List<Long> knowledgePointIds,
                                                    String difficulty, List<String> difficulties, List<Long> tagIds) {
         readableBank(username, bankId);
+        return itemViews(items.selectList(itemFilter(bankId, keyword, questionType, status, chapterId, chapterIds,
+                knowledgePointIds, difficulty, difficulties, tagIds).orderByDesc("updated_at")));
+    }
+
+    private QueryWrapper<QuestionBankItem> itemFilter(Long bankId, String keyword, QuestionType questionType,
+            QuestionBankItemStatus status, Long chapterId, List<Long> chapterIds, List<Long> knowledgePointIds,
+            String difficulty, List<String> difficulties, List<Long> tagIds) {
         QueryWrapper<QuestionBankItem> query = new QueryWrapper<QuestionBankItem>().eq("bank_id", bankId);
         if (StringUtils.hasText(keyword)) query.and(q -> q.like("title", keyword.trim()).or().like("content", keyword.trim()));
         if (questionType != null) query.eq("question_type", questionType.name());
@@ -169,7 +178,33 @@ public class QuestionBankService {
         if (difficulty != null) difficultyFilter.add(difficulty);
         for (String value : difficultyFilter) validateDifficulty(value);
         if (!difficultyFilter.isEmpty()) query.in("difficulty", difficultyFilter);
-        return itemViews(items.selectList(query.orderByDesc("updated_at")));
+        return query;
+    }
+
+    public PageResponse<QuestionBankViews.ItemSummary> itemPage(String username, Long bankId, QuestionBankItemQuery request) {
+        readableBank(username, bankId);
+        if (request.getPage() == null || request.getPage() < 1 || !Set.of(20, 50, 100).contains(request.getSize()))
+            throw bad("页码必须为正整数，每页数量只能为 20、50 或 100");
+        QueryWrapper<QuestionBankItem> query = itemFilter(bankId, request.getKeyword(), request.getQuestionType(),
+                request.getStatus(), request.getChapterId(), request.getChapterIds(), request.getKnowledgePointIds(),
+                request.getDifficulty(), request.getDifficulties(), request.getTagIds());
+        if (request.isExcludeArchived()) query.ne("status", "ARCHIVED");
+        long total = items.selectCount(query);
+        if (request.getOffset() >= total) return new PageResponse<>(List.of(), total, request.getPage(), request.getSize());
+        List<QuestionBankItem> page = items.selectList(query.select("id", "bank_id", "chapter_id", "difficulty",
+                "question_type", "title", "default_score", "status", "updated_at")
+                .orderByDesc("updated_at", "id").last("LIMIT " + request.getSize() + " OFFSET " + request.getOffset()));
+        List<Long> pageIds = page.stream().map(QuestionBankItem::getId).toList();
+        if (pageIds.isEmpty()) return new PageResponse<>(List.of(), total, request.getPage(), request.getSize());
+        Map<Long, List<Long>> knowledgeMap = new HashMap<>(), tagMap = new HashMap<>();
+        for (QuestionBankItemKnowledgePoint row : itemKnowledgePoints.selectList(new QueryWrapper<QuestionBankItemKnowledgePoint>().in("item_id", pageIds)))
+            knowledgeMap.computeIfAbsent(row.getItemId(), ignored -> new ArrayList<>()).add(row.getKnowledgePointId());
+        for (QuestionBankItemTag row : itemTags.selectList(new QueryWrapper<QuestionBankItemTag>().in("item_id", pageIds)))
+            tagMap.computeIfAbsent(row.getItemId(), ignored -> new ArrayList<>()).add(row.getTagId());
+        return new PageResponse<>(page.stream().map(item -> new QuestionBankViews.ItemSummary(item.getId(), item.getBankId(),
+                item.getChapterId(), item.getDifficulty(), item.getQuestionType(), item.getTitle(), item.getDefaultScore(),
+                item.getStatus(), item.getUpdatedAt(), knowledgeMap.getOrDefault(item.getId(), List.of()),
+                tagMap.getOrDefault(item.getId(), List.of()))).toList(), total, request.getPage(), request.getSize());
     }
 
     @Transactional
@@ -206,7 +241,8 @@ public class QuestionBankService {
         if (QuestionBankItemStatus.READY.name().equals(item.getStatus())) item.setStatus(QuestionBankItemStatus.DRAFT.name());
         items.updateById(item);
         items.update(null, new UpdateWrapper<QuestionBankItem>().eq("id", itemId)
-                .set("chapter_id", item.getChapterId()).set("difficulty", item.getDifficulty()));
+                .set("chapter_id", item.getChapterId()).set("difficulty", item.getDifficulty())
+                .setSql("updated_at = CURRENT_TIMESTAMP(3)"));
         replacePoints(itemId, request.scoringPoints());
         replaceMetadata(itemId, request, present);
         return itemView(items.selectById(itemId));

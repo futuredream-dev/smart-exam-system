@@ -42,6 +42,7 @@ class QuestionBankIntegrationTest {
     @Autowired CoursesService courses;
     @Autowired JdbcTemplate jdbc;
     @Autowired com.smartexam.mapper.QuestionBankMapper bankMapper;
+    @Autowired org.mybatis.spring.SqlSessionTemplate sqlSession;
 
     String teacherToken;
     String otherTeacherToken;
@@ -460,6 +461,60 @@ class QuestionBankIntegrationTest {
         call(post(base + "/knowledge-points"), Map.of("name", "hash map"), teacherToken, 409);
         call(post(base + "/knowledge-points/" + point + "/archive"), null, teacherToken, 200);
         call(post(base + "/knowledge-points"), Map.of("name", "Hash Map"), teacherToken, 409);
+    }
+
+    @Test void itemPagesUseStableBoundedSummariesAndKeepLegacyListContract() throws Exception {
+        long bankId=createBank("分页三百题",teacherToken).path("id").asLong();
+        for(int i=1;i<=300;i++) jdbc.update("INSERT INTO question_bank_items(bank_id,question_type,title,content,default_score,status,updated_at) VALUES(?,'SINGLE_CHOICE',?,'不应在摘要中返回的长题干',5,?,'2026-01-01 00:00:00')",bankId,"分页题"+i,i<=2?"ARCHIVED":"DRAFT");
+        // JDBC fixture writes bypass MyBatis invalidation of the zero count read during bank creation.
+        sqlSession.clearCache();
+        String base="/api/teacher/question-banks/"+bankId+"/items";
+        JsonNode first=call(get(base+"/page").param("excludeArchived","true"),null,teacherToken,200).path("data");
+        JsonNode second=call(get(base+"/page").param("excludeArchived","true").param("page","2"),null,teacherToken,200).path("data");
+        assertThat(first.path("total").asLong()).isEqualTo(298);assertThat(first.path("items")).hasSize(20);assertThat(second.path("items")).hasSize(20);
+        List<Long> ids=new java.util.ArrayList<>();first.path("items").forEach(row->ids.add(row.path("id").asLong()));second.path("items").forEach(row->ids.add(row.path("id").asLong()));
+        assertThat(ids).doesNotHaveDuplicates().isSortedAccordingTo(java.util.Comparator.reverseOrder());
+        for(JsonNode row:first.path("items")) for(String field:List.of("content","options","correctAnswer","referenceAnswer","scoringPoints")) assertThat(row.has(field)).isFalse();
+        assertThat(call(get(base),null,teacherToken,200).path("data")).hasSize(300);
+        assertThat(call(get(base+"/page").param("page","99"),null,teacherToken,200).path("data").path("items")).isEmpty();
+        for(String size:List.of("20","50","100")) assertThat(call(get(base+"/page").param("size",size),null,teacherToken,200).path("data").path("items")).hasSize(Integer.parseInt(size));
+        for(String size:List.of("0","10","101")) call(get(base+"/page").param("size",size),null,teacherToken,400);
+        call(get(base+"/page").param("page","0"),null,teacherToken,400);
+        call(get(base+"/page").param("page","2147483647"),null,teacherToken,200);
+    }
+
+    @Test void itemPageFiltersAndBatchRelationsMatchWhileDetailRemainsOnDemand() throws Exception {
+        long bankId=createBank("分页组合筛选",teacherToken).path("id").asLong();String base="/api/teacher/question-banks/"+bankId;
+        long chapter=call(post(base+"/chapters"),Map.of("name","章节"),teacherToken,200).path("data").path("id").asLong();
+        long point=call(post(base+"/knowledge-points"),Map.of("name","知识点"),teacherToken,200).path("data").path("id").asLong();
+        long tag=call(post(base+"/tags"),Map.of("name","标签"),teacherToken,200).path("data").path("id").asLong();
+        Map<String,Object> body=singleChoice("组合摘要","选项","A");body.put("chapterId",chapter);body.put("difficulty","HARD");body.put("knowledgePointIds",List.of(point));body.put("tagIds",List.of(tag));
+        long id=createItem(bankId,body,teacherToken).path("id").asLong();createItem(bankId,singleChoice("不匹配","甲","A"),teacherToken);
+        JsonNode data=call(get(base+"/items/page").param("keyword","组合").param("questionType","SINGLE_CHOICE").param("status","DRAFT").param("chapterIds",String.valueOf(chapter)).param("knowledgePointIds",String.valueOf(point)).param("difficulties","EASY,HARD").param("tagIds",String.valueOf(tag)),null,teacherToken,200).path("data");
+        assertThat(data.path("total").asLong()).isEqualTo(1);assertThat(data.path("items").get(0).path("id").asLong()).isEqualTo(id);
+        assertThat(data.path("items").get(0).path("knowledgePointIds").get(0).asLong()).isEqualTo(point);assertThat(data.path("items").get(0).path("tagIds").get(0).asLong()).isEqualTo(tag);
+        assertThat(call(get("/api/teacher/question-bank-items/"+id),null,teacherToken,200).path("data").path("options")).hasSize(2);
+        call(get(base+"/items/page").param("difficulty","UNKNOWN"),null,teacherToken,400);call(get(base+"/items/page").param("chapterIds","-1"),null,teacherToken,400);
+    }
+
+    @Test void editingAnOlderItemAdvancesItsTimestampAndMovesItToTheFirstSummary() throws Exception {
+        long bankId=createBank("分页更新时间",teacherToken).path("id").asLong();
+        long older=createItem(bankId,singleChoice("旧题","甲","A"),teacherToken).path("id").asLong();
+        long newer=createItem(bankId,singleChoice("较新题","乙","A"),teacherToken).path("id").asLong();
+        jdbc.update("UPDATE question_bank_items SET updated_at='2026-01-01 00:00:00' WHERE bank_id=?",bankId);sqlSession.clearCache();
+        String page="/api/teacher/question-banks/"+bankId+"/items/page";
+        assertThat(call(get(page),null,teacherToken,200).path("data").path("items").get(0).path("id").asLong()).isEqualTo(newer);
+        call(put("/api/teacher/question-bank-items/"+older),singleChoice("已编辑旧题","甲","A"),teacherToken,200);
+        assertThat(jdbc.queryForObject("SELECT updated_at FROM question_bank_items WHERE id=?",java.time.LocalDateTime.class,older)).isAfter(java.time.LocalDateTime.of(2026,1,1,0,0));
+        assertThat(call(get(page),null,teacherToken,200).path("data").path("items").get(0).path("id").asLong()).isEqualTo(older);
+    }
+
+    @Test void itemPagesRespectOwnershipAndPlatformReadOnlyBoundary() throws Exception {
+        long privateBank=createBank("分页私有",teacherToken).path("id").asLong();
+        for(String token:List.of(otherTeacherToken,studentToken,adminToken)) call(get("/api/teacher/question-banks/"+privateBank+"/items/page"),null,token,403);
+        QuestionBank platform=new QuestionBank();platform.setName("分页平台库");platform.setScope("PLATFORM");platform.setStatus("ACTIVE");bankMapper.insert(platform);
+        call(get("/api/teacher/question-banks/"+platform.getId()+"/items/page"),null,teacherToken,200);
+        call(post("/api/teacher/question-banks/"+platform.getId()+"/items"),singleChoice("不能写入","甲","A"),teacherToken,403);
     }
 
     JsonNode createBank(String name, String token) throws Exception {

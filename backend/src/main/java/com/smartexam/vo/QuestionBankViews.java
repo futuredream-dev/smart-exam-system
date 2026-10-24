@@ -17,6 +17,9 @@ public final class QuestionBankViews {
     public record Tag(Long id, Long bankId, String name, LocalDateTime createdAt, LocalDateTime updatedAt) {}
     public record Metadata(List<Chapter> chapters, List<KnowledgePoint> knowledgePoints, List<Tag> tags) {}
     public record Point(Long id, String content, BigDecimal score, Integer sortOrder) {}
+    public record ItemSummary(Long id, Long bankId, Long chapterId, String difficulty, String questionType,
+                              String title, BigDecimal defaultScore, String status, LocalDateTime updatedAt,
+                              List<Long> knowledgePointIds, List<Long> tagIds) {}
     public record Item(Long id, Long bankId, Long chapterId, String difficulty, String questionType, String title, String content,
                        List<Option> options, String correctAnswer, String referenceAnswer,
                        BigDecimal defaultScore, String status, LocalDateTime createdAt,

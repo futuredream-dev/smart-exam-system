@@ -68,6 +68,7 @@ export const teacherApi = {
   restoreQuestionBank: id => http.post('/teacher/question-banks/' + id + '/restore'),
   availableBankCourses: () => http.get('/teacher/question-banks/available-courses'),
   questionBank: id => http.get('/teacher/question-banks/' + id),
+  bankItemsPage: (bankId, params) => http.get(`/teacher/question-banks/${bankId}/items/page`, { params, paramsSerializer: { indexes: null } }),
   bankImportTemplate: bankId => http.get('/teacher/question-banks/' + bankId + '/imports/excel/template', { responseType: 'blob' }),
   previewBankImport: (bankId, file) => {
     const data = new FormData(); data.append('file', file)

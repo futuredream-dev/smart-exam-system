@@ -1,9 +1,9 @@
 <script setup>
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { teacherApi } from '../api/teacher'
 import { activeChapterOptions } from '../utils/questionBankMetadata'
 const props = defineProps({ bankId: [Number, String], item: Object, metadata: { type: Object, default: () => ({ chapters: [], knowledgePoints: [], tags: [] }) }, allMetadata: { type: Object, default: () => ({ chapters: [], knowledgePoints: [], tags: [] }) } })
-const emit = defineEmits(['saved'])
+const emit = defineEmits(['saved', 'dirty-change', 'busy-change'])
 const initial = props.item
 const form = reactive({ questionType: initial?.questionType || 'SINGLE_CHOICE', title: initial?.title || '', content: initial?.content || '', defaultScore: initial?.defaultScore || 5,
   correctAnswer: initial?.correctAnswer || 'A', referenceAnswer: initial?.referenceAnswer || '', options: (initial?.options?.length ? initial.options : ['A','B','C','D'].map(key => ({ key, text: '' }))).map(o => ({ ...o })),
@@ -11,6 +11,10 @@ const form = reactive({ questionType: initial?.questionType || 'SINGLE_CHOICE', 
   chapterId: initial?.chapterId ?? '', difficulty: initial?.difficulty || '',
   knowledgePointIds: [...(initial?.knowledgePointIds || [])], tagIds: [...(initial?.tagIds || [])] })
 const busy = ref(false), error = ref('')
+const baseline = ref(JSON.stringify(form))
+const dirty = computed(() => JSON.stringify(form) !== baseline.value)
+watch(dirty, value => emit('dirty-change', value), { immediate: true, flush: 'sync' })
+watch(busy, value => emit('busy-change', value), { immediate: true, flush: 'sync' })
 const chapterOptions = computed(() => activeChapterOptions(props.metadata.chapters || []))
 const activePoints = computed(() => (props.metadata.knowledgePoints || []).filter(row => row.status === 'ACTIVE'))
 const archivedPointIds = computed(() => form.knowledgePointIds.filter(id => !activePoints.value.some(row => row.id === id)))
@@ -20,15 +24,15 @@ function archivedPointName(id) { return props.allMetadata.knowledgePoints?.find(
 const allocated = computed(() => (form.scoringPoints.reduce((sum, p) => sum + Math.round(Number(p.score || 0) * 100), 0) / 100).toFixed(2))
 function changeType() { form.correctAnswer = form.questionType === 'SINGLE_CHOICE' ? 'A' : ''; form.referenceAnswer = ''; form.scoringPoints = [] }
 function addOption() { const key = String.fromCharCode(65 + form.options.length); form.options.push({ key, text: '' }) }
-async function save() { error.value = ''; busy.value = true; try { const payload = { ...form,
+async function save() { if (busy.value) return; error.value = ''; busy.value = true; const submitted = JSON.stringify(form); try { const payload = { ...form,
   options: form.questionType === 'SINGLE_CHOICE' ? form.options : null, correctAnswer: form.questionType === 'SINGLE_CHOICE' ? form.correctAnswer : null,
   referenceAnswer: form.questionType === 'SHORT_ANSWER' ? form.referenceAnswer : null,
   scoringPoints: form.questionType === 'SHORT_ANSWER' ? form.scoringPoints.map((p, index) => ({ content: p.content, score: p.score, sortOrder: index + 1 })) : [],
   chapterId: form.chapterId === '' ? null : Number(form.chapterId), difficulty: form.difficulty || null,
   knowledgePointIds: [...form.knowledgePointIds], tagIds: [...form.tagIds] }
-  await teacherApi.saveBankItem(initial?.id, props.bankId, payload); emit('saved') } catch (e) { error.value = e.message } finally { busy.value = false } }
+  await teacherApi.saveBankItem(initial?.id, props.bankId, payload); baseline.value = submitted; emit('saved') } catch (e) { error.value = e.message } finally { busy.value = false } }
 </script>
-<template><form class="editor-form" @submit.prevent="save">
+<template><form class="editor-form" @submit.prevent="save"><fieldset class="bank-item-fields" :disabled="busy">
   <div class="form-grid"><label>题型<select v-model="form.questionType" :disabled="!!initial" @change="changeType"><option value="SINGLE_CHOICE">单选题</option><option value="SHORT_ANSWER">简答题</option></select></label><label>默认分值<input v-model.number="form.defaultScore" type="number" min="0.01" step="0.01" required /></label></div>
   <label>内部管理名称<input v-model="form.title" maxlength="160" required /></label><label>题干<textarea v-model="form.content" maxlength="10000" rows="4" required /></label>
   <template v-if="form.questionType === 'SINGLE_CHOICE'"><div v-for="(option,index) in form.options" :key="index" class="form-grid"><label>选项标识<input v-model="option.key" maxlength="32" required /></label><label>选项内容<input v-model="option.text" maxlength="2000" required /></label><button v-if="form.options.length > 2" type="button" class="danger" @click="form.options.splice(index,1)">删除</button></div><button type="button" class="secondary" @click="addOption">+ 添加选项</button><label>正确答案<select v-model="form.correctAnswer"><option v-for="o in form.options" :key="o.key" :value="o.key">{{ o.key }}</option></select></label></template>
@@ -43,4 +47,4 @@ async function save() { error.value = ''; busy.value = true; try { const payload
     <div><strong>标签</strong><div class="bank-choice-list"><label v-for="tag in props.metadata.tags || []" :key="tag.id"><input v-model="form.tagIds" type="checkbox" :value="tag.id" />{{ tag.name }}</label><span v-if="!props.metadata.tags?.length" class="muted">暂无标签</span></div></div>
   </fieldset>
   <p v-if="error" class="error-message" role="alert">{{ error }}</p><button class="primary" :disabled="busy">{{ busy ? '保存中…' : '保存题目' }}</button>
-</form></template>
+</fieldset></form></template>

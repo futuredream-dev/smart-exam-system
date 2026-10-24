@@ -7,6 +7,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smartexam.dto.QuestionBankRequests;
+import com.smartexam.dto.QuestionBankItemQuery;
+import com.smartexam.common.PageResponse;
 import com.smartexam.enums.QuestionBankItemStatus;
 import com.smartexam.enums.QuestionType;
 import com.smartexam.service.QuestionBankService;
@@ -68,6 +70,11 @@ public class QuestionBankController {
             @RequestParam(required = false) List<Long> tagIds) {
         return ApiResponse.success(service.listItems(auth.getName(), bankId, keyword, questionType, status,
                 chapterId, chapterIds, knowledgePointIds, difficulty, difficulties, tagIds));
+    }
+    @GetMapping("/question-banks/{bankId}/items/page")
+    public ApiResponse<PageResponse<QuestionBankViews.ItemSummary>> itemPage(Authentication auth, @PathVariable Long bankId,
+            @Valid @ModelAttribute QuestionBankItemQuery query) {
+        return ApiResponse.success(service.itemPage(auth.getName(), bankId, query));
     }
     @PostMapping("/question-banks/{bankId}/items")
     public ApiResponse<QuestionBankViews.Item> createItem(Authentication auth, @PathVariable Long bankId,
