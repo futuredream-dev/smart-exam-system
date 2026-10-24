@@ -11,7 +11,9 @@ const notice = ref('')
 const loading = ref(false)
 const router = useRouter()
 const route = useRoute()
-const registrationNotice = computed(() => route.query.registered === '1'
+const registrationNotice = computed(() => route.query.passwordChanged === '1'
+  ? '修改成功，请重新登录'
+  : route.query.registered === '1'
   ? '注册成功，请使用学号和密码登录'
   : '')
 function destination(user, previousOwner = authState.draftOwner) {

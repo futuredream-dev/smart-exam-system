@@ -50,6 +50,7 @@ class AdminTeacherAccountIntegrationTest {
         request(put("/api/auth/password"), token,
                 Map.of("currentPassword", "initial-admin-pass", "newPassword", "changed-admin-pass"), 200);
         assertThat(users.getById(admin.getId()).getMustChangePassword()).isFalse();
+        request(get("/api/auth/me"), token, null, 401);
         login(admin.getUsername(), "initial-admin-pass", 401);
         String changedToken = login(admin.getUsername(), "changed-admin-pass", 200)
                 .path("data").path("token").asText();
@@ -82,6 +83,8 @@ class AdminTeacherAccountIntegrationTest {
         request(get("/api/teacher/courses"), teacherToken, null, 403);
         request(put("/api/auth/password"), teacherToken,
                 Map.of("currentPassword", temporaryPassword, "newPassword", "teacher-new-pass"), 200);
+        request(get("/api/teacher/courses"), teacherToken, null, 401);
+        teacherToken = login(teacher.getUsername(), "teacher-new-pass", 200).path("data").path("token").asText();
         request(get("/api/teacher/courses"), teacherToken, null, 200);
 
         request(put("/api/admin/teachers/" + teacherId + "/status"), adminToken,
@@ -91,7 +94,8 @@ class AdminTeacherAccountIntegrationTest {
 
         request(put("/api/admin/teachers/" + teacherId + "/status"), adminToken,
                 Map.of("status", "ACTIVE"), 200);
-        login(teacher.getUsername(), "teacher-new-pass", 200);
+        request(get("/api/teacher/courses"), teacherToken, null, 401);
+        teacherToken = login(teacher.getUsername(), "teacher-new-pass", 200).path("data").path("token").asText();
 
         JsonNode reset = request(post("/api/admin/teachers/" + teacherId + "/reset-password"),
                 adminToken, null, 200).path("data");
@@ -99,7 +103,7 @@ class AdminTeacherAccountIntegrationTest {
         assertThat(resetPassword).isNotBlank().isNotEqualTo(temporaryPassword);
         assertThat(encoder.matches(resetPassword, users.getById(teacherId).getPasswordHash())).isTrue();
         assertThat(users.getById(teacherId).getMustChangePassword()).isTrue();
-        request(get("/api/teacher/courses"), teacherToken, null, 403);
+        request(get("/api/teacher/courses"), teacherToken, null, 401);
         login(teacher.getUsername(), "teacher-new-pass", 401);
         login(teacher.getUsername(), resetPassword, 200);
     }

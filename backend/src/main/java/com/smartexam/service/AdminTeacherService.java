@@ -51,18 +51,15 @@ public class AdminTeacherService {
     @Transactional
     public AdminTeacherViews.Teacher setStatus(Long teacherId, AdminTeacherRequests.Status request) {
         Users teacher = teacher(teacherId);
-        teacher.setStatus("ACTIVE".equals(request.status()) ? 1 : 0);
-        users.updateById(teacher);
-        return AdminTeacherViews.Teacher.from(teacher);
+        users.changeStatus(teacher.getId(), "ACTIVE".equals(request.status()) ? 1 : 0);
+        return AdminTeacherViews.Teacher.from(users.getById(teacherId));
     }
 
     @Transactional
     public AdminTeacherViews.TemporaryPassword resetPassword(Long teacherId) {
         Users teacher = teacher(teacherId);
         String temporaryPassword = passwords.generate();
-        teacher.setPasswordHash(encoder.encode(temporaryPassword));
-        teacher.setMustChangePassword(true);
-        users.updateById(teacher);
+        users.replacePassword(teacher.getId(), encoder.encode(temporaryPassword), true);
         return password(teacher, temporaryPassword);
     }
 

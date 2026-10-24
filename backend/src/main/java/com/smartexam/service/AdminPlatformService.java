@@ -47,18 +47,15 @@ public class AdminPlatformService {
     @Transactional
     public AdminPlatformViews.Student setStudentStatus(Long id, AdminTeacherRequests.Status request) {
         Users student = student(id);
-        student.setStatus("ACTIVE".equals(request.status()) ? 1 : 0);
-        users.updateById(student);
-        return AdminPlatformViews.Student.from(student);
+        users.changeStatus(student.getId(), "ACTIVE".equals(request.status()) ? 1 : 0);
+        return AdminPlatformViews.Student.from(users.getById(id));
     }
 
     @Transactional
     public AdminPlatformViews.TemporaryPassword resetStudentPassword(Long id) {
         Users student = student(id);
         String temporary = passwords.generate();
-        student.setPasswordHash(encoder.encode(temporary));
-        student.setMustChangePassword(true);
-        users.updateById(student);
+        users.replacePassword(student.getId(), encoder.encode(temporary), true);
         return new AdminPlatformViews.TemporaryPassword(student.getId(), student.getUsername(),
                 student.getName(), temporary);
     }

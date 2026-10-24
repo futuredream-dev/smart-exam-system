@@ -26,13 +26,11 @@ public class AccountLifecycleService {
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void changePassword(String username, ChangePasswordRequest request) {
-        Users user = users.findByUsername(username);
+        Users user = users.findByUsernameForUpdate(username);
         if (user == null || !encoder.matches(request.currentPassword(), user.getPasswordHash())) {
             throw invalid("当前密码不正确");
         }
-        user.setPasswordHash(encoder.encode(request.newPassword()));
-        user.setMustChangePassword(false);
-        users.updateById(user);
+        users.replacePassword(user.getId(), encoder.encode(request.newPassword()), false);
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
@@ -44,9 +42,7 @@ public class AccountLifecycleService {
         Users student = users.getById(studentId);
         if (student == null || !UserRole.STUDENT.name().equals(student.getRole())) throw missing("学生账号");
         String temporaryPassword = passwords.generate();
-        student.setPasswordHash(encoder.encode(temporaryPassword));
-        student.setMustChangePassword(true);
-        users.updateById(student);
+        users.replacePassword(student.getId(), encoder.encode(temporaryPassword), true);
         return new PasswordResetVO(student.getId(), student.getUsername(), student.getName(), temporaryPassword);
     }
 

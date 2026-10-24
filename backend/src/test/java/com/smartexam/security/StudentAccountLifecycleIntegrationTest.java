@@ -84,6 +84,7 @@ class StudentAccountLifecycleIntegrationTest {
                 Map.of("currentPassword", "initial-pass", "newPassword", "changed-pass-123"), 200);
         assertThat(jdbc.queryForObject("SELECT must_change_password FROM users WHERE id = ?", Boolean.class,
                 student.getId())).isFalse();
+        request(get("/api/auth/me"), token, null, 401);
         login(student.getUsername(), "initial-pass", 401);
         String newToken = login(student.getUsername(), "changed-pass-123", 200).path("data").path("token").asText();
         request(get("/api/student/exams"), newToken, null, 200);
@@ -111,7 +112,7 @@ class StudentAccountLifecycleIntegrationTest {
         assertThat(encoder.matches(temporaryPassword, refreshed.getPasswordHash())).isTrue();
         assertThat(jdbc.queryForObject("SELECT must_change_password FROM users WHERE id = ?", Boolean.class,
                 student.getId())).isTrue();
-        request(get("/api/student/exams"), oldStudentToken, null, 403);
+        request(get("/api/student/exams"), oldStudentToken, null, 401);
         login(student.getUsername(), "initial-pass", 401);
         login(student.getUsername(), temporaryPassword, 200);
     }
