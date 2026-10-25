@@ -8,6 +8,8 @@
 
 本仓库提供完整前后端源码、数据库初始化与 Demo 数据、本地启动脚本及测试，当前发布版本为 [v1.0.1](https://github.com/futuredream-dev/smart-exam-system/releases/tag/v1.0.1)。可按下方步骤本地运行；当前没有对外部署的在线演示地址。
 
+增量优化分支已完成教师任务界面、题库分页、逐题评语和账号会话撤销等改进；当前仍在整体验收，**尚未形成通过的发布候选**。最新范围和缺口见[优化验收进度](docs/superpowers/verification/2026-10-19-optimization-acceptance.md)，不要把下方历史发布截图和测试数字当成当前分支验收结果。
+
 ## 项目亮点
 
 - **完整考试闭环**：教师配置试卷和应考名单，学生保存答案并交卷，系统自动评分单选题，教师复核简答题，考试结束后统一发布成绩。
@@ -249,11 +251,17 @@ pnpm dev
 Pop-Location
 ~~~
 
-后端测试与打包：集成测试需要可用 MySQL。先按 `init.sql` 初始化专用测试库，并将当前终端的 `DB_NAME` 指向该库、配置连接参数及 `JWT_SECRET`；请勿连接已有业务库。
+后端测试与打包：集成测试会写数据库，使用独立实例、专用库 `smart_exam_opt_test_20261019` 和仅有该库权限的账号。`init.sql`、`demo-data.sql` 含固定库名，不能直接拿它们初始化测试库；须先在不提交的副本中核对并替换所有 CREATE/USE 和库前缀，再准备合成演示数据。已有库按缺失结构选择增量迁移，不重跑初始化。
+
+在当前终端提供 `TEST_DB_HOST`（仅本机）、`TEST_DB_PORT`（独立实例端口）、`TEST_DB_USERNAME`、`TEST_DB_PASSWORD` 和高熵 `TEST_JWT_SECRET`，不要打印或提交它们。以下命令先检查受限目标，Spring测试配置还会检查实际DataSource：
 
 ~~~powershell
 $maven = .\scripts\ensure-maven.ps1
-& $maven -f backend/pom.xml package
+$env:TEST_DB_NAME = 'smart_exam_opt_test_20261019'
+$env:SPRING_PROFILES_ACTIVE = 'optimization-test'
+.\scripts\verify-test-database.ps1 -HostName $env:TEST_DB_HOST -Port ([int]$env:TEST_DB_PORT)
+if ($LASTEXITCODE -ne 0) { throw '测试库隔离检查未通过' }
+& $maven -f backend/pom.xml verify
 ~~~
 
 前端状态逻辑测试与构建：

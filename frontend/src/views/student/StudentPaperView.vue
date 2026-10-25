@@ -121,6 +121,7 @@ async function confirmServerStatus(allowResume = false) {
     if (value.submissionStatus === 'IN_PROGRESS' && allowResume === true) {
       syncClock(value, startedAt); expired.value = false; statusUncertain.value = false; receipt.value = ''; queue.resume()
     } else if (value.submissionStatus && value.submissionStatus !== 'IN_PROGRESS') {
+      error.value = ''
       terminal.value = true; statusUncertain.value = false; submitOpen.value = false; queue.dispose(); clearDraft(ownerId, paper.value.submissionId)
       receipt.value = value.submissionStatus === 'AUTO_SUBMITTED' ? '已自动交卷。' : '答卷已提交。'
     } else receipt.value = '截止状态待确认，请刷新状态；未确认保存的答案不会在截止后补写。'

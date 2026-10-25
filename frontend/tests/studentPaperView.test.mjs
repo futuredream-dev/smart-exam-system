@@ -123,7 +123,12 @@ test('uncertain in-flight draft still requires explicit restoration when current
 })
 test('an uncertain submit result is checked once without resubmitting and shows a confirmed receipt', async () => {
   let requests = 0, checks = 0; const p = await page({ api: { submit: async () => { requests++; throw { errorCode: 'REQUEST_TIMEOUT', message: '结果尚未确认' } }, exam: async () => { checks++; return { data: { submissionStatus: 'SUBMITTED' } } } } })
-  await p.s.load(); await p.s.submit(); assert.equal(requests, 1); assert.equal(checks, 1); assert.equal(p.s.terminal.value, true); assert.match(p.s.receipt.value, /已提交/); p.dispose()
+  await p.s.load(); await p.s.submit(); assert.equal(requests, 1); assert.equal(checks, 1); assert.equal(p.s.terminal.value, true); assert.match(p.s.receipt.value, /已提交/); assert.equal(p.s.error.value, ''); p.dispose()
+})
+test('an unsuccessful status query keeps the uncertain-submit error until confirmation is available', async () => {
+  const p = await page({ api: { submit: async () => { throw { errorCode: 'REQUEST_TIMEOUT', message: '结果尚未确认' } }, exam: async () => { throw { errorCode: 'NETWORK_ERROR' } } } })
+  await p.s.load(); await p.s.submit()
+  assert.equal(p.s.terminal.value, false); assert.match(p.s.error.value, /尚未确认/); assert.match(p.s.receipt.value, /无法确认/); p.dispose()
 })
 test('a delayed initial paper response accounts for request elapsed time before enabling input', async () => {
   let mono = 0; const pending = deferred(), p = await page({ monotonic: () => mono, api: { paper: () => pending.promise } })
