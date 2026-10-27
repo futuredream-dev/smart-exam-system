@@ -1,0 +1,19 @@
+{
+  "checkedAt": "2026-10-27T13:39:22.3763851+08:00",
+  "source": "smart_exam_opt_test_20261019",
+  "port": 13306,
+  "upgradedThenRestoredSchema": "smart_exam_opt_b5_upgrade_20261027",
+  "baselineRecoverySchema": "smart_exam_opt_b5_rollback_20261027",
+  "currentRecoverySchema": "smart_exam_opt_b5_snapshot_20261027",
+  "legacyTableCount": 19,
+  "currentTableCount": 19,
+  "legacyRestoreSchemaCountsChecksumsMatch": true,
+  "currentRestoreSchemaCountsChecksumsMatch": true,
+  "migrationTwiceSucceeded": true,
+  "existingUserFieldsUnchanged": true,
+  "upgradeThenBackupRestoreMatchesPreUpgrade": true,
+  "currentSyntheticBackupSha256": "597CEBBA013D43824ED2EBC707F378F2C04E88D4B965F8F4003DD6943F4AB252",
+  "originalDatabaseAccessed": false,
+  "oldApplicationRuntimeVerified": false,
+  "limitation": "Database recovery is verified independently; old-code rollback loses token-version enforcement and is not release-approved."
+}

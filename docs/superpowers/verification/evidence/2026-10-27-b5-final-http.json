@@ -1,0 +1,33 @@
+{
+  "verifiedAt": "2026-10-27T06:01:46.451Z",
+  "baseCommit": "6e9858f",
+  "includesGradingOrderFix": true,
+  "database": "smart_exam_opt_test_20261019",
+  "backendPort": 18080,
+  "frontendPort": 15173,
+  "frontendMode": "built-dist-preview",
+  "jarSha256": "829ece86b2802123d2866a2fee500b7579a546a99246c5dc960557d187afce70",
+  "courseId": 6631,
+  "examId": 6233,
+  "submissionId": 3724,
+  "makeupExamId": 6597,
+  "makeupSubmissionId": 3912,
+  "copyExamId": 6598,
+  "checks": [
+    "original released and restored",
+    "published total, explicit zero, latest answer and both feedback layers",
+    "student result excludes internal grading fields",
+    "cross-student and two cross-role requests rejected",
+    "released grade update rejected and values preserved",
+    "makeup copied paper with independent question ids",
+    "copy copied paper with independent question ids",
+    "ordinary copy has no submissions or published results",
+    "makeup snapshot excludes original participating student",
+    "canonical grading order and cleared failed AI retain original score binding",
+    "natural deadline auto-submission preserves answers and rejects late writes/repeated submit",
+    "makeup and copy leave original published result unchanged",
+    "Excel duplicate skip kept three rows and two scoring points; three compose modes produced six questions/45 points"
+  ],
+  "httpEvidenceOnly": true,
+  "tokensPersisted": false
+}

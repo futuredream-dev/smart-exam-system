@@ -1,0 +1,50 @@
+{
+  "port": 18083,
+  "bind": "127.0.0.1",
+  "syntheticOnly": true,
+  "rawRequestsLogged": false,
+  "calls": [
+    {
+      "at": "2026-10-27T05:53:27.539Z",
+      "kind": "interpretation",
+      "mode": "success",
+      "completed": true,
+      "status": 200
+    },
+    {
+      "at": "2026-10-27T05:53:59.093Z",
+      "kind": "interpretation",
+      "mode": "failure",
+      "completed": true,
+      "status": 503
+    },
+    {
+      "at": "2026-10-27T05:54:14.448Z",
+      "kind": "interpretation",
+      "mode": "timeout",
+      "completed": true,
+      "status": 200
+    },
+    {
+      "at": "2026-10-27T05:55:46.859Z",
+      "kind": "grading",
+      "mode": "success",
+      "completed": true,
+      "status": 200
+    },
+    {
+      "at": "2026-10-27T05:57:51.618Z",
+      "kind": "grading",
+      "mode": "failure",
+      "completed": true,
+      "status": 503
+    },
+    {
+      "at": "2026-10-27T05:58:11.591Z",
+      "kind": "grading",
+      "mode": "timeout",
+      "completed": true,
+      "status": 200
+    }
+  ]
+}

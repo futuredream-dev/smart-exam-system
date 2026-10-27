@@ -11,6 +11,21 @@ import java.math.BigDecimal;import java.time.LocalDateTime;import java.util.*;im
  Long exam(Long courseId,String title,String status){Exams e=new Exams();e.setCourseId(courseId);e.setTitle(title);e.setStartTime(LocalDateTime.now().minusMinutes(5));e.setEndTime(LocalDateTime.now().plusMinutes(30));e.setLateEntryMinutes(10);e.setMinSubmitMinutes(0);e.setStatus(status);e.setCreatedBy(users.findByUsername("teacher_demo").getId());exams.save(e);return e.getId();}
  Long single(String content,String score,int sortOrder){Questions q=new Questions();q.setExamId(examId);q.setQuestionType("SINGLE_CHOICE");q.setContent(content);q.setScore(new BigDecimal(score));q.setOptionsJson("[{\"key\":\"A\",\"text\":\"正确\"},{\"key\":\"B\",\"text\":\"错误\"},{\"key\":\"C\",\"text\":\"选项C\"},{\"key\":\"D\",\"text\":\"选项D\"}]");q.setReferenceAnswer("A");q.setSortOrder(sortOrder);questions.save(q);return q.getId();}
  void assertStudentPayloadSafe(JsonNode payload){assertThat(payload.toString()).doesNotContain("referenceAnswer","scoringPoints","autoScore","teacherScore","teacherComment","gradingStatus","aiSuggestion","aiScore","aiReason","aiComment","matchedPoints","missingPoints");}
+ @Test void gradingPaperKeepsExamOrderWhenAnswersWereSavedOutOfOrder()throws Exception{
+  Long firstByOrder=single("排序在最前但后创建的题目","3",0);
+  Long tiedByOrder=single("相同排序号按题目ID排列","4",1);
+  Long sid=call(post("/api/student/exams/"+examId+"/enter"),null,student,200).path("data").path("submissionId").asLong();
+  call(put("/api/student/submissions/"+sid+"/answers/"+shortId),Map.of("answerContent","先保存的简答"),student,200);
+  call(put("/api/student/submissions/"+sid+"/answers/"+tiedByOrder),Map.of("answerContent","B"),student,200);
+  call(put("/api/student/submissions/"+sid+"/answers/"+firstByOrder),Map.of("answerContent","A"),student,200);
+  // The original first question remains blank and its answer row is created at submit.
+  call(post("/api/student/submissions/"+sid+"/submit"),null,student,200);
+  JsonNode paper=call(get("/api/teacher/grading/submissions/"+sid),null,teacher,200).path("data");
+  List<Long> ids=new ArrayList<>();List<String> content=new ArrayList<>();
+  paper.path("answers").forEach(a->{ids.add(a.path("questionId").asLong());content.add(a.path("answerContent").asText(null));});
+  assertThat(ids).containsExactly(firstByOrder,singleId,tiedByOrder,shortId);
+  assertThat(content).containsExactly("A",null,"B","先保存的简答");
+ }
  @Test void extendedOptionKeysSaveScoreAndRemainHiddenUntilRelease()throws Exception{
   Questions q=questions.getById(singleId);q.setOptionsJson("[{\"key\":\"E\",\"text\":\"五\"},{\"key\":\"自定义\",\"text\":\"六\"}]");q.setReferenceAnswer("E");questions.updateById(q);
   Long sid=call(post("/api/student/exams/"+examId+"/enter"),null,student,200).path("data").path("submissionId").asLong();
