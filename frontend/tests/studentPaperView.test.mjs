@@ -6,6 +6,7 @@ import { computed, reactive, ref, watch } from 'vue'
 import { createAnswerSaveQueue, readDraft, writeDraft, clearDraft, clearUserDrafts } from '../src/utils/studentAnswerDraft.js'
 import { remainingMillis } from '../src/utils/examClock.js'
 import { safeReturnPath } from '../src/utils/returnPath.js'
+import { renderView, modal } from './helpers/viewHarness.mjs'
 function storage() { const m = new Map(); return { getItem: k => m.get(k) ?? null, setItem: (k, v) => m.set(k, v), removeItem: k => m.delete(k), key: index => [...m.keys()][index], get length() { return m.size } } }
 const settle = async () => { for (let n = 0; n < 12; n++) await Promise.resolve() }
 function deferred() { let resolve, reject; const promise = new Promise((ok, fail) => { resolve = ok; reject = fail }); return { promise, resolve, reject } }
@@ -164,4 +165,15 @@ test('an active status without valid time remaining cannot reopen a frozen paper
     assert.equal(p.s.expired.value, true); assert.equal(p.s.locked.value, true)
     p.s.editAnswer(1, 'late'); assert.equal(p.s.drafts[1], ''); p.dispose()
   }
+})
+
+test('the open leave dialog explains that saving completed instead of claiming zero unsaved answers', async () => {
+  const p = await page(); await p.s.load(); p.s.editAnswer(1, 'answer'); const leaving = p.leave()
+  try {
+    const before = await renderView('views/student/StudentPaperView.vue', { ...p.s, TeacherModal: modal })
+    assert.match(before, /还有答案未保存/); assert.match(before, /仍有 1 题/)
+    await p.s.queue.flush()
+    const after = await renderView('views/student/StudentPaperView.vue', { ...p.s, TeacherModal: modal })
+    assert.match(after, /答案已保存/); assert.doesNotMatch(after, /还有答案未保存|仍有 0 题/)
+  } finally { p.s.resolveLeave(false); await leaving; p.dispose() }
 })

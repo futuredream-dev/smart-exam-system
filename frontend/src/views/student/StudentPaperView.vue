@@ -217,6 +217,6 @@ async function submit() {
       <template #footer><button class="secondary" :disabled="busy" @click="submitOpen = false">继续检查</button><button class="primary" :disabled="busy || expired || sessionExpired" @click="submit">{{ busy ? '正在保存并交卷…' : '确认交卷' }}</button></template>
     </TeacherModal>
     <TeacherModal v-if="recovery" title="发现会话草稿" size="confirm" @close="discardLocalDraft"><p>已确认这份答卷仍可作答。浏览器中有与服务器不同的草稿，是否恢复并保存？</p><template #footer><button class="secondary" @click="discardLocalDraft">使用服务器答案</button><button class="primary" @click="restoreLocalDraft">恢复会话草稿</button></template></TeacherModal>
-    <TeacherModal v-if="leaveOpen" title="还有答案未保存" size="confirm" @close="resolveLeave(false)"><p>仍有 {{ unsavedCount }} 题修改尚未保存到服务器。会话草稿仅保留在本标签页，关闭前请确认保存结果。</p><template #footer><button class="secondary" @click="resolveLeave(true)">确认离开</button><button class="primary" @click="resolveLeave(false)">留在本页</button></template></TeacherModal>
+    <TeacherModal v-if="leaveOpen" :title="unsavedCount ? '还有答案未保存' : '答案已保存'" size="confirm" @close="resolveLeave(false)"><p v-if="unsavedCount">仍有 {{ unsavedCount }} 题修改尚未保存到服务器。会话草稿仅保留在本标签页，关闭前请确认保存结果。</p><p v-else>全部最新答案已保存到服务器，可以离开本页。</p><template #footer><button class="secondary" @click="resolveLeave(true)">确认离开</button><button class="primary" @click="resolveLeave(false)">留在本页</button></template></TeacherModal>
   </div>
 </template>
