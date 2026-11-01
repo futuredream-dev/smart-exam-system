@@ -130,8 +130,38 @@ test('an unsuccessful status query keeps the uncertain-submit error until confir
   await p.s.load(); await p.s.submit()
   assert.equal(p.s.terminal.value, false); assert.match(p.s.error.value, /尚未确认/); assert.match(p.s.receipt.value, /无法确认/); p.dispose()
 })
-test('a delayed initial paper response accounts for request elapsed time before enabling input', async () => {
+test('a fresh server timestamp after slow initial processing must not expire the paper early', async () => {
   let mono = 0; const pending = deferred(), p = await page({ monotonic: () => mono, api: { paper: () => pending.promise } })
-  p.server.deadlineAt = '2026-10-20T02:00:05Z'; const loading = p.s.load(); mono = 10000; pending.resolve({ data: p.server }); await loading
-  assert.equal(p.s.expired.value, true); assert.equal(p.s.locked.value, true); p.dispose()
+  p.server.deadlineAt = '2026-10-20T02:00:05Z'; const loading = p.s.load(); mono = 4000
+  pending.resolve({ data: { ...p.server, serverNow: '2026-10-20T02:00:04Z' } }); await loading
+  assert.equal(p.s.expired.value, false); assert.equal(p.s.locked.value, false)
+  assert.equal(p.s.remainingSeconds.value, 1); p.dispose()
+})
+
+test('a slow save does not add processing time twice to the returned server timestamp', async () => {
+  let mono = 0; const pending = deferred(), p = await page({ monotonic: () => mono, api: { save: () => pending.promise } })
+  p.server.deadlineAt = '2026-10-20T02:00:20Z'; await p.s.load(); p.s.editAnswer(1, 'answer')
+  const saving = p.s.queue.flush(); await settle(); mono = 12000
+  pending.resolve({ data: { ...p.server, serverNow: '2026-10-20T02:00:12Z' } }); await saving; await p.s.checkDeadline()
+  assert.equal(p.s.remainingSeconds.value, 8); assert.equal(p.s.locked.value, false); p.dispose()
+})
+
+test('an authoritative active status corrects an ahead estimate and keeps editing enabled on the next tick', async () => {
+  let mono = 0; const p = await page({ monotonic: () => mono, api: { exam: async () => ({ data: {
+    submissionStatus: 'IN_PROGRESS', serverNow: '2026-10-20T02:00:02Z', deadlineAt: '2026-10-20T02:00:20Z',
+  } }) } })
+  p.server.deadlineAt = '2026-10-20T02:00:20Z'; await p.s.load()
+  p.s.paper.value.serverNow = '2026-10-20T02:00:19Z'; mono = 2000; await p.s.checkDeadline()
+  assert.equal(p.s.expired.value, false); assert.equal(p.s.locked.value, false); assert.equal(p.s.remainingSeconds.value, 18)
+  mono = 3000; await p.s.checkDeadline(); assert.equal(p.s.expired.value, false)
+  p.s.editAnswer(1, 'still editable'); await p.s.queue.flush(); assert.deepEqual(p.saved, [[1, 'still editable']]); p.dispose()
+})
+
+test('an active status without valid time remaining cannot reopen a frozen paper', async () => {
+  for (const timing of [{}, { serverNow: '2026-10-20T02:00:20Z', deadlineAt: '2026-10-20T02:00:20Z' }]) {
+    const p = await page({ api: { exam: async () => ({ data: { submissionStatus: 'IN_PROGRESS', ...timing } }) } })
+    await p.s.load(); await p.s.checkDeadline(true)
+    assert.equal(p.s.expired.value, true); assert.equal(p.s.locked.value, true)
+    p.s.editAnswer(1, 'late'); assert.equal(p.s.drafts[1], ''); p.dispose()
+  }
 })

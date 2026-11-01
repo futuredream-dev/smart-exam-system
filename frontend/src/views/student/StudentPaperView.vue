@@ -38,24 +38,24 @@ function persistDraft() {
   const ok = Object.keys(answers).length ? writeDraft(ownerId, paper.value.submissionId, answers) : clearDraft(ownerId, paper.value.submissionId)
   if (!ok) storageNotice.value = '浏览器无法保存会话草稿；仍可作答和保存到服务器，刷新或关闭前请确认全部保存成功。'
 }
-function syncClock(value, startedAt = performance.now()) {
+function syncClock(value, authoritative = false) {
   const stamp = Date.parse(value?.serverNow)
-  if (!Number.isFinite(stamp) || stamp < lastServerTime || !paper.value) return
+  if (!Number.isFinite(stamp) || stamp < lastServerTime || !paper.value) return false
   const arrivedAt = performance.now()
-  // Use the full observed round trip as a conservative bound; server state remains authoritative.
-  const conservative = stamp + Math.max(0, arrivedAt - startedAt)
-  const projected = Number.isFinite(lastServerTime) && value.deadlineAt === paper.value.deadlineAt
+  // serverNow is sampled when the response is built, after request processing.
+  // Ordinary late responses cannot extend a countdown; an explicit active status can correct it.
+  const projected = !authoritative && Number.isFinite(lastServerTime) && value.deadlineAt === paper.value.deadlineAt
     ? Date.parse(paper.value.serverNow) + Math.max(0, arrivedAt - anchorAt) : stamp
-  lastServerTime = stamp; paper.value.serverNow = new Date(Math.max(conservative, projected)).toISOString(); paper.value.deadlineAt = value.deadlineAt
+  lastServerTime = stamp; paper.value.serverNow = new Date(Math.max(stamp, projected)).toISOString(); paper.value.deadlineAt = value.deadlineAt
   anchorAt = arrivedAt; elapsed.value = 0
+  return true
 }
 const queue = createAnswerSaveQueue({
   save: async (id, value) => {
     if (disposed || expired.value || terminal.value || !sameOwner() || sessionExpired.value) throw { errorCode: 'CONFLICT', message: '当前不能继续保存，请确认答卷状态' }
     try {
-      const startedAt = performance.now()
       const result = await studentApi.save(paper.value.submissionId, id, value)
-      if (!disposed && sameOwner() && !expired.value) syncClock(result.data, startedAt)
+      if (!disposed && sameOwner() && !expired.value) syncClock(result.data)
       return result
     } catch (failure) {
       if (failure.errorCode === 'UNAUTHORIZED' || failure.httpStatus === 401) { sessionExpired.value = true; queue.pause() }
@@ -94,13 +94,12 @@ function reportEvent(type) { if (paper.value && !expired.value && !terminal.valu
 async function load() {
   loading.value = true
   try {
-    const startedAt = performance.now()
     const value = (await studentApi.paper(route.params.submissionId)).data
     if (disposed || !sameOwner()) return
     if (value.status !== 'IN_PROGRESS' || String(value.submissionId) !== String(route.params.submissionId)) throw { errorCode: 'CONFLICT', message: '答卷已提交或不可继续作答' }
     paper.value = value
     for (const q of value.questions) { drafts[q.id] = q.answerContent ?? ''; savedAnswers[q.id] = drafts[q.id] }
-    activeQuestionId.value = value.questions[0]?.id ?? null; syncClock(value, startedAt)
+    activeQuestionId.value = value.questions[0]?.id ?? null; syncClock(value)
     const local = readDraft(ownerId, value.submissionId)
     if (local && value.questions.some(q => local.answers[q.id] && (local.answers[q.id].value !== savedAnswers[q.id] || local.answers[q.id].uncertain === true))) recovery.value = local
     else clearDraft(ownerId, value.submissionId)
@@ -111,15 +110,15 @@ async function load() {
     if (failure.errorCode === 'CONFLICT') { expired.value = true; clearDraft(ownerId, route.params.submissionId) }
   } finally { loading.value = false }
 }
-async function confirmServerStatus(allowResume = false) {
+async function confirmServerStatus(allowResume = true) {
   if (checking.value || disposed || !paper.value || !sameOwner() || sessionExpired.value) return
   checking.value = true
   try {
-    const startedAt = performance.now()
     const value = (await studentApi.exam(paper.value.examId)).data
     if (disposed || !sameOwner()) return
-    if (value.submissionStatus === 'IN_PROGRESS' && allowResume === true) {
-      syncClock(value, startedAt); expired.value = false; statusUncertain.value = false; receipt.value = ''; queue.resume()
+    if (value.submissionStatus === 'IN_PROGRESS' && allowResume === true
+      && remainingMillis(value.serverNow, value.deadlineAt, 0) > 0 && syncClock(value, true)) {
+      expired.value = false; statusUncertain.value = false; receipt.value = ''; queue.resume()
     } else if (value.submissionStatus && value.submissionStatus !== 'IN_PROGRESS') {
       error.value = ''
       terminal.value = true; statusUncertain.value = false; submitOpen.value = false; queue.dispose(); clearDraft(ownerId, paper.value.submissionId)
@@ -138,7 +137,7 @@ async function checkDeadline(force = false) {
 async function refreshStatus() {
   if (expired.value || terminal.value) return confirmServerStatus()
   if (!paper.value || disposed) return
-  try { const startedAt = performance.now(); const value = (await studentApi.paper(paper.value.submissionId)).data; if (!disposed && sameOwner()) { syncClock(value, startedAt); await checkDeadline() } }
+  try { const value = (await studentApi.paper(paper.value.submissionId)).data; if (!disposed && sameOwner()) { syncClock(value); await checkDeadline() } }
   catch (failure) { if (failure.errorCode === 'CONFLICT') await checkDeadline(true); else if (failure.errorCode === 'UNAUTHORIZED') { sessionExpired.value = true; queue.pause() } else error.value = failure.message || '刷新状态失败' }
 }
 function onVisibilityChange() {
