@@ -39,7 +39,7 @@ const percent = value => value == null ? '—' : `${value}%`
       </section>
       <section class="surface results-analysis-section">
         <h3>成绩分布</h3><p class="muted">按百分制得分率分组，及格线为 60%。</p>
-        <p v-if="noParticipants" class="empty-state">本场无人参加，没有成绩分布。</p>
+        <p v-if="noParticipants" class="empty-state">暂无成绩分布。</p>
         <p v-else-if="!data.analysisReady" class="empty-state">考试结束且完成阅卷后显示最终分布。</p>
         <template v-else><div v-for="bucket in data.distribution" :key="bucket.label" class="results-bucket">
           <span>{{ bucket.label }}</span><div class="results-bucket-track"><div :style="{ width: data.summary.participantCount ? `${bucket.count / data.summary.participantCount * 100}%` : '0%' }" /></div><strong>{{ bucket.count }} 人</strong>
@@ -53,7 +53,7 @@ const percent = value => value == null ? '—' : `${value}%`
       </section>
       <section class="surface results-analysis-section">
         <h3>试题分析</h3>
-        <p v-if="noParticipants" class="empty-state">本场无作答记录，暂无试题分析。</p>
+        <p v-if="noParticipants" class="empty-state">暂无试题分析。</p>
         <p v-else-if="!data.analysisReady" class="empty-state">考试结束且完成阅卷后显示试题分析。</p>
         <div v-else class="table-scroll"><table><thead><tr><th>题号</th><th>题型</th><th>满分</th><th>作答人数</th><th>平均分</th><th>得分率</th><th>正确率</th></tr></thead>
           <tbody><tr v-for="question in data.questions" :key="question.questionId"><td>{{ question.sortOrder }}</td><td>{{ question.questionType === 'SINGLE_CHOICE' ? '单选题' : '简答题' }}</td><td>{{ question.fullScore }}</td><td>{{ question.answeredCount }}</td><td>{{ score(question.averageScore) }}</td><td>{{ percent(question.scoreRate) }}</td><td>{{ percent(question.correctRate) }}</td></tr></tbody></table></div>

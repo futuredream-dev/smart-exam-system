@@ -24,6 +24,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.ArgumentMatchers.eq;
 
 /** Real committed fixtures and independent executor/connection transactions; spies only gate real reads. */
 @SpringBootTest
@@ -34,7 +37,8 @@ class SubmissionConcurrencyIntegrationTest {
     @Autowired CoursesService courses;
     @MockitoSpyBean ExamsService exams;
     @Autowired QuestionsService questions;
-    @Autowired AnswersService answers;
+    @MockitoSpyBean AnswersService answers;
+    @MockitoSpyBean com.smartexam.mapper.ExamCenterQueryRepository listRows;
     @Autowired ExamCandidatesMapper candidates;
     @Autowired PlatformTransactionManager transactions;
     @Autowired JdbcTemplate jdbc;
@@ -184,6 +188,74 @@ class SubmissionConcurrencyIntegrationTest {
         assertThat(submissions.getById(id).getStatus()).isEqualTo("GRADED");
         assertThat(submissions.getById(id).getTotalScore()).isEqualByComparingTo("12");
         assertThat(submissions.getById(id).getScorePublished()).isEqualTo(1);
+    }
+
+    @Test void firstEntryCommittedAfterTheActiveScanIsExpiredBeforeReturningTheList() throws Exception {
+        CountDownLatch scanned = new CountDownLatch(1);
+        AtomicBoolean once = new AtomicBoolean();
+        doAnswer(call -> {
+            if (Thread.currentThread().getName().equals("first-entry-list") && once.compareAndSet(false, true)) {
+                scanned.countDown();
+                if (!release.await(8, TimeUnit.SECONDS)) throw new IllegalStateException("list barrier not released");
+            }
+            return call.callRealMethod();
+        }).when(listRows).studentFacts(eq(student.getId()), anyCollection());
+        Set<Long> connections = ConcurrentHashMap.newKeySet();
+        Future<List<MvpViews.StudentExam>> listing = executor.submit(() -> {
+            Thread.currentThread().setName("first-entry-list");
+            return inConnection(connections, () -> service.list(student.getUsername()));
+        });
+        assertThat(scanned.await(4, TimeUnit.SECONDS)).isTrue();
+        Long id;
+        try { id = inConnection(connections, this::enteredWithSavedAnswers); endExam(); }
+        finally { release.countDown(); }
+        var row = listing.get(8, TimeUnit.SECONDS).stream().filter(e -> e.id().equals(exam.getId())).findFirst().orElseThrow();
+        assertThat(connections).hasSize(2);
+        assertThat(row.lifecycleStatus()).isEqualTo("PENDING_REVIEW");
+        assertThat(row.submissionStatus()).isEqualTo("AUTO_SUBMITTED");
+        assertThat(submissions.getById(id).getStatus()).isEqualTo("AUTO_SUBMITTED");
+        assertThat(submissions.getById(id).getTotalScore()).isEqualByComparingTo("5");
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"enter", "paper", "save", "submit"})
+    void anUnauthorizedExpiredOperationCannotSubmitSomeoneElsesPaper(String operation) {
+        Long id = enteredWithSavedAnswers(); endExam();
+        String other = "student_demo_2";
+        assertThatThrownBy(() -> {
+            switch (operation) {
+                case "enter" -> service.enter(other, exam.getId());
+                case "paper" -> service.paper(other, id);
+                case "save" -> service.save(other, id, choice.getId(), new MvpRequests.SaveAnswer("B"));
+                default -> service.submit(other, id);
+            }
+        }).isInstanceOf(BusinessException.class);
+        assertThat(submissions.getById(id).getStatus()).isEqualTo("IN_PROGRESS");
+        assertThat(submissions.getById(id).getSubmitTime()).isNull();
+        assertThat(answers.findOne(id, choice.getId()).getAutoScore()).isNull();
+        assertThat(answers.findOne(id, choice.getId()).getAnswerContent()).isEqualTo("A");
+    }
+
+    @Test void anUnexpectedFailureDuringExpiryRollsBackEarlierAnswerWrites() {
+        Long id = enteredWithSavedAnswers(); endExam();
+        doAnswer(call -> {
+            Answers answer = call.getArgument(0);
+            if (answer.getQuestionId().equals(shortAnswer.getId())) throw new IllegalStateException("synthetic persistence failure");
+            return call.callRealMethod();
+        }).when(answers).saveOrUpdate(any(Answers.class));
+        assertThatThrownBy(() -> service.paper(student.getUsername(), id)).isInstanceOf(IllegalStateException.class);
+        assertThat(submissions.getById(id).getStatus()).isEqualTo("IN_PROGRESS");
+        assertThat(submissions.getById(id).getSubmitTime()).isNull();
+        assertThat(answers.findOne(id, choice.getId()).getAutoScore()).isNull();
+        assertThat(answers.findOne(id, choice.getId()).getGradingStatus()).isEqualTo("PENDING");
+    }
+
+    @Test void serializationFailureAfterSavingRollsBackTheAnswerChange() {
+        Long id = enteredWithSavedAnswers();
+        jdbc.update("UPDATE questions SET options_json='{}' WHERE id=?", choice.getId());
+        assertThatThrownBy(() -> service.save(student.getUsername(), id, shortAnswer.getId(), new MvpRequests.SaveAnswer("must roll back")))
+                .isInstanceOf(IllegalStateException.class);
+        assertThat(answers.findOne(id, shortAnswer.getId()).getAnswerContent()).isEqualTo("待评分答案");
+        assertThat(submissions.getById(id).getStatus()).isEqualTo("IN_PROGRESS");
     }
 
     @ParameterizedTest @ValueSource(strings = {"list", "scheduler"})

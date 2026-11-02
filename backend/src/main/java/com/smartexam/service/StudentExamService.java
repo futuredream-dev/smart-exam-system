@@ -86,7 +86,21 @@ public class StudentExamService {
             // Preserve exam -> submission locking and release before waiting for an unrelated exam.
             tx.executeWithoutResult(ignored->{Exams e=lockAccessible(u,candidate.getId());Submissions s=lockExisting(e,u);expire(s,e,now());});
         }
-        return listRows.studentFacts(u.getId(),ids).stream().map(row->{
+        var facts = listRows.studentFacts(u.getId(), ids);
+        // A first entry can commit after the active scan. Expire any overdue row actually observed
+        // by the final projection, using the same exam -> submission lock order and short transactions.
+        while (true) {
+            LocalDateTime observedAt = now();
+            List<Long> overdue = facts.stream().filter(row -> row.submission() != null
+                    && "IN_PROGRESS".equals(row.submission().getStatus()) && !observedAt.isBefore(row.exam().getEndTime()))
+                    .map(row -> row.exam().getId()).sorted().toList();
+            if (overdue.isEmpty()) break;
+            for (Long id : overdue) tx.executeWithoutResult(ignored -> {
+                Exams e = lockAccessible(u, id); Submissions s = lockExisting(e, u); expire(s, e, now());
+            });
+            facts = listRows.studentFacts(u.getId(), ids);
+        }
+        return facts.stream().map(row->{
             Exams e=row.exam();Submissions s=row.submission();
             boolean released=s!=null&&e.getResultsReleasedAt()!=null&&Integer.valueOf(1).equals(s.getScorePublished());
             return new MvpViews.StudentExam(e.getId(),row.courseName(),e.getTitle(),e.getDescription(),e.getStartTime(),e.getEndTime(),

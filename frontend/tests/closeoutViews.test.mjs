@@ -29,6 +29,23 @@ test('pending final statistics do not invent unreviewed papers when their count 
   assert.match(html, /考试尚未结束/); assert.doesNotMatch(html, /仍有 0 份答卷未完成阅卷/); page.dispose()
 })
 
+for (const [stage, ready, participants, nobody] of [
+  ['NO_PARTICIPANTS', false, 1, true], ['COMPLETED', true, 0, true],
+  ['RUNNING', false, 0, false], ['COMPLETED', true, 1, false],
+]) test(`analysis handles independent absence predicates: ${stage}/${ready}/${participants}`, async () => {
+  const data = { analysisReady: ready, pendingGradingCount: 0, fullScore: 10,
+    summary: { candidateCount: 2, participantCount: participants, averageScore: ready ? 0 : null },
+    distribution: [{ label: '0–59', count: 0 }, { label: '60–79', count: 0 }],
+    students: [{ studentId: 1, studentName: '缺考示例', username: 'synthetic', candidateStatus: 'ABSENT', totalScore: null }], questions: [] }
+  const page = await setupView('components/ResultsAnalysisPanel.vue', { '../api/teacher': { teacherApi: { resultsAnalysis: async () => ({ data }) } } }, { examId: 7, displayStage: stage })
+  await page.mount()
+  const html = await renderView('components/ResultsAnalysisPanel.vue', page.state)
+  assert.equal((html.match(/无人参加/g) || []).length, nobody ? 1 : 0)
+  assert.equal(html.includes('results-bucket-track'), !nobody && ready)
+  assert.match(html, /缺考示例/)
+  if (nobody) assert.doesNotMatch(html, /仍有.*未完成阅卷|待完成阅卷/)
+})
+
 test('AI failure preserves the requirement and does not duplicate the backend fallback guidance', async () => {
   const page = await setupView('components/AiPaperComposer.vue', {
     '../api/teacher': { teacherApi: { interpretAiAssembly: async () => { throw Error('AI 未配置，可切换到规则智能组卷继续。') } } },

@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ExamCenterPaginationIntegrationTest {
     @Autowired JdbcTemplate jdbc;
     @Autowired ExamCenterService center;
+    @Autowired org.mybatis.spring.SqlSessionTemplate sqlSession;
     Long teacher, student, secondStudent, course;
     String marker;
 
@@ -81,6 +82,28 @@ class ExamCenterPaginationIntegrationTest {
     }
 
     private PageResponse<ExamCenterViews.Summary> page(String stage,int page,int size,boolean archived){return center.list("teacher_demo",marker,course,stage,archived,page,size);}
+
+    @Test void normalDraftUsesActiveMembershipWhileMakeupAndPublishedExamsUseTheirSnapshots() {
+        Long normal = exam("DRAFT", 1, false, false);
+        Long makeup = exam("DRAFT", 1, false, false);
+        Long published = exam("PUBLISHED", 1, false, false);
+        jdbc.update("UPDATE exams SET exam_kind='MAKEUP',source_exam_id=? WHERE id=?", published, makeup);
+        jdbc.update("INSERT INTO exam_candidates(exam_id,student_id) VALUES(?,?),(?,?),(?,?)", makeup, student, published, student, published, secondStudent);
+        assertEligible(normal, 2); assertEligible(makeup, 1); assertEligible(published, 2);
+        jdbc.update("UPDATE course_students SET status=0 WHERE course_id=? AND student_id=?", course, secondStudent);
+        assertEligible(normal, 1); assertEligible(makeup, 1); assertEligible(published, 2);
+        jdbc.update("DELETE FROM course_students WHERE course_id=?", course);
+        assertEligible(normal, 0); assertEligible(makeup, 1); assertEligible(published, 2);
+        jdbc.update("INSERT INTO exam_candidates(exam_id,student_id) VALUES(?,?)", makeup, secondStudent);
+        assertEligible(normal, 0); assertEligible(makeup, 2); assertEligible(published, 2);
+    }
+    private void assertEligible(Long id, int count) {
+        // Fixture changes use JDBC; production requests get separate MyBatis sessions.
+        sqlSession.clearCache();
+        var row = page(null, 1, 100, false).items().stream().filter(item -> item.examId().equals(id)).findFirst().orElseThrow();
+        assertThat(row.eligibleStudentCount()).isEqualTo(count);
+        assertThat(center.detail("teacher_demo", id).eligibleStudentCount()).isEqualTo(count);
+    }
     private Long exam(String status,int hours,boolean released,boolean archived){
         LocalDateTime start=hours==0?LocalDateTime.now().minusMinutes(10):LocalDateTime.now().plusHours(hours);
         jdbc.update("INSERT INTO exams(course_id,created_by,title,status,start_time,end_time,results_released_at,archived_at) VALUES(?,?,?,?,?,?,?,?)",course,teacher,marker,status,start,start.plusHours(1),released?LocalDateTime.now():null,archived?LocalDateTime.now():null);return lastId();
