@@ -12,16 +12,16 @@ function capability(name, ...args) {
   return navigation[name](...args)
 }
 
-async function renderLayout(role, path, mustChangePassword = false) {
+async function renderLayout(role, path, mustChangePassword = false, expired = false) {
   const source = await readFile(new URL('../src/layouts/AppLayout.vue', import.meta.url), 'utf8')
   const compiled = compileScript(parse(source).descriptor, { id: 'navigation', inlineTemplate: true })
-  const imports = { vue, 'vue-router': vueRouter, '../auth/auth': { authState: vue.reactive({ currentUser: { role, name: '测试用户', username: 'test', mustChangePassword } }), clearSession() {} }, '../utils/examNavigation': navigation }
+  const imports = { vue, 'vue-router': vueRouter, '../auth/auth': { authState: vue.reactive({ currentUser: expired ? null : { role, name: '测试用户', username: 'test', mustChangePassword }, reauthenticationRequired: expired }), clearSession() {} }, '../utils/examNavigation': navigation }
   const code = compiled.content
     .replace(/import\s*{([^}]+)}\s*from\s*['"]([^'"]+)['"];?/g, (_, bindings, from) => `const {${bindings.replace(/\bas\b/g, ':')}} = imports[${JSON.stringify(from)}];`)
     .replace(/^import\s*['"][^'"]+['"];?\s*$/gm, '')
     .replace('export default', 'const component =')
   const component = new Function('imports', `${code}; return component`)(imports)
-  const router = vueRouter.createRouter({ history: vueRouter.createMemoryHistory(), routes: [{ path: '/:all(.*)*', component: { render: () => null } }] })
+  const router = vueRouter.createRouter({ history: vueRouter.createMemoryHistory(), routes: [{ path: '/:all(.*)*', component: { render: () => vue.h('div', '当前业务页面') } }] })
   await router.push(path)
   const app = vue.createSSRApp(component, { portalName: role }); app.use(router)
   return renderToString(app)
@@ -33,6 +33,19 @@ test('rendered teacher navigation exposes four task areas and marks grading as e
   assert.deepEqual([...nav.matchAll(/href="([^"]+)"/g)].map(match => match[1]), ['/teacher', '/teacher/exams', '/teacher/question-banks', '/teacher/courses'])
   assert.match(nav, /考试管理/); assert.match(nav, /题库管理/); assert.match(nav, /课程管理/)
   assert.match(nav, /<a[^>]*(?:class="[^"]*active[^"]*"[^>]*href="\/teacher\/exams"|href="\/teacher\/exams"[^>]*class="[^"]*active)/)
+})
+
+test('expired non-answer pages hide stale business content and offer role-neutral reauthentication', async () => {
+  for (const path of ['/teacher/exams/7', '/admin/students', '/student/results']) {
+    const html = await renderLayout('', path, false, true)
+    assert.match(html, /登录状态已失效/); assert.match(html, /重新登录/)
+    assert.doesNotMatch(html, /学生导航|当前业务页面/)
+  }
+})
+
+test('the expired answer page remains mounted for draft recovery and its own authentication notice', async () => {
+  const html = await renderLayout('', '/student/paper/42', false, true)
+  assert.match(html, /当前业务页面/); assert.doesNotMatch(html, /学生导航/)
 })
 
 test('rendered admin and student navigation stays role scoped, including mandatory password change', async () => {

@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { changePassword } from '../../api/auth'
-import { authState, expireSession } from '../../auth/auth'
+import { authState, expireSession, sessionIdentityVersion } from '../../auth/auth'
 
 const router = useRouter()
 const currentPassword = ref(''), newPassword = ref(''), confirmPassword = ref('')
@@ -13,9 +13,10 @@ async function submit() {
   if (newPassword.value !== confirmPassword.value) { error.value = '两次输入的新密码不一致'; return }
   busy.value = true
   const submittedToken = authState.token
+  const submittedIdentity = sessionIdentityVersion()
   try {
     await changePassword({ currentPassword: currentPassword.value, newPassword: newPassword.value })
-    if (submittedToken !== authState.token) return
+    if (submittedIdentity !== sessionIdentityVersion()) return
     expireSession(submittedToken)
     currentPassword.value = newPassword.value = confirmPassword.value = ''
     await router.replace({ path: '/login', query: { passwordChanged: '1' } })

@@ -5,17 +5,21 @@ import { parse, compileScript } from 'vue/compiler-sfc'
 import { ref } from 'vue'
 import * as vue from 'vue'
 import { renderToString } from 'vue/server-renderer'
+import { clearUserDrafts } from '../src/utils/studentAnswerDraft.js'
 
 async function passwordPage(change = async () => {}) {
   const source = await readFile(new URL('../src/views/student/ChangePasswordView.vue', import.meta.url), 'utf8')
   const code = compileScript(parse(source).descriptor, { id: 'password', genDefaultAs: 'component' }).content.replace(/import\s*[\s\S]*?from\s*['"][^'"]+['"];?/g, '')
-  const authState = { token: 'old-token', currentUser: { id: 1, role: 'STUDENT' }, draftOwner: '1', reauthenticationRequired: false }
+  const authSource = (await readFile(new URL('../src/auth/auth.js', import.meta.url), 'utf8')).replace(/import\s*[^\n]*from[^\n]*\n/g, '').replace(/export /g, '')
+  const auth = new Function('reactive', 'clearUserDrafts', 'sessionStorage', `${authSource};return {authState,setSession,clearSession,expireSession,sessionIdentityVersion:typeof sessionIdentityVersion==='function'?sessionIdentityVersion:()=>0}`)(vue.reactive, clearUserDrafts, { getItem: () => null, setItem() {}, removeItem() {} })
+  auth.setSession('old-token', { id: 1, role: 'STUDENT' })
+  const { authState } = auth
   let destination
   const bindings = { ref, useRouter: () => ({ replace: async value => { destination = value } }), changePassword: change, authState,
-    restoreSession: async () => {}, expireSession: token => { if (token && token !== authState.token) return; authState.token = ''; authState.currentUser = null; authState.reauthenticationRequired = true } }
+    ...auth }
   const c = new Function(...Object.keys(bindings), `${code};return component`)(...Object.values(bindings))
   const s = c.setup({}, { expose() {} }); s.currentPassword.value = 'initial-pass'; s.newPassword.value = s.confirmPassword.value = 'changed-pass-123'
-  return { s, authState, get destination() { return destination } }
+  return { s, authState, auth, get destination() { return destination } }
 }
 
 test('successful password change expires the session and requires a fresh login while preserving draft ownership', async () => {
@@ -31,8 +35,21 @@ test('failed password change keeps the current session and entered values for co
 })
 test('a late successful password request cannot clear a newly authenticated identity', async () => {
   let finish; const pending = new Promise(resolve => { finish = resolve }), p = await passwordPage(() => pending)
-  const saving = p.s.submit(); p.authState.token = 'other-token'; p.authState.currentUser = { id: 2, role: 'STUDENT' }
+  const saving = p.s.submit(); p.auth.setSession('other-token', { id: 2, role: 'STUDENT' })
   finish(); await saving; assert.equal(p.authState.token, 'other-token'); assert.equal(p.destination, undefined)
+})
+
+test('a competing old-token 401 does not suppress the successful password-change notice', async () => {
+  let finish; const p = await passwordPage(() => new Promise(resolve => { finish = resolve }))
+  const saving = p.s.submit(); p.auth.expireSession('old-token'); finish(); await saving
+  assert.deepEqual(p.destination, { path: '/login', query: { passwordChanged: '1' } })
+  assert.equal(p.authState.token, ''); assert.equal(p.s.currentPassword.value, '')
+})
+
+test('a new same-user login that also expires cannot be mistaken for the old password request', async () => {
+  let finish; const p = await passwordPage(() => new Promise(resolve => { finish = resolve }))
+  const saving = p.s.submit(); p.auth.setSession('new-token', { id: 1 }); p.auth.expireSession('new-token'); finish(); await saving
+  assert.equal(p.destination, undefined)
 })
 
 test('login renders the successful password-change notice after returning for authentication', async () => {

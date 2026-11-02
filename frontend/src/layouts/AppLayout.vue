@@ -13,6 +13,7 @@ defineProps({ portalName: { type: String, required: true } })
 const route = useRoute()
 const router = useRouter()
 const role = computed(() => authState.currentUser?.role)
+const preserveAnswerPage = computed(() => /^\/student\/paper\/[^/]+\/?$/.test(route.path))
 const roleClass = computed(() => `role-${role.value?.toLowerCase() || 'guest'}`)
 const accountPasswordPath = computed(() => ({
   ADMIN: '/admin/change-password',
@@ -57,7 +58,7 @@ function logout() {
           <RouterLink v-for="item in teacherNavigation" :key="item.path" :to="item.path" :class="{ active: teacherNavigationActive(route.path, item.path) }"><span aria-hidden="true">{{ item.icon }}</span>{{ item.label }}</RouterLink>
         </template>
       </nav>
-      <nav v-else aria-label="学生导航">
+      <nav v-else-if="role === 'STUDENT'" aria-label="学生导航">
         <template v-if="!authState.currentUser?.mustChangePassword">
           <RouterLink to="/student" :class="{ active: route.path === '/student' || route.path.startsWith('/student/exams') || route.path.startsWith('/student/paper') }"><span aria-hidden="true">▣</span>我的考试</RouterLink>
           <RouterLink to="/student/results" :class="{ active: route.path.startsWith('/student/results') }"><span aria-hidden="true">✓</span>我的成绩</RouterLink>
@@ -78,7 +79,13 @@ function logout() {
           <button type="button" class="ghost" @click="logout">退出登录</button>
         </div>
       </header>
-      <main class="workspace-content"><RouterView :key="workspacePageKey(route)" /></main>
+      <main class="workspace-content">
+        <section v-if="authState.reauthenticationRequired && !preserveAnswerPage" class="surface" role="alert">
+          <h1>登录状态已失效</h1><p>请重新登录后继续操作。</p>
+          <RouterLink class="primary" :to="{ path: '/login', query: { returnTo: route.fullPath } }">重新登录</RouterLink>
+        </section>
+        <RouterView v-if="!authState.reauthenticationRequired || preserveAnswerPage" :key="workspacePageKey(route)" />
+      </main>
     </div>
   </div>
 </template>
