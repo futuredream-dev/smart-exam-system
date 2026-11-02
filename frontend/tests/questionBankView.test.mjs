@@ -17,7 +17,7 @@ async function setupView(file, imports, props = {}) {
   return { state: component.setup(props, { expose() {}, emit: (...args) => events.push(args) }), events }
 }
 
-async function bankPage() {
+async function bankPage(total = 300) {
   const route = vue.reactive({ path: '/teacher/question-banks/7', fullPath: '/teacher/question-banks/7?page=2', params: { bankId: '7' }, query: { page: '2' } })
   const calls = [], pushes = [], guards = {}
   const rows = [{ id: 21, title: '摘要', status: 'DRAFT' }]
@@ -25,7 +25,7 @@ async function bankPage() {
     questionBank: async () => ({ data: { id: 7, scope: 'TEACHER', status: 'ACTIVE' } }),
     bankMetadata: async () => ({ data: { chapters: [], knowledgePoints: [], tags: [] } }),
     bankItems: async () => ({ data: rows }),
-    bankItemsPage: async (id, params) => { calls.push(['page', id, params]); return { data: { items: rows, total: 300, page: params.page, size: params.size } } },
+    bankItemsPage: async (id, params) => { calls.push(['page', id, params]); return { data: { items: total ? rows : [], total, page: params.page, size: params.size } } },
     bankItem: async id => { calls.push(['detail', id]); return { data: { ...rows[0], content: '按需全文', options: [], scoringPoints: [] } } },
     archiveBankItem: async () => ({}),
   }
@@ -39,6 +39,14 @@ test('bank requests one bounded summary page without clearing off-page selection
   assert.equal(calls.filter(call => call[0] === 'page').length, 1)
   assert.equal(calls[0][2].page, 2); assert.equal(calls[0][2].size, 20); assert.equal(calls[0][2].excludeArchived, true)
   assert.deepEqual(s.selectedIds.value, [3]); assert.equal(calls.some(call => call[0] === 'detail'), false)
+})
+test('zero-result bank pages normalize an obsolete page while preserving applied filters', async () => {
+  const { state: s, route, pushes } = await bankPage(0)
+  route.query = { page: '8', keyword: '消失的题目', size: '50' }
+  await s.loadRows()
+  assert.equal(s.pageCount.value, 1); assert.deepEqual(s.rows.value, [])
+  assert.equal(pushes.length, 1); assert.equal(pushes[0].query.page, undefined)
+  assert.equal(pushes[0].query.keyword, '消失的题目'); assert.equal(pushes[0].query.size, 50)
 })
 test('editing a summary first loads its full item and filters reset only the page', async () => {
   const { state: s, calls, pushes } = await bankPage(); await s.load()

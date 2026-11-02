@@ -48,7 +48,7 @@ async function loadRows() {
     const result = await teacherApi.bankItemsPage(route.params.bankId, bankPageParams(applied.value))
     if (sequence !== listRequestSequence) return
     rows.value = result.data.items; total.value = result.data.total
-    if (total.value > 0 && applied.value.page > pageCount.value) { router.replace({ path: route.path, query: bankPageRouteQuery({ ...applied.value, page: pageCount.value }) }); return }
+    if (applied.value.page > pageCount.value) { router.replace({ path: route.path, query: bankPageRouteQuery({ ...applied.value, page: pageCount.value }) }); return }
     const reconciled = reconcileQuestionSelection(selectedIds.value, rows.value)
     selectedIds.value = reconciled.ids
     if (reconciled.removed.length) notice.value = `已取消选择 ${reconciled.removed.length} 道已归档题目，其余跨页选择保留。`

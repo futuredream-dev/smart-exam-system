@@ -19,7 +19,8 @@ const list = value => {
 }
 async function load() {
   const id = ++loadId
-  selected.value = null; samples.value = []; summary.value = null; questions.value = []; error.value = ''
+  ++sampleId; selected.value = null; samples.value = []; samplesLoading.value = false; samplesError.value = ''
+  summary.value = null; questions.value = []; error.value = ''; loading.value = false
   if (!examId.value) return
   loading.value = true
   const results = await Promise.allSettled([

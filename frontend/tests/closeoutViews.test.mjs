@@ -1,8 +1,10 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { setupView, renderView } from './helpers/viewHarness.mjs'
+import { setupView, renderView, settle } from './helpers/viewHarness.mjs'
+import { reactive } from 'vue'
 import { readFile } from 'node:fs/promises'
 import * as examNavigation from '../src/utils/examNavigation.js'
+import * as aiComposer from '../src/utils/aiPaperComposer.js'
 const centerSource = (await readFile(new URL('../src/utils/examCenter.js', import.meta.url), 'utf8')).replace("'./statusDisplay'", JSON.stringify(new URL('../src/utils/statusDisplay.js', import.meta.url).href))
 const examCenter = await import(`data:text/javascript;base64,${Buffer.from(centerSource).toString('base64')}`)
 
@@ -25,4 +27,37 @@ test('pending final statistics do not invent unreviewed papers when their count 
   await page.mount()
   const html = await renderView('components/ResultsAnalysisPanel.vue', page.state)
   assert.match(html, /考试尚未结束/); assert.doesNotMatch(html, /仍有 0 份答卷未完成阅卷/); page.dispose()
+})
+
+test('AI failure preserves the requirement and does not duplicate the backend fallback guidance', async () => {
+  const page = await setupView('components/AiPaperComposer.vue', {
+    '../api/teacher': { teacherApi: { interpretAiAssembly: async () => { throw Error('AI 未配置，可切换到规则智能组卷继续。') } } },
+    '../utils/aiPaperComposer': aiComposer,
+  }, { examId: 7, initialRequirement: '集合与异常处理' })
+  await page.state.interpret()
+  const html = await renderView('components/AiPaperComposer.vue', page.state)
+  const alert = html.match(/role="alert">(.*?)<\/p>/s)[1]
+  assert.equal((alert.match(/规则智能组卷/g) || []).length, 1)
+  assert.equal(page.state.requirement.value, '集合与异常处理')
+  assert.match(html, /切换到规则智能组卷<\/button>/)
+})
+
+for (const selection of ['', 'not-authorized']) test(`clearing the analysis selection (${selection || 'empty'}) ends an in-flight loading state`, async () => {
+  let finish
+  const pending = new Promise(resolve => { finish = resolve })
+  const route = reactive({ query: { examId: '7' } })
+  const page = await setupView('views/teacher/AiEvaluationView.vue', {
+    'vue-router': { useRoute: () => route, useRouter: () => ({ replace() {} }) },
+    '../../api/teacher': { teacherApi: { aiEvaluationSummary: () => pending, aiEvaluationQuestions: () => pending }, loadWorkspace: async () => ({ exams: [{ id: 7, title: '可访问' }] }) },
+    '../../utils/examNavigation': examNavigation,
+  })
+  await page.mount()
+  if (selection) route.query.examId = selection
+  else page.state.examId.value = ''
+  await settle()
+  assert.equal(page.state.loading.value, false)
+  finish({ data: { sampleCount: 1 } })
+  await new Promise(resolve => setImmediate(resolve))
+  assert.equal(page.state.summary.value, null)
+  assert.doesNotMatch(await renderView('views/teacher/AiEvaluationView.vue', page.state), /正在加载分析数据/)
 })

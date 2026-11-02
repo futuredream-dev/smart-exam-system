@@ -67,7 +67,7 @@ function switchToRule() { emit('switch-to-rule', { requirement: requirement.valu
 <template>
   <div class="ai-paper-composer editor-form">
     <p class="composer-process" aria-label="AI 辅助组卷步骤"><span :class="{ current: !interpretation }">1 教师提出要求</span><span :class="{ current: interpretation && stage !== 'RULES' }">2 核对 AI 理解</span><span :class="{ current: stage === 'RULES' }">3 教师确认规则与试卷</span></p>
-    <p v-if="error" class="error-message" role="alert">{{ error }}。可切换到规则智能组卷继续。</p>
+    <p v-if="error" class="error-message" role="alert">{{ error }}</p>
     <section class="rule-block">
       <h3>组卷要求</h3>
       <label>用自然语言描述考试重点、难度和题型偏好
