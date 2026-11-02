@@ -83,10 +83,10 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.ai-evaluation-page { display: grid; gap: 16px; }
+.ai-evaluation-page { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; gap: 16px; }
 .evaluation-filter { padding: 16px; }
-.evaluation-filter label { display: flex; align-items: center; gap: 12px; }
-.evaluation-filter select { min-width: 260px; max-width: 100%; }
+.evaluation-filter label { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 12px; }
+.evaluation-filter select { min-width: 0; width: 100%; }
 .evaluation-metrics { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border: 1px solid var(--border); border-radius: var(--radius-card); background: var(--surface); }
 .evaluation-metric { padding: 12px 16px; display: grid; gap: 2px; }
 .evaluation-metric + .evaluation-metric { border-left: 1px solid var(--border); }

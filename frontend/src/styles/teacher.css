@@ -702,8 +702,8 @@
   .role-teacher .exam-center-metrics > div:nth-child(3) { border-left: 0; border-top: 1px solid var(--border); }
   .role-teacher .exam-center-metrics > div:nth-child(4) { border-top: 1px solid var(--border); }
 }
-.role-teacher .results-analysis { display: grid; gap: 14px; margin-top: 16px; }
-.role-teacher .results-analysis-section { padding: 18px; }
+.role-teacher .results-analysis { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; gap: 14px; margin-top: 16px; }
+.role-teacher .results-analysis-section { min-width: 0; padding: 18px; }
 .role-teacher .results-analysis-section h3 { margin: 0 0 12px; }
 .role-teacher .results-stat-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border: 1px solid var(--border); border-radius: var(--radius-card); overflow: hidden; }
 .role-teacher .results-stat-grid > div { display: grid; gap: 4px; padding: 12px; }
