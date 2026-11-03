@@ -1,0 +1,13 @@
+{
+  "archive": "local-acceptance-20261103-7e0ed0e.zip",
+  "sourceCommit": "7e0ed0e14ebdaaa9af368e7e923e5320ee3369d6",
+  "acceptance": "CONDITIONALLY_PASSED_LOCAL",
+  "fileCount": 9,
+  "bytes": 51922605,
+  "sha256": "b94fbb46c75f63c6d0b7b2fae074025c2083cb12c69a61d67fda577a46a43c1f",
+  "allPayloadHashesMatch": true,
+  "jarContainsNoPrivateOrTestResources": true,
+  "credentialsDatabasesRuntimeLogsIncluded": false,
+  "githubUpdated": false,
+  "originalServiceChanged": false
+}

@@ -1,0 +1,1628 @@
+{
+  "sourceCommit": "7e0ed0e14ebdaaa9af368e7e923e5320ee3369d6",
+  "conclusion": "CONDITIONALLY_PASSED_LOCAL",
+  "scope": "isolated acceptance only; no original deployment or GitHub update",
+  "backend": {
+    "tests": 443,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "executedAt": "2026-11-02T18:42:43+08:00",
+    "unchangedSinceBackendVerifiedCommit": "6776d4e"
+  },
+  "frontend": {
+    "tests": 168,
+    "failures": 0,
+    "date": "2026-11-03",
+    "buildAssets": [
+      "assets/index-1qsl5eIA.js",
+      "assets/index-B-rdf1z-.css"
+    ],
+    "studentCliTests": 66,
+    "adminStructuralCheck": true
+  },
+  "groups": [
+    {
+      "id": "browser-faults-proof-20261103",
+      "checkedAt": "2026-11-03T04:59:39.390Z",
+      "commit": "7e0ed0e14ebdaaa9af368e7e923e5320ee3369d6",
+      "jarSha256": "9b8ce727ff9f87bcc870cc474a572ca69abb443bc3bca3d0708bd4ef8d9158af",
+      "frontendAssets": [
+        "assets/index-1qsl5eIA.js",
+        "assets/index-B-rdf1z-.css"
+      ],
+      "database": "smart_exam_opt_test_20261019",
+      "browser": "installed Microsoft Edge",
+      "isolated": true,
+      "tokensPersisted": false,
+      "checks": [
+        {
+          "name": "V1 browser settings deny sessionStorage; login and server saves still work",
+          "passed": true
+        },
+        {
+          "name": "V1 real quota exhaustion warns without blocking server saves",
+          "passed": true
+        },
+        {
+          "name": "V4 actual offline/online retains the latest text and successfully retries",
+          "passed": true
+        },
+        {
+          "name": "V2 dirty hard reload native cancel/accept and same-tab recovery",
+          "passed": true
+        },
+        {
+          "name": "V2 native dirty tab close can be canceled then explicitly accepted",
+          "passed": true
+        },
+        {
+          "name": "V3 browser Date offset leaves the performance-based countdown usable",
+          "passed": true
+        },
+        {
+          "name": "V4 fresh server clock after delayed processing is not reduced by the full round trip",
+          "passed": true
+        },
+        {
+          "name": "V4 delayed old response does not replace newer edits and other question responses",
+          "passed": true
+        },
+        {
+          "name": "V4 throttled browser network keeps saving and editable input intact",
+          "passed": true
+        }
+      ],
+      "fixture": {
+        "courseId": 8264,
+        "examId": 7922,
+        "submissionId": 4594
+      },
+      "scope": "V1,V2,V3 partial,V4; actual Edge contexts, no fabricated API success"
+    },
+    {
+      "id": "browser-visibility-proof-20261103",
+      "checkedAt": "2026-11-03T04:59:43.340Z",
+      "commit": "7e0ed0e14ebdaaa9af368e7e923e5320ee3369d6",
+      "jarSha256": "9b8ce727ff9f87bcc870cc474a572ca69abb443bc3bca3d0708bd4ef8d9158af",
+      "frontendAssets": [
+        "assets/index-1qsl5eIA.js",
+        "assets/index-B-rdf1z-.css"
+      ],
+      "database": "smart_exam_opt_test_20261019",
+      "browser": "installed Microsoft Edge",
+      "isolated": true,
+      "tokensPersisted": false,
+      "checks": [
+        {
+          "name": "V3 actual headful background tab becomes hidden and records TAB_HIDDEN",
+          "passed": true
+        },
+        {
+          "name": "V3 returning to actual visible tab revalidates server status",
+          "passed": true
+        },
+        {
+          "name": "V3 route unmount cancels pending queue writes, clock/status timers and visibility listeners",
+          "passed": true
+        }
+      ],
+      "fixture": {
+        "courseId": 8264,
+        "examId": 7922,
+        "submissionId": 4594
+      },
+      "scope": "actual separate-profile Edge tabs via noDefaults CDP; default focus emulation disabled, no synthetic visibility events or state overrides"
+    },
+    {
+      "id": "browser-layout-proof-20261102",
+      "checkedAt": "2026-11-02T14:49:19.848Z",
+      "commit": "7e0ed0e14ebdaaa9af368e7e923e5320ee3369d6",
+      "jarSha256": "9b8ce727ff9f87bcc870cc474a572ca69abb443bc3bca3d0708bd4ef8d9158af",
+      "frontendAssets": [
+        "assets/index-1qsl5eIA.js",
+        "assets/index-B-rdf1z-.css"
+      ],
+      "database": "smart_exam_opt_test_20261019",
+      "browser": "installed Microsoft Edge",
+      "isolated": true,
+      "tokensPersisted": false,
+      "checks": [
+        {
+          "name": "V6 teacher-home 1440",
+          "passed": true,
+          "layout": {
+            "width": 1440,
+            "body": 1440,
+            "root": 1440,
+            "focusable": 25,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 teacher-home 1280",
+          "passed": true,
+          "layout": {
+            "width": 1280,
+            "body": 1280,
+            "root": 1280,
+            "focusable": 25,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 teacher-home 768",
+          "passed": true,
+          "layout": {
+            "width": 768,
+            "body": 768,
+            "root": 768,
+            "focusable": 25,
+            "overflow": [
+              {
+                "tag": "TABLE",
+                "cls": "",
+                "right": 890
+              },
+              {
+                "tag": "THEAD",
+                "cls": "",
+                "right": 890
+              },
+              {
+                "tag": "TR",
+                "cls": "",
+                "right": 890
+              },
+              {
+                "tag": "TH",
+                "cls": "",
+                "right": 890
+              },
+              {
+                "tag": "TBODY",
+                "cls": "",
+                "right": 890
+              },
+              {
+                "tag": "TR",
+                "cls": "",
+                "right": 890
+              },
+              {
+                "tag": "TD",
+                "cls": "",
+                "right": 890
+              },
+              {
+                "tag": "A",
+                "cls": "ghost",
+                "right": 874
+              }
+            ]
+          }
+        },
+        {
+          "name": "V6 teacher-home 390",
+          "passed": true,
+          "layout": {
+            "width": 390,
+            "body": 390,
+            "root": 390,
+            "focusable": 25,
+            "overflow": [
+              {
+                "tag": "TABLE",
+                "cls": "",
+                "right": 677
+              },
+              {
+                "tag": "THEAD",
+                "cls": "",
+                "right": 677
+              },
+              {
+                "tag": "TR",
+                "cls": "",
+                "right": 677
+              },
+              {
+                "tag": "TH",
+                "cls": "",
+                "right": 403
+              },
+              {
+                "tag": "TH",
+                "cls": "",
+                "right": 480
+              },
+              {
+                "tag": "TH",
+                "cls": "",
+                "right": 547
+              },
+              {
+                "tag": "TH",
+                "cls": "",
+                "right": 677
+              },
+              {
+                "tag": "TBODY",
+                "cls": "",
+                "right": 677
+              }
+            ]
+          }
+        },
+        {
+          "name": "V6 teacher-exams 1440",
+          "passed": true,
+          "layout": {
+            "width": 1440,
+            "body": 1440,
+            "root": 1440,
+            "focusable": 54,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 teacher-exams 1280",
+          "passed": true,
+          "layout": {
+            "width": 1280,
+            "body": 1280,
+            "root": 1280,
+            "focusable": 54,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 teacher-exams 768",
+          "passed": true,
+          "layout": {
+            "width": 768,
+            "body": 768,
+            "root": 768,
+            "focusable": 54,
+            "overflow": [
+              {
+                "tag": "BUTTON",
+                "cls": "",
+                "right": 771
+              },
+              {
+                "tag": "BUTTON",
+                "cls": "",
+                "right": 849
+              }
+            ]
+          }
+        },
+        {
+          "name": "V6 teacher-exams 390",
+          "passed": true,
+          "layout": {
+            "width": 390,
+            "body": 390,
+            "root": 390,
+            "focusable": 54,
+            "overflow": [
+              {
+                "tag": "BUTTON",
+                "cls": "",
+                "right": 480
+              },
+              {
+                "tag": "BUTTON",
+                "cls": "",
+                "right": 558
+              },
+              {
+                "tag": "BUTTON",
+                "cls": "",
+                "right": 636
+              }
+            ]
+          }
+        },
+        {
+          "name": "V6 teacher-courses 1440",
+          "passed": true,
+          "layout": {
+            "width": 1440,
+            "body": 1440,
+            "root": 1440,
+            "focusable": 58,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 teacher-courses 1280",
+          "passed": true,
+          "layout": {
+            "width": 1280,
+            "body": 1280,
+            "root": 1280,
+            "focusable": 58,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 teacher-courses 768",
+          "passed": true,
+          "layout": {
+            "width": 768,
+            "body": 768,
+            "root": 768,
+            "focusable": 58,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 teacher-courses 390",
+          "passed": true,
+          "layout": {
+            "width": 390,
+            "body": 390,
+            "root": 390,
+            "focusable": 58,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 teacher-bank 1440",
+          "passed": true,
+          "layout": {
+            "width": 1440,
+            "body": 1440,
+            "root": 1440,
+            "focusable": 30,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 teacher-bank 1280",
+          "passed": true,
+          "layout": {
+            "width": 1280,
+            "body": 1280,
+            "root": 1280,
+            "focusable": 30,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 teacher-bank 768",
+          "passed": true,
+          "layout": {
+            "width": 768,
+            "body": 768,
+            "root": 768,
+            "focusable": 30,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 teacher-bank 390",
+          "passed": true,
+          "layout": {
+            "width": 390,
+            "body": 390,
+            "root": 390,
+            "focusable": 30,
+            "overflow": [
+              {
+                "tag": "DIV",
+                "cls": "bank-filter-options",
+                "right": 418
+              }
+            ]
+          }
+        },
+        {
+          "name": "V6 teacher-detail 1440",
+          "passed": true,
+          "layout": {
+            "width": 1440,
+            "body": 1440,
+            "root": 1440,
+            "focusable": 15,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 teacher-detail 1280",
+          "passed": true,
+          "layout": {
+            "width": 1280,
+            "body": 1280,
+            "root": 1280,
+            "focusable": 15,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 teacher-detail 768",
+          "passed": true,
+          "layout": {
+            "width": 768,
+            "body": 768,
+            "root": 768,
+            "focusable": 15,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 teacher-detail 390",
+          "passed": true,
+          "layout": {
+            "width": 390,
+            "body": 390,
+            "root": 390,
+            "focusable": 15,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 teacher-grading 1440",
+          "passed": true,
+          "layout": {
+            "width": 1440,
+            "body": 1440,
+            "root": 1440,
+            "focusable": 18,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 teacher-grading 1280",
+          "passed": true,
+          "layout": {
+            "width": 1280,
+            "body": 1280,
+            "root": 1280,
+            "focusable": 18,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 teacher-grading 768",
+          "passed": true,
+          "layout": {
+            "width": 768,
+            "body": 768,
+            "root": 768,
+            "focusable": 18,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 teacher-grading 390",
+          "passed": true,
+          "layout": {
+            "width": 390,
+            "body": 390,
+            "root": 390,
+            "focusable": 18,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 teacher-analysis 1440",
+          "passed": true,
+          "layout": {
+            "width": 1440,
+            "body": 1440,
+            "root": 1440,
+            "focusable": 8,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 teacher-analysis 1280",
+          "passed": true,
+          "layout": {
+            "width": 1280,
+            "body": 1280,
+            "root": 1280,
+            "focusable": 8,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 teacher-analysis 768",
+          "passed": true,
+          "layout": {
+            "width": 768,
+            "body": 768,
+            "root": 768,
+            "focusable": 8,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 teacher-analysis 390",
+          "passed": true,
+          "layout": {
+            "width": 390,
+            "body": 390,
+            "root": 390,
+            "focusable": 8,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 student-home 1440",
+          "passed": true,
+          "layout": {
+            "width": 1440,
+            "body": 1440,
+            "root": 1440,
+            "focusable": 12,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 student-home 1280",
+          "passed": true,
+          "layout": {
+            "width": 1280,
+            "body": 1280,
+            "root": 1280,
+            "focusable": 12,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 student-home 768",
+          "passed": true,
+          "layout": {
+            "width": 768,
+            "body": 768,
+            "root": 768,
+            "focusable": 12,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 student-home 390",
+          "passed": true,
+          "layout": {
+            "width": 390,
+            "body": 390,
+            "root": 390,
+            "focusable": 12,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 student-paper 1440",
+          "passed": true,
+          "layout": {
+            "width": 1440,
+            "body": 1440,
+            "root": 1440,
+            "focusable": 19,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 student-paper 1280",
+          "passed": true,
+          "layout": {
+            "width": 1280,
+            "body": 1280,
+            "root": 1280,
+            "focusable": 19,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 student-paper 768",
+          "passed": true,
+          "layout": {
+            "width": 768,
+            "body": 768,
+            "root": 768,
+            "focusable": 19,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 student-paper 390",
+          "passed": true,
+          "layout": {
+            "width": 390,
+            "body": 390,
+            "root": 390,
+            "focusable": 19,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 student-result 1440",
+          "passed": true,
+          "layout": {
+            "width": 1440,
+            "body": 1440,
+            "root": 1440,
+            "focusable": 6,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 student-result 1280",
+          "passed": true,
+          "layout": {
+            "width": 1280,
+            "body": 1280,
+            "root": 1280,
+            "focusable": 6,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 student-result 768",
+          "passed": true,
+          "layout": {
+            "width": 768,
+            "body": 768,
+            "root": 768,
+            "focusable": 6,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 student-result 390",
+          "passed": true,
+          "layout": {
+            "width": 390,
+            "body": 390,
+            "root": 390,
+            "focusable": 6,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 admin-home 1440",
+          "passed": true,
+          "layout": {
+            "width": 1440,
+            "body": 1440,
+            "root": 1440,
+            "focusable": 14,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 admin-home 1280",
+          "passed": true,
+          "layout": {
+            "width": 1280,
+            "body": 1280,
+            "root": 1280,
+            "focusable": 14,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 admin-home 768",
+          "passed": true,
+          "layout": {
+            "width": 768,
+            "body": 768,
+            "root": 768,
+            "focusable": 14,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 admin-home 390",
+          "passed": true,
+          "layout": {
+            "width": 390,
+            "body": 390,
+            "root": 390,
+            "focusable": 14,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 admin-students 1440",
+          "passed": true,
+          "layout": {
+            "width": 1440,
+            "body": 1440,
+            "root": 1440,
+            "focusable": 17,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 admin-students 1280",
+          "passed": true,
+          "layout": {
+            "width": 1280,
+            "body": 1280,
+            "root": 1280,
+            "focusable": 17,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 admin-students 768",
+          "passed": true,
+          "layout": {
+            "width": 768,
+            "body": 768,
+            "root": 768,
+            "focusable": 17,
+            "overflow": []
+          }
+        },
+        {
+          "name": "V6 admin-students 390",
+          "passed": true,
+          "layout": {
+            "width": 390,
+            "body": 390,
+            "root": 390,
+            "focusable": 17,
+            "overflow": []
+          }
+        }
+      ],
+      "scope": "12 primary pages x4 actual CSS widths; page width excludes intended internal table scrolling, screenshots from current dist"
+    },
+    {
+      "id": "browser-states-proof-20261103",
+      "checkedAt": "2026-11-03T04:52:53.905Z",
+      "commit": "7e0ed0e14ebdaaa9af368e7e923e5320ee3369d6",
+      "jarSha256": "9b8ce727ff9f87bcc870cc474a572ca69abb443bc3bca3d0708bd4ef8d9158af",
+      "frontendAssets": [
+        "assets/index-1qsl5eIA.js",
+        "assets/index-B-rdf1z-.css"
+      ],
+      "database": "smart_exam_opt_test_20261019",
+      "browser": "installed Microsoft Edge",
+      "isolated": true,
+      "tokensPersisted": false,
+      "checks": [
+        {
+          "name": "V6 real empty filters and bank obsolete-page correction 1440",
+          "passed": true
+        },
+        {
+          "name": "V6 delayed loading, actual transport error and successful reload recovery 1440",
+          "passed": true
+        },
+        {
+          "name": "V6 real empty filters and bank obsolete-page correction 1280",
+          "passed": true
+        },
+        {
+          "name": "V6 delayed loading, actual transport error and successful reload recovery 1280",
+          "passed": true
+        },
+        {
+          "name": "V6 real empty filters and bank obsolete-page correction 768",
+          "passed": true
+        },
+        {
+          "name": "V6 delayed loading, actual transport error and successful reload recovery 768",
+          "passed": true
+        },
+        {
+          "name": "V6 real empty filters and bank obsolete-page correction 390",
+          "passed": true
+        },
+        {
+          "name": "V6 delayed loading, actual transport error and successful reload recovery 390",
+          "passed": true
+        },
+        {
+          "name": "V6 keyboard Tab/Shift+Tab stay in modal; Escape closes and restores focus",
+          "passed": true
+        },
+        {
+          "name": "V6 dirty form Escape requires explicit discard and cancel retains input",
+          "passed": true
+        },
+        {
+          "name": "V6 clearing an in-flight real analysis request ends loading and ignores its late response",
+          "passed": true
+        }
+      ],
+      "scope": "four widths, real empty datasets, delayed real requests and aborted transport; actual keyboard actions, no injected UI states"
+    },
+    {
+      "id": "browser-compose-proof-20261102",
+      "checkedAt": "2026-11-02T14:56:38.260Z",
+      "commit": "7e0ed0e14ebdaaa9af368e7e923e5320ee3369d6",
+      "jarSha256": "9b8ce727ff9f87bcc870cc474a572ca69abb443bc3bca3d0708bd4ef8d9158af",
+      "frontendAssets": [
+        "assets/index-1qsl5eIA.js",
+        "assets/index-B-rdf1z-.css"
+      ],
+      "database": "smart_exam_opt_test_20261019",
+      "browser": "installed Microsoft Edge",
+      "isolated": true,
+      "tokensPersisted": false,
+      "checks": [
+        {
+          "name": "V5 teacher creates and opens a course-bound question bank through the UI",
+          "passed": true
+        },
+        {
+          "name": "V5 oversized Excel upload is rejected in the UI without writes",
+          "passed": true
+        },
+        {
+          "name": "V5 Excel preview writes nothing; confirmation imports 3 questions and scoring points",
+          "passed": true
+        },
+        {
+          "name": "V5 duplicate Excel requires an explicit policy and SKIP keeps exactly 3 rows",
+          "passed": true
+        },
+        {
+          "name": "V5 duplicate option identifiers are rejected and edited input is retained",
+          "passed": true
+        },
+        {
+          "name": "V5 UI saves and validates E option identifiers",
+          "passed": true
+        },
+        {
+          "name": "V5 UI saves and validates custom option identifiers",
+          "passed": true
+        },
+        {
+          "name": "V5 draft may remain incomplete; READY rejects a correct answer outside the actual identifiers",
+          "passed": true
+        },
+        {
+          "name": "V5 manual question creation saves one 3-point question through the UI",
+          "passed": true
+        },
+        {
+          "name": "V5 manual bank selection confirms the E-option snapshot into the exam",
+          "passed": true
+        },
+        {
+          "name": "V5 random preview writes nothing; explicit confirmation adds exactly one question",
+          "passed": true
+        },
+        {
+          "name": "V5 rule diagnosis, preview and explicit confirmation add a legal hard question",
+          "passed": true
+        },
+        {
+          "name": "V5 unconfigured AI preserves input, reports one fallback and creates no paper",
+          "passed": true
+        }
+      ],
+      "fixture": {
+        "courseId": 8216,
+        "bankId": 2924,
+        "draftId": 7876
+      },
+      "scope": "actual UI operations against real isolated backend; seed only course, no AI configured yet"
+    },
+    {
+      "id": "browser-ai-proof-20261103",
+      "checkedAt": "2026-11-03T04:46:39.609Z",
+      "commit": "7e0ed0e14ebdaaa9af368e7e923e5320ee3369d6",
+      "jarSha256": "9b8ce727ff9f87bcc870cc474a572ca69abb443bc3bca3d0708bd4ef8d9158af",
+      "frontendAssets": [
+        "assets/index-1qsl5eIA.js",
+        "assets/index-B-rdf1z-.css"
+      ],
+      "database": "smart_exam_opt_test_20261019",
+      "browser": "installed Microsoft Edge",
+      "isolated": true,
+      "tokensPersisted": false,
+      "checks": [
+        {
+          "name": "V5 controlled AI grading success preserves teacher score and another question draft",
+          "passed": true
+        },
+        {
+          "name": "V5 controlled AI assembly success interpret/diagnose/recommend/confirm",
+          "passed": true
+        },
+        {
+          "name": "V5 controlled AI grading failure preserves teacher score and another question draft",
+          "passed": true
+        },
+        {
+          "name": "V5 controlled AI assembly failure retains requirement without adding questions",
+          "passed": true
+        },
+        {
+          "name": "V5 controlled AI grading timeout preserves teacher score and another question draft",
+          "passed": true
+        },
+        {
+          "name": "V5 controlled AI assembly timeout retains requirement without adding questions",
+          "passed": true
+        }
+      ],
+      "fixture": {
+        "examId": 7917,
+        "submissionId": 4591,
+        "draftId": 7876
+      },
+      "provider": "loopback synthetic stub18083; no external model or paid requests",
+      "scope": "actual JAR/UI HTTP path; controlled provider success/503/35s delay"
+    },
+    {
+      "id": "browser-business-prep-proof-20261103",
+      "checkedAt": "2026-11-03T04:44:41.367Z",
+      "commit": "7e0ed0e14ebdaaa9af368e7e923e5320ee3369d6",
+      "jarSha256": "9b8ce727ff9f87bcc870cc474a572ca69abb443bc3bca3d0708bd4ef8d9158af",
+      "frontendAssets": [
+        "assets/index-1qsl5eIA.js",
+        "assets/index-B-rdf1z-.css"
+      ],
+      "database": "smart_exam_opt_test_20261019",
+      "browser": "installed Microsoft Edge",
+      "isolated": true,
+      "tokensPersisted": false,
+      "checks": [
+        {
+          "name": "V5 current-artifact publish readiness and explicit publication snapshot",
+          "passed": true
+        },
+        {
+          "name": "V5 UI submit persisted long latest answer with existing trim normalization and custom YES identifier",
+          "passed": true
+        },
+        {
+          "name": "V5 explicit zero review and final-comment save retain another unsaved 8-point question",
+          "passed": true
+        }
+      ],
+      "fixture": {
+        "courseId": 8216,
+        "examId": 7917,
+        "submissionId": 4591
+      }
+    },
+    {
+      "id": "browser-business-closure-proof-20261103",
+      "checkedAt": "2026-11-03T04:51:00.455Z",
+      "commit": "7e0ed0e14ebdaaa9af368e7e923e5320ee3369d6",
+      "jarSha256": "9b8ce727ff9f87bcc870cc474a572ca69abb443bc3bca3d0708bd4ef8d9158af",
+      "frontendAssets": [
+        "assets/index-1qsl5eIA.js",
+        "assets/index-B-rdf1z-.css"
+      ],
+      "database": "smart_exam_opt_test_20261019",
+      "browser": "installed Microsoft Edge",
+      "isolated": true,
+      "tokensPersisted": false,
+      "checks": [
+        {
+          "name": "V5 save-and-next confirms all reviewed; natural exam end enables explicit result publication",
+          "passed": true
+        },
+        {
+          "name": "V5 student sees 18/30 with explicit zero, latest long answer and both comment layers",
+          "passed": true
+        },
+        {
+          "name": "V5 published scores are read-only in UI and reject API writes without changing totals",
+          "passed": true
+        },
+        {
+          "name": "V5 actual cross-student, cross-teacher and cross-role requests are rejected",
+          "passed": true
+        },
+        {
+          "name": "V5 real token revocation renders role-neutral reauthentication without stale business content",
+          "passed": true
+        },
+        {
+          "name": "V5 UI ordinary copy retains question content with independent IDs and no submissions",
+          "passed": true
+        },
+        {
+          "name": "V5 UI archive and restore preserve the exact published result",
+          "passed": true
+        },
+        {
+          "name": "V5 UI makeup selects only absent student and independently saves a new snapshot",
+          "passed": true
+        },
+        {
+          "name": "V5 natural cutoff freezes input, auto-submits once, rejects late writes and preserves original result",
+          "passed": true
+        }
+      ],
+      "fixture": {
+        "examId": 7917,
+        "submissionId": 4591,
+        "copyId": 7918,
+        "makeupId": 7919,
+        "makeupSubmissionId": 4592
+      }
+    },
+    {
+      "id": "browser-terminal-variants-proof-20261103",
+      "checkedAt": "2026-11-03T04:56:20.907Z",
+      "commit": "7e0ed0e14ebdaaa9af368e7e923e5320ee3369d6",
+      "jarSha256": "9b8ce727ff9f87bcc870cc474a572ca69abb443bc3bca3d0708bd4ef8d9158af",
+      "frontendAssets": [
+        "assets/index-1qsl5eIA.js",
+        "assets/index-B-rdf1z-.css"
+      ],
+      "database": "smart_exam_opt_test_20261019",
+      "browser": "installed Microsoft Edge",
+      "isolated": true,
+      "tokensPersisted": false,
+      "checks": [
+        {
+          "name": "V5 all-objective exam auto-grades and releases 5/5 without manual review",
+          "passed": true
+        },
+        {
+          "name": "V5 zero participants is a neutral terminal state with no release or zero-bar chart",
+          "passed": true
+        }
+      ],
+      "fixture": {
+        "objectiveExamId": 7920,
+        "noParticipantsExamId": 7921
+      },
+      "scope": "naturally ended actual exams; waits for analysis response before inspecting the rendered notice"
+    },
+    {
+      "id": "browser-auth-recovery-proof-20261103",
+      "checkedAt": "2026-11-03T05:01:15.060Z",
+      "commit": "7e0ed0e14ebdaaa9af368e7e923e5320ee3369d6",
+      "jarSha256": "9b8ce727ff9f87bcc870cc474a572ca69abb443bc3bca3d0708bd4ef8d9158af",
+      "frontendAssets": [
+        "assets/index-1qsl5eIA.js",
+        "assets/index-B-rdf1z-.css"
+      ],
+      "database": "smart_exam_opt_test_20261019",
+      "browser": "installed Microsoft Edge",
+      "isolated": true,
+      "tokensPersisted": false,
+      "checks": [
+        {
+          "name": "V4 real student token expiry pauses writes; same-account login validates active paper and explicitly restores draft",
+          "passed": true
+        },
+        {
+          "name": "V4 choosing another account clears the old scoped draft and returns home instead of opening its paper",
+          "passed": true
+        }
+      ],
+      "fixture": {
+        "examId": 7923,
+        "submissionId": 4595,
+        "studentId": 10406
+      },
+      "scope": "synthetic account only; real server token-version revocation, actual login and recovery controls; no demo or original account password changed"
+    },
+    {
+      "id": "v7-runtime-proof-20261102",
+      "checkedAt": "2026-11-02T14:58:40.836Z",
+      "commit": "7e0ed0e14ebdaaa9af368e7e923e5320ee3369d6",
+      "jarSha256": "9b8ce727ff9f87bcc870cc474a572ca69abb443bc3bca3d0708bd4ef8d9158af",
+      "frontendAssets": [
+        "assets/index-1qsl5eIA.js",
+        "assets/index-B-rdf1z-.css"
+      ],
+      "database": "smart_exam_opt_test_20261019",
+      "browser": "installed Microsoft Edge",
+      "isolated": true,
+      "tokensPersisted": false,
+      "checks": [
+        {
+          "name": "V7 actual 6e9858f runtime reads restored current schema and identical published results",
+          "passed": true
+        },
+        {
+          "name": "V7 old runtime retains cross-student and cross-role access rejection",
+          "passed": true
+        },
+        {
+          "name": "V7 selected old version still revokes previous tokens after a password change",
+          "passed": true
+        },
+        {
+          "name": "V7 archived old frontend and JAR actually serve the recovered result together",
+          "passed": true
+        },
+        {
+          "name": "V7 return to current candidate confirms original current result unchanged",
+          "passed": true
+        }
+      ],
+      "oldCommit": "6e9858f",
+      "oldPorts": [
+        18082,
+        15174
+      ],
+      "oldDatabase": "smart_exam_opt_v7_runtime_20261102",
+      "scope": "actual old JAR/frontend plus private restored schema, original service and database untouched; known newer UI fixes are not present in the old build"
+    }
+  ],
+  "recovery": {
+    "checkedAt": "2026-11-02T22:53:26.3706815+08:00",
+    "tableCount": 19,
+    "currentBackupRestoreMatches": true,
+    "migrationTwicePreservesOldUserFields": true,
+    "restoredLegacySchemaRowsChecksumsMatch": true,
+    "oldCommit": "6e9858f",
+    "oldJarSha256": "71DF35CCDAF6330A729DF167E4786853710047EC14EC69704F5BDB8E7A1AFD77",
+    "runtimeVerified": true,
+    "oldProcessesStopped": true,
+    "temporaryGrantsRevoked": true,
+    "originalDatabaseAccessed": false
+  },
+  "originalPreservation": {
+    "verifiedAt": "2026-11-03T12:58:45.5681065+08:00",
+    "total": 361,
+    "hashMismatch": [],
+    "protectedMetadataCount": 8,
+    "metadataMismatch": [],
+    "originalHead": "59d1389f31b4931a533390aa684db94dba488e2e"
+  },
+  "images": [
+    {
+      "path": "2026-11-02-evidence/v1-storage-denied.png",
+      "bytes": 91397,
+      "sha256": "9f54984671e9b39e2e773615c4933a8a3c4b92bcccd723a1d0b1420ce9e26b9d"
+    },
+    {
+      "path": "2026-11-02-evidence/v1-storage-quota.png",
+      "bytes": 109431,
+      "sha256": "654c46f3cefefda70afbc5f95ef43ffa4fb0b9f0a609f02f1318e70cc8788d25"
+    },
+    {
+      "path": "2026-11-02-evidence/v2-reload-recovery.png",
+      "bytes": 100865,
+      "sha256": "36d0d3ec73366c46e91e92b19180a5b857f425ef29db1cf6e532986c4806a73d"
+    },
+    {
+      "path": "2026-11-02-evidence/v3-clock-offset.png",
+      "bytes": 86630,
+      "sha256": "f1d8ca7de1ed6703a372de5d7d974fbc83e3b35be7a0ab07d57ef6651d5aa348"
+    },
+    {
+      "path": "2026-11-02-evidence/v3-real-tab-resume.png",
+      "bytes": 146160,
+      "sha256": "60280a04b9b837c941e8a1cdeef7ffa8c6ab45d8342151d6067c8bcd6efabc92"
+    },
+    {
+      "path": "2026-11-02-evidence/v4-identity-switch-home.png",
+      "bytes": 534254,
+      "sha256": "9545f21a9f8c053b5a389e068510425882be8215ddaaf0567d6a9bb446662d14"
+    },
+    {
+      "path": "2026-11-02-evidence/v4-offline-retained.png",
+      "bytes": 87397,
+      "sha256": "c974066ad3f7b25a22f50dd6aeca5920e606ab21f569c38c581d2e69e5cad64b"
+    },
+    {
+      "path": "2026-11-02-evidence/v4-response-interleaving.png",
+      "bytes": 84705,
+      "sha256": "da2179a11bd3ea7105349e94b27da1a4084246aabe8ce5a6495d375d7ecbdbed"
+    },
+    {
+      "path": "2026-11-02-evidence/v4-same-account-reauth-recovery.png",
+      "bytes": 72338,
+      "sha256": "53f0bb9ba13dbc84b81b0ed0bb723307db20d4dee94e16d194cc6424924f59b3"
+    },
+    {
+      "path": "2026-11-02-evidence/v5-actual-session-expiry.png",
+      "bytes": 19853,
+      "sha256": "d4dca43ea89e2d73c77d132045da30101e0f70e05616fbbb66b70adadb82ca3b"
+    },
+    {
+      "path": "2026-11-02-evidence/v5-ai-grade-failure.png",
+      "bytes": 222916,
+      "sha256": "6dfda0692e7f1ddb6a6df7ac3ac4eb01168a539bfa712747459c5e38d05d86b4"
+    },
+    {
+      "path": "2026-11-02-evidence/v5-ai-grade-success.png",
+      "bytes": 228834,
+      "sha256": "e719232780d51f7ef51e44764d20ae8f79a0ecec641069399e3caa87c9fe4e0a"
+    },
+    {
+      "path": "2026-11-02-evidence/v5-ai-grade-timeout.png",
+      "bytes": 222237,
+      "sha256": "34627fdc06f88ad3be19f6d9a227d0f17d81d243ceae23876f7253b189426f3a"
+    },
+    {
+      "path": "2026-11-02-evidence/v5-ai-interpret-failure.png",
+      "bytes": 131329,
+      "sha256": "7cbbf43b46c51142b93d38be5fb95b9bfaf72d0be2f0ecffe607096e7299490f"
+    },
+    {
+      "path": "2026-11-02-evidence/v5-ai-interpret-timeout.png",
+      "bytes": 131311,
+      "sha256": "bf40a6f9788f04a56d11be9afe4b213c1138ce6d8e01fcc5faead0e73eede382"
+    },
+    {
+      "path": "2026-11-02-evidence/v5-ai-recommend-preview.png",
+      "bytes": 113370,
+      "sha256": "ecbe9aa32856d1518e476d82c02ae559d836af69bb933349541c5956d20ee2cb"
+    },
+    {
+      "path": "2026-11-02-evidence/v5-ai-unconfigured.png",
+      "bytes": 116547,
+      "sha256": "968ae4dae9c4d281cd348e0fe96969a291b0083f69533d56b2d53217e379617e"
+    },
+    {
+      "path": "2026-11-02-evidence/v5-compose-four-modes-before-ai.png",
+      "bytes": 117655,
+      "sha256": "3f975ffc334ef5d116794f25bd6c56a80a72d23110b1ff6e2db07f9cb2d2ad83"
+    },
+    {
+      "path": "2026-11-02-evidence/v5-current-result-release.png",
+      "bytes": 58638,
+      "sha256": "e85e4f33d9cd5174ce6a31907bf6c35e3c1037323f5131026a31bb72a564e0e4"
+    },
+    {
+      "path": "2026-11-02-evidence/v5-current-submit-receipt.png",
+      "bytes": 606580,
+      "sha256": "19809b4610f79c346563c76d6d43940003086e93338b9f0c592b5f1913c70094"
+    },
+    {
+      "path": "2026-11-02-evidence/v5-excel-import.png",
+      "bytes": 84762,
+      "sha256": "7711b251f7723181fdb0a4af3767cc16c14f8a3454066695083d5f9e6381ee44"
+    },
+    {
+      "path": "2026-11-02-evidence/v5-grading-unsaved-eight.png",
+      "bytes": 223320,
+      "sha256": "5ba45832d858a179a0c58e38c6900a43b7a87327380d9eeebfa17b140bdb7018"
+    },
+    {
+      "path": "2026-11-02-evidence/v5-natural-deadline-auto-submit.png",
+      "bytes": 98144,
+      "sha256": "bd1084ae3d2eab57de7e6ec6910697411dea4dae0456fd379cac2c02023f0393"
+    },
+    {
+      "path": "2026-11-02-evidence/v5-no-participants-390.png",
+      "bytes": 84535,
+      "sha256": "a8dda3405790274851f64c1ee5076d14ff2533932c3e04b6b62ce91429c0ced5"
+    },
+    {
+      "path": "2026-11-02-evidence/v5-objective-results-390.png",
+      "bytes": 85052,
+      "sha256": "d547fd9b3c2970f0dd261822f04f1720481deefd6744e6100001caa3237e5eea"
+    },
+    {
+      "path": "2026-11-02-evidence/v5-rule-preview.png",
+      "bytes": 100548,
+      "sha256": "90d0894432a879e4eaf1b1ac0c606ee87af21aa4e45db808fd21b7e0d7a76818"
+    },
+    {
+      "path": "2026-11-02-evidence/v5-student-final-result.png",
+      "bytes": 180062,
+      "sha256": "46b67e586fbfb1dc3ccd0cf4bed91fcd0c17346e72fcce9ccf6dbfa1ba2c997f"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-admin-home-1280.png",
+      "bytes": 57556,
+      "sha256": "c7725cb01e66c35a5ae9ee1de065acc4c9619a61b24ee8b31659508d5b51357b"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-admin-home-1440.png",
+      "bytes": 58756,
+      "sha256": "09b353f720169491a2bf7aa45f71e743176b67b4134f7289eead502035eaa97d"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-admin-home-390.png",
+      "bytes": 52224,
+      "sha256": "514bb0719fc5423327e5b41746ff58ff8f45eb10b662c8d022881c1725f0a21d"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-admin-home-768.png",
+      "bytes": 55903,
+      "sha256": "409fb714a048446f9ab7c014aa55d3c5b7d71224eee0b48ee4334ecb2a19a31e"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-admin-students-1280.png",
+      "bytes": 55574,
+      "sha256": "0aa9e6b78ce7a1ebf81c71218922be89d9771fefd6fc5a37c72b2994a046cbb1"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-admin-students-1440.png",
+      "bytes": 57391,
+      "sha256": "b443aa8abe6501fe69e45c2521d54f147dfe2e299fc26cadd5a6f626b43141b1"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-admin-students-390.png",
+      "bytes": 37697,
+      "sha256": "b7fa0e331a87769c846c00c6002308329c4d5d36030d83fd2df2d7f46abe4680"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-admin-students-768.png",
+      "bytes": 47806,
+      "sha256": "64355db704f62384f4a6f750b653dd6ab7bbec73370266fae9714791a753e2f5"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-empty-1280.png",
+      "bytes": 45357,
+      "sha256": "56fcab7a05c001e86d0c9668924689168f31ef1aa7034250f6808aa9e78b4b2e"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-empty-1440.png",
+      "bytes": 46509,
+      "sha256": "b79f148c8079951fd4f022d6ddc391bae7104e67827fbfde48db78b7c3ba1eb9"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-empty-390.png",
+      "bytes": 38251,
+      "sha256": "8856ddc026c7ca04a35b409e4be3621f81f1dc3b2386dfe0dbb03c08cbbbc599"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-empty-768.png",
+      "bytes": 44209,
+      "sha256": "a9b2fcde29051a6cc1a7907501cff63996ae6e6639b12630289c772780e64793"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-error-1280.png",
+      "bytes": 45888,
+      "sha256": "418481b0bb4d96e2d357a7176c2413734c909ba9f062aec6c4794f55d404a3c6"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-error-1440.png",
+      "bytes": 47054,
+      "sha256": "fad20a2a6a92341a232ea18ef564d8ba5fa1cbf9e175789081118a4d4e9eca9f"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-error-390.png",
+      "bytes": 38517,
+      "sha256": "6a809dd2ea47a7d9994febde07ed996f0bf28d19e182a0ce7e576b624a4588b5"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-error-768.png",
+      "bytes": 44377,
+      "sha256": "5d516526ec52a00f6c5431d1c3151d0f74e6f4b7ce430002fe8b128eed8c91ab"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-loading-1280.png",
+      "bytes": 41756,
+      "sha256": "5b526176d5d51660e5f06ba0b73adfe598dbdd0d558bbe866749bb8a22a7735d"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-loading-1440.png",
+      "bytes": 42710,
+      "sha256": "b7c0c15e707cc9790030c873c0cb8516eca7d6af3e1cfa9e4171f49592d6db1d"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-loading-390.png",
+      "bytes": 34353,
+      "sha256": "7a3077c058e88ce702d0a47175cd708d45d6bf6de5e1ef4d05de820fadefeba0"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-loading-768.png",
+      "bytes": 40153,
+      "sha256": "0410289b692b31ac94ccfdc4187856948f9b9ace2232e56d606599e1a54f81c5"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-student-home-1280.png",
+      "bytes": 586034,
+      "sha256": "5bdf1bdf4472f828361f1a6c9b6e5c938cfc28c906c1ffe857e69d9079f498e2"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-student-home-1440.png",
+      "bytes": 599874,
+      "sha256": "4e5f0df75eb2ad6bbe54fee71aff384b4a42801462eea85b125f0f1dfb17359d"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-student-home-390.png",
+      "bytes": 509988,
+      "sha256": "107fa1afcc98d0e5ae14c4644c20cd3274eb02a1f5eaff7f7a46c8099f361261"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-student-home-768.png",
+      "bytes": 565223,
+      "sha256": "ebea805c7d2524163b3dd1af5492af0f2dc38902d442f671ac884d1eebbcfe8c"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-student-paper-1280.png",
+      "bytes": 84071,
+      "sha256": "2033b3bf3fa0125a2d648f9a9be87bc947faed151ac8e73e408dc411a0e75e51"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-student-paper-1440.png",
+      "bytes": 85938,
+      "sha256": "bdfa3f9d70917753ce6750b34fe9e932e79ac509a845dbdd466c3c905c4e7b49"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-student-paper-390.png",
+      "bytes": 74051,
+      "sha256": "544188f13787b0e85351d927bc93f5aa4582040ba7416d6e6f99ff515f277d4e"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-student-paper-768.png",
+      "bytes": 80061,
+      "sha256": "e627e305110592a4517aaa054f5866ac673ea33e3f160b5e3ef38d851ea18f9d"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-student-result-1280.png",
+      "bytes": 91360,
+      "sha256": "5570f78b3208c6a3a85f743aaabc205b27d0bebef4e725ed4e5f039734a25d4f"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-student-result-1440.png",
+      "bytes": 93458,
+      "sha256": "c26c5f70759473f11c3aeb5bb142cceb52cd1ac219177fc90332be9195dd43c4"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-student-result-390.png",
+      "bytes": 81434,
+      "sha256": "560aff52871b2f3970afef20201542c39a3dbcdcfafaf771db784aff76dbc359"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-student-result-768.png",
+      "bytes": 88033,
+      "sha256": "92a317d0c8754e30bd64f42e438e1a2071e48d013d6e3dd2c3665d379cce5a47"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-teacher-analysis-1280.png",
+      "bytes": 39185,
+      "sha256": "e99e2508ea75fdeb0f208531aa876e7b25cfe53893dde8d8da2d0afc9d397a6b"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-teacher-analysis-1440.png",
+      "bytes": 36424,
+      "sha256": "4dfb0092dc600de128331c00674ba58f8feee089fa2db2d4e2d1d21415433045"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-teacher-analysis-390.png",
+      "bytes": 31496,
+      "sha256": "dc5e07cb388d5f7bbaac412d99e0c4ba7c0b2dc62486505a10c971879397af94"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-teacher-analysis-768.png",
+      "bytes": 36748,
+      "sha256": "2fb0b9972c517631f4b826c5acb640e55aa664f5a706fa3cdc065c2234318880"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-teacher-bank-1280.png",
+      "bytes": 79922,
+      "sha256": "75c62d54176f9ba103702f972a3db0e2d2da337b28879183dc04dec036a1fe97"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-teacher-bank-1440.png",
+      "bytes": 81687,
+      "sha256": "a6092773703c010390e0407eccdf12843db5c77cedf17b2313c520000d7a97f9"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-teacher-bank-390.png",
+      "bytes": 75182,
+      "sha256": "2290f5aa67fee6ce1462af4dae055199e8838ae00c92b2adea5624c206762e8f"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-teacher-bank-768.png",
+      "bytes": 80430,
+      "sha256": "7d6faa98c25f4154af7230b7667b4848cf5ec79b68f7aa1ae6abd74fbb370647"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-teacher-courses-1280.png",
+      "bytes": 209126,
+      "sha256": "ac4f4b2e05bae4a7e993e1a7993e5f619eebcb76a37b868c4441787a9fc72f44"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-teacher-courses-1440.png",
+      "bytes": 156164,
+      "sha256": "ea38e9e0bd2bd95f1710f03fd789a1bba1f41aec4fbd0b8972ce7c696b1f1f80"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-teacher-courses-390.png",
+      "bytes": 232480,
+      "sha256": "e886f2f92dd206c3e605a64b1e4eaaabbf9c3c414cba88af116f84d9457112f1"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-teacher-courses-768.png",
+      "bytes": 221352,
+      "sha256": "092611f5db3f9c90cdcb44fe628ff41d95bbcdcf9c1651cfe454ddae946387de"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-teacher-detail-1280.png",
+      "bytes": 96313,
+      "sha256": "116d4ce2326edc5b3bc531fd4a468f40333d3f10580b454d20e3d83116b69ed3"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-teacher-detail-1440.png",
+      "bytes": 96779,
+      "sha256": "1c715517cc7ca5c2312dc98e868701a7feb630a6fb0cef5ac8666a943ae7b408"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-teacher-detail-390.png",
+      "bytes": 88099,
+      "sha256": "20a3d9b55f4dbfedd8c7ce1c1d00557b2fc9cfcf7652da665cd75999eb92c877"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-teacher-detail-768.png",
+      "bytes": 92590,
+      "sha256": "eec56674497c359160ba059fdc0dd4a222186db9199ef841dda422ec05a392d2"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-teacher-exams-1280.png",
+      "bytes": 148062,
+      "sha256": "806addfba7eeaf9735c2ce95a64ac3c14287f62a4d384dc7ffed61034e0a710b"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-teacher-exams-1440.png",
+      "bytes": 151629,
+      "sha256": "9288283a633043f084177787ca7e41596dd9ed614a8b65e05a476f8e7ca986b8"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-teacher-exams-390.png",
+      "bytes": 83626,
+      "sha256": "68dc32750922deb2574b8f38790a50aad4aa1df7c960928470b43d47665d70ef"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-teacher-exams-768.png",
+      "bytes": 107728,
+      "sha256": "5086c65793b96ac1376bf0a3f02521848281ad2e19624aba351365b3958c3d2e"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-teacher-grading-1280.png",
+      "bytes": 123127,
+      "sha256": "0556f66018e2ae66cb260959c7e80f806bb914c6b873ce1eed591e5b544b7796"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-teacher-grading-1440.png",
+      "bytes": 125754,
+      "sha256": "9c0e12db6f5288d7d1e31bf6ee834e9802e61946e1de4c1aade2714b78566f28"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-teacher-grading-390.png",
+      "bytes": 114388,
+      "sha256": "1261b0b416a14523ec5687dad0e52a27f85e328f9780587f7ea0a310b074cab4"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-teacher-grading-768.png",
+      "bytes": 122273,
+      "sha256": "c7d01ee2ce55466937c6000543e6fd8009b36fd547178c3d5f6f9746f48d20be"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-teacher-home-1280.png",
+      "bytes": 123757,
+      "sha256": "0d3a5640c8937d85576436b7d1ed16e4ee07ba77f215c1a7267a23e0f97c47f9"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-teacher-home-1440.png",
+      "bytes": 126380,
+      "sha256": "6c8d788c7883ca1325920f4e1e19cffa15382a5a1a52c822b6e835b6461899af"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-teacher-home-390.png",
+      "bytes": 91364,
+      "sha256": "216afab1c5f5e181d5f6a98599f4fabf050f09dbc9fbbc83b71c2b60d9c99c53"
+    },
+    {
+      "path": "2026-11-02-evidence/v6-teacher-home-768.png",
+      "bytes": 108316,
+      "sha256": "f84795ab242fe7ba57290d82386aefbd00db7594edaf7b3241fad51dc5164542"
+    },
+    {
+      "path": "2026-11-02-evidence/v7-old-artifact-result.png",
+      "bytes": 91360,
+      "sha256": "5570f78b3208c6a3a85f743aaabc205b27d0bebef4e725ed4e5f039734a25d4f"
+    }
+  ],
+  "notExecuted": [
+    "external real AI provider and paid requests",
+    "original production schema migration/service entry switch",
+    "GitHub publication and final reachable-history secret scan"
+  ],
+  "review": {
+    "range": "221db53..6776d4e",
+    "importantFindings": 0,
+    "criticalFindings": 0,
+    "cssOnly7e0ed0e": "author-reviewed with actual browser failure then 48-width success"
+  }
+}
